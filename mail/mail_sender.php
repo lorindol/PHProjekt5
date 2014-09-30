@@ -1,10 +1,12 @@
 <?php
-
-// mail_sender.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: mail_sender.php,v 1.23.2.1 2007/05/27 00:41:07 polidor Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_sender.php,v 1.26 2007-05-31 08:12:09 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) { die("Please use index.php!"); }
@@ -42,7 +44,6 @@ elseif(!$make) {
     $buttons[] = array('type' => 'form_start', 'name' => 'frm', 'hidden' => $hidden, 'onsubmit'=>"return chkForm('frm','title','".__('Please fill in the following field').": ".__('Name')."','sender','".__('Please fill in the following field')."')");
 
 
-    $output = '<div id="global-header">'.get_tabs_area($tabs).'</div>';
     $output .= '<div id="global-content">';
     $output .= get_buttons($buttons);
     $buttons = array();

@@ -1,16 +1,18 @@
 <?php
-
-// set_links.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: gustavo $
-// $Id: set_links.inc.php,v 1.29.2.1 2007/01/13 16:41:59 gustavo Exp $
+/**
+ * Manage links functions
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: set_links.inc.php,v 1.34 2007-05-31 08:11:55 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
-
 define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');
-
 include_once(LIB_PATH.'/dbman_lib.inc.php');
 
 if ($action == 'store') echo store_links();
@@ -22,7 +24,13 @@ echo '
 </html>
 ';
 
-
+/**
+ * Make the form for manage links
+ *
+ * @param  int 		$ID        	- Record ID
+ * @param  string 	$module 	- Module name
+ * @return string        			HTML output
+ */
 function set_links($ID, $module) {
 
     $str  = set_page_header();
@@ -127,12 +135,12 @@ function set_links($ID, $module) {
     return $str;
 }
 
-
 /**
-* sets the reminder flag to all entries given by post
-* @author Albrecht Günther / Alex Haslberger
-* @return void
-*/
+ * Sets the reminder flag to all entries given by post
+ *
+ * @param void
+ * @return string 		HTML output
+ */
 function store_links() {
     global $user_group, $onload;
 
@@ -147,22 +155,20 @@ function store_links() {
 
 
 /**
-* sets the links flag to a specific entry
-* @author Alex Haslberger
-* @param int    $ID id of the entry
-* @param string $name link name
-* @param string $module module to which the entry belongs
-* @param string $reminder_datum date to be remembered
-* @param int    $wichtung prioroty of the entry
-* @param string $remark users remarks to this entry
-* @param string $acc read access flag to this entry
-* @param int    $group which group this entry belongs to
-* @param int    $parent
-* @param int    $archiv flag if entry is in archiv or not
-* @return void
-*/
-#function set_links_flag($ID, $module, $reminder_datum, $wichtung, $remark, $acc, $gruppe, $parent, $archiv) {
-#function set_links_flag($ID, $name, $module, $reminder_datum, $wichtung, $remark, $acc, $gruppe, $parent, $archiv) {
+ * Sets the links flag to a specific entry
+ *
+ * @param int    		$ID             			- ID of the entry
+ * @param string 	$name           			- Link name
+ * @param string 	$module      			- Module to which the entry belongs
+ * @param string 	$reminder_datum 	- Date to be remembered
+ * @param int    		$wichtung       		- Prioroty of the entry
+ * @param string 	$remark         		- Users remarks to this entry
+ * @param string 	$acc            			- Read access flag to this entry
+ * @param int    		$group          			- Which group this entry belongs to
+ * @param int    		$parent         		- Parent ID
+ * @param int    		$archiv         			- Flag if entry is in archiv or not
+ * @return void
+ */
 function set_links_flag($ID, $module, $reminder_datum, $wichtung, $title, $name, $acc, $gruppe, $parent, $archiv) {
     global$user_ID, $dbIDnull, $dbTSnull;
 
@@ -181,8 +187,8 @@ function set_links_flag($ID, $module, $reminder_datum, $wichtung, $title, $name,
     // check if ID has already an entry
     $result = db_query("SELECT t_ID
                           FROM ".DB_PREFIX."db_records
-                         WHERE t_record = ".(int)$ID." 
-                           AND t_author = ".(int)$user_ID." 
+                         WHERE t_record = ".(int)$ID."
+                           AND t_author = ".(int)$user_ID."
                            AND t_module = '".DB_PREFIX."$module'");
     $row = db_fetch_row($result);
     // insert / update entry
@@ -206,5 +212,4 @@ function set_links_flag($ID, $module, $reminder_datum, $wichtung, $title, $name,
       $result = db_query($query) or db_die();
     }
 }
-
 ?>

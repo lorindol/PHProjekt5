@@ -1,10 +1,12 @@
 <?php
-
-// links_view.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: alexander $
-// $Id: links_view.php,v 1.39.2.1 2007/01/17 13:05:20 alexander Exp $
+/**
+ * @package    links
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: links_view.php,v 1.41 2007-05-31 08:12:07 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -13,6 +15,7 @@ $module = 'links';
 $_SESSION['common']['module'] = 'links';
 
 //diropen_mode($element_mode, $element_ID);
+filter_mode($filter_ID);
 sort_mode($module,'t_wichtung');
 if ($save_tdwidth) store_column_width($module);
 
@@ -48,12 +51,6 @@ $result = db_query("SELECT t_ID
                            $where") or db_die();
 $liste= make_list($result);
 
-// tabs
-$tabs = array();
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
-$output .= breadcrumb($module);
-$output .= '</div>';
 $output .= '<div id="global-content">';
 // button bar
 $output .= get_buttons_area(array(), 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');

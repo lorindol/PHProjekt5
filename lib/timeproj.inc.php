@@ -1,32 +1,32 @@
 <?php
 /**
-* handles module related working time
+* Handles module related working time
 *
 * This file stores common functions for reading and writing
 * project-related times that are referenced from modules.
 *
-* @package    library
-* @module     timecard
-* @author     Franz Graf, $Author: thorsten $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: timeproj.inc.php,v 1.14.2.4 2007/02/27 07:42:40 thorsten Exp $
+* @package    	lib
+* @subpackage 	timecard
+* @author     		Franz Graf, $Author: gustavo $
+* @licence     GPL, see www.gnu.org/copyleft/gpl.html
+* @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+* @version    		$Id: timeproj.inc.php,v 1.24 2008-01-03 22:26:36 gustavo Exp $
 */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
-
 /**
-* Build html-container with all related times.
-* The output can be used directly within an inner-content-div.
-* It is like a 'view' for the data provided by timeproj_get_records()
-* Used in modules to display project related times.
-*
-* @uses timeproj_get_records()
-* @param int $record_ID id of the record whose times should be listed
-* @param string $module the module wich calls the method (todo, ...) (dirty)
-* @param int $user_ID optional userId if only entries of this user should be shown
-* @return string complete HTML-string
-*/
+ * Build html-container with all related times.
+ * The output can be used directly within an inner-content-div.
+ * It is like a 'view' for the data provided by timeproj_get_records()
+ * Used in modules to display project related times.
+ *
+ * @uses timeproj_get_records()
+ * @param int		$record_ID  	- ID of the record whose times should be listed
+ * @param string 	$module  			- Module wich calls the method (todo, ...) (dirty)
+ * @param int 		$user_ID    		- Optional userId if only entries of this user should be shown
+ * @return string        					Complete HTML-string
+ */
 function timeproj_get_list_box($record_ID, $module, $user_ID = null) {
     // get relevant data
     $records = timeproj_get_records($record_ID, $module, $user_ID);
@@ -52,8 +52,6 @@ function timeproj_get_list_box($record_ID, $module, $user_ID = null) {
 
     // build table
     $output = '
-    <fieldset>
-    <legend>'.__('project related times').'</legend>
         <table>
           <thead>
             <tr><th>'.__('Comment').'</th> <th>'.__('Date').'</th> <th colspan="2">'.__('Hours').'</th> <th>'.__('Delete').'</th></tr>
@@ -76,22 +74,20 @@ function timeproj_get_list_box($record_ID, $module, $user_ID = null) {
             </tr>
           </tbody>
         </table>
-    </fieldset>
     ';
 
     return $output;
 }
 
-
 /**
-* Get records from timeproj that are associated with a certain module
-* and record-ID.
-*
-* @param int    $record_ID ID of the parentrecord in the module-table
-* @param string module tablename of the module containing the parent. without prefix!
-* @param int	$user_ID optional userId if only entries of this user should be shown
-* @return array of associative arrays with keys: id, date, h, m, note
-*/
+ * Get records from timeproj that are associated with a certain module
+ * and record-ID.
+ *
+ * @param int 		$record_ID  	- ID of the parentrecord in the module-table
+ * @param string 	$module  			- Tablename of the module containing the parent. without prefix!
+ * @param int 		$user_ID    		- Optional userId if only entries of this user should be shown
+ * @return array         					Array of associative arrays with keys: id, date, h, m, note
+ */
 function timeproj_get_records($record_ID, $module, $user_ID = null) {
     $records = array();
     $where_user = "";
@@ -100,12 +96,19 @@ function timeproj_get_records($record_ID, $module, $user_ID = null) {
     if ($user_ID != null) {
     	$where_user = " AND users = ".(int)$user_ID." ";
     }
-
-    $query = "SELECT id, datum, h, m, note
-                FROM ".DB_PREFIX."timeproj
-               WHERE module='$module' AND module_id = ".(int)$record_ID." $where_user
-            ORDER BY datum, note";
-    $result = db_query(xss($query)) or db_die();
+    if ($module <>''){
+        $query = "SELECT id, datum, h, m, note
+                   FROM ".DB_PREFIX."timeproj
+                   WHERE module='$module' AND module_id = ".(int)$record_ID." $where_user
+                   ORDER BY datum, note";
+    }
+    else{
+        $query =  "SELECT id, datum, h, m, note
+                   FROM ".DB_PREFIX."timeproj
+                   WHERE projekt = ".(int)$record_ID." $where_user
+                   ORDER BY datum, note";
+    }
+    $result = db_query($query) or db_die();
     while ($row = db_fetch_row($result)) {
         $records[] = array('id'   => $row[0],
                            'date' => $row[1],
@@ -118,21 +121,20 @@ function timeproj_get_records($record_ID, $module, $user_ID = null) {
     return $records;
 }
 
-
 /**
-* Write a record into the timeproj-table.
-* The record is ONLY written, if
-* - $timeproj is set with hour, minute and date fields filled.
-* - $user_ID and $project_ID set
-* - date not older than PHPR_TIMECARD_ADD days
-*
-* @uses PHPR_TIMECARD_ADD
-* @param int $user_ID
-* @param int $record_ID id of the module-data-row (module_id)
-* @param int $project_ID
-* @param string $module tablename of the module the record belongs to
-* @param array $timeproj with keys: date (ISO), hours, minutes, note
-*/
+ * Write a record into the timeproj-table.
+ * The record is ONLY written, if
+ * - $timeproj is set with hour, minute and date fields filled.
+ * - $user_ID and $project_ID set
+ * - date not older than PHPR_TIMECARD_ADD days
+ *
+ * @uses PHPR_TIMECARD_ADD
+ * @param int 		$user_ID			- ID of the user
+ * @param int 		$record_ID  	- ID of the module-data-row (module_id)
+ * @param int 		$project_ID		- ID of the project
+ * @param string 	$module  			- Tablename of the module the record belongs to
+ * @param array          					Timeproj with keys: date (ISO), hours, minutes, note
+ */
 function timeproj_insert_record($user_ID, $record_ID, $project_ID, $module, $timeproj) {
 
     // check if $user_ID is set
@@ -164,12 +166,14 @@ function timeproj_insert_record($user_ID, $record_ID, $project_ID, $module, $tim
     unset($diff);
 
     // check date
-    $tmp_date = explode("-", $timeproj['date']);
-    if (!checkdate($tmp_date[1], $tmp_date[2], $tmp_date[0])) {
-        message_stack_in(__('Please check the date!'), 'todo', 'error');
-        return;
+    if (strstr('-',$timeproj['date'])) {
+        $tmp_date = explode("-", $timeproj['date']);
+        if (!checkdate($tmp_date[1], $tmp_date[2], $tmp_date[0])) {
+            message_stack_in(__('Please check the date!'), 'todo', 'error');
+            return;
+        }
+        unset($tmp_date);
     }
-    unset($tmp_date);
 
     $query = "INSERT INTO ".DB_PREFIX."timeproj
         (users, projekt, datum, h, m, note, module, module_id)
@@ -177,12 +181,12 @@ function timeproj_insert_record($user_ID, $record_ID, $project_ID, $module, $tim
     $result = db_query($query) or db_die();
 }
 
-
 /**
-* Delete record(s) from timeproj by ID
-*
-* @param misc $ids row-ID or array of IDs
-*/
+ * Delete record(s) from timeproj by ID
+ *
+ * @param misc 	$ids 	- Row-ID or array of IDs
+ * @return void
+ */
 function timeproj_delete_record($ids) {
     if (!isset($ids) or empty($ids)) { return; }
 
@@ -191,17 +195,17 @@ function timeproj_delete_record($ids) {
     $query = "DELETE
                 FROM ".DB_PREFIX."timeproj
                WHERE id IN ('$ids')";
-    db_query(xss($query)) or db_die();
+    db_query($query) or db_die();
 }
 
-
 /**
-* Delete rows in timeproj that belong to the rowID $parent_ID in the
-* module $module
-*
-* @param int $parent_ID id of the record in the module
-* @param string $module
-*/
+ * Delete rows in timeproj that belong to the rowID $parent_ID in the
+ * module $module
+ *
+ * @param int 		$parent_ID 	- ID of the record in the module
+ * @param string 	$module		- Module name
+ * @return void
+ */
 function timeproj_delete_moduletimes($parent_ID, $module) {
     if (empty($module) or empty($parent_ID)) { return; }
 
@@ -211,14 +215,14 @@ function timeproj_delete_moduletimes($parent_ID, $module) {
     db_query($query) or db_die();
 }
 
-
 /**
  * Remove the link between an entry in timeproj and the module.
  * I.e: a todo is deleted, but the project-times should remain =>
  * clear module & module_id
  *
- * @param string $module  the module-identifier (i.e todo)
- * @param int    $module_id id of the deleted record in the module-table
+ * @param string 	$module    	- The module-identifier (i.e todo)
+ * @param int    		$module_id 	- ID of the deleted record in the module-table
+ * @return void
  */
 function timeproj_unlink_moduletimes ($module_id, $module) {
 	if (empty($module) || empty($module_id)) {
@@ -231,13 +235,13 @@ function timeproj_unlink_moduletimes ($module_id, $module) {
 	db_query($query) or db_die();
 }
 
-
 /**
  * Change the project id of module-related times
  *
- * @param string $module
- * @param int_type $module_id
- * @param int $project_id
+ * @param string 	$module    	- The module-identifier (i.e todo)
+ * @param int    		$module_id 	- ID of the deleted record in the module-table
+ * @param int 		$project_id	- ID of the project
+ * @return void
  */
 function timeproj_change_project_id ($module, $module_id, $project_id) {
 	if (empty($module) || empty($module_id) || empty($project_id) || 0 == $project_id) {
@@ -249,5 +253,4 @@ function timeproj_change_project_id ($module, $module_id, $project_id) {
 	           WHERE module = '".qss($module)."' AND module_id = ".(int)$module_id;
 	db_query($query) or db_die();
 }
-
 ?>

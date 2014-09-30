@@ -1,24 +1,20 @@
 <?php
 /**
-* bookmarks form/edit script
-*
-* @package    bookmarks
-* @module     main
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: bookmarks_forms.php,v 1.30 2006/11/07 00:28:20 gustavo Exp $
-*/
+ * bookmarks form/edit script
+ *
+ * @package    bookmarks
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: bookmarks_forms.php,v 1.34 2007-05-31 08:10:10 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
 if (check_role("bookmarks") < 2) die("You are not allowed to do this!");
 
-
-// tabs
-$tabs   = array();
-$tmp    = get_export_link_data('bookmarks', false);
-$tabs[] = array('href' => $tmp['href'], 'active' => $tmp['active'], 'id' => 'tab4', 'target' => '_self', 'text' => $tmp['text'], 'position' => 'right');
 
 // form start
 $hidden = array('mode'=>'data', 'mode2'=>'bookmarks', 'ID'=>$ID);
@@ -29,8 +25,6 @@ if (SID) $hidden[session_name()] = session_id();
 $buttons = array();
 $buttons[] = array('type' => 'form_start', 'hidden' => $hidden, 'onsubmit' => 'return chkForm(\'frm\',\'url\',\''.__('Please specify a description!').'!\');', 'name' => 'frm');
 
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
 $output .= breadcrumb($module, array(array('title'=>($ID>0) ? slookup('lesezeichen','bezeichnung','ID', $ID,'1') : __('New') )));
 $output .= '</div>';
 $output .= get_buttons($buttons);
@@ -49,12 +43,13 @@ else {
     $buttons[] = array('type' => 'link', 'href' => 'bookmarks.php', 'text' => __('List View'), 'active' => false);
 }
 $output .= '<div id="global-content">';
-$output .= get_buttons_area($buttons);
+$output .= get_module_tabs($tabs,$buttons);
 
 if ($ID > 0) {
     $result = db_query("SELECT ID, datum, von, url, bezeichnung, bemerkung, gruppe
                           FROM ".DB_PREFIX."lesezeichen
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     if ($row[0]) {
         $row[3] = stripslashes($row[3]);

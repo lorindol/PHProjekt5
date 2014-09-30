@@ -2,10 +2,10 @@
 /**
  * @package    soap
  * @subpackage main
- * @author     Albrecht Guenther, $Author: albrecht $
+ * @author     Albrecht Guenther, $Author: gustavo $
  * @licence    GPL, see www.gnu.org/copyleft/gpl.html
  * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
- * @version    $Id: config.inc.php,v 1.1.6.1 2007/08/02 10:09:00 albrecht Exp $
+ * @version    $Id: config.inc.php,v 1.2 2007-05-31 08:13:08 gustavo Exp $
  */
 
 /*

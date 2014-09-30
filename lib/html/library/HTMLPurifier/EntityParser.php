@@ -12,22 +12,22 @@ require_once 'HTMLPurifier/Encoder.php';
  */
 class HTMLPurifier_EntityParser
 {
-    
+
     /**
      * Reference to entity lookup table.
      * @protected
      */
     var $_entity_lookup;
-    
+
     /**
      * Callback regex string for parsing entities.
      * @protected
-     */                             
+     */
     var $_substituteEntitiesRegex =
 '/&(?:[#]x([a-fA-F0-9]+)|[#]0*(\d+)|([A-Za-z]+));?/';
 //     1. hex             2. dec      3. string
-    
-    
+
+
     /**
      * Decimal to parsed string conversion table for special entities.
      * @protected
@@ -40,7 +40,7 @@ class HTMLPurifier_EntityParser
                     60 => '<',
                     62 => '>'
             );
-    
+
     /**
      * Stripped entity names to decimal conversion table for special entities.
      * @protected
@@ -52,12 +52,12 @@ class HTMLPurifier_EntityParser
                     'lt'   => 60,
                     'gt'   => 62
             );
-    
+
     /**
      * Substitutes non-special entities with their parsed equivalents. Since
      * running this whenever you have parsed character is t3h 5uck, we run
      * it before everything else.
-     * 
+     *
      * @protected
      * @param $string String to have non-special entities parsed.
      * @returns Parsed string.
@@ -70,10 +70,10 @@ class HTMLPurifier_EntityParser
             $string
             );
     }
-    
+
     /**
      * Callback function for substituteNonSpecialEntities() that does the work.
-     * 
+     *
      * @warning Though this is public in order to let the callback happen,
      *          calling it directly is not recommended.
      * @param $matches  PCRE matches array, with 0 the entire match, and
@@ -81,7 +81,7 @@ class HTMLPurifier_EntityParser
      *                  or string (respectively).
      * @returns Replacement string.
      */
-    
+
     function nonSpecialEntityCallback($matches) {
         // replaces all but big five
         $entity = $matches[0];
@@ -89,10 +89,10 @@ class HTMLPurifier_EntityParser
         if ($is_num) {
             $is_hex = (@$entity[2] === 'x');
             $code = $is_hex ? hexdec($matches[1]) : (int) $matches[2];
-            
+
             // abort for special characters
             if (isset($this->_special_dec2str[$code]))  return $entity;
-            
+
             return HTMLPurifier_Encoder::unichr($code);
         } else {
             if (isset($this->_special_ent2dec[$matches[3]])) return $entity;
@@ -107,13 +107,13 @@ class HTMLPurifier_EntityParser
             }
         }
     }
-    
+
     /**
      * Substitutes only special entities with their parsed equivalents.
-     * 
+     *
      * @notice We try to avoid calling this function because otherwise, it
      * would have to be called a lot (for every parsed section).
-     * 
+     *
      * @protected
      * @param $string String to have non-special entities parsed.
      * @returns Parsed string.
@@ -124,12 +124,12 @@ class HTMLPurifier_EntityParser
             array($this, 'specialEntityCallback'),
             $string);
     }
-    
+
     /**
      * Callback function for substituteSpecialEntities() that does the work.
-     * 
+     *
      * This callback has same syntax as nonSpecialEntityCallback().
-     * 
+     *
      * @warning Though this is public in order to let the callback happen,
      *          calling it directly is not recommended.
      * @param $matches  PCRE-style matches array, with 0 the entire match, and
@@ -152,7 +152,5 @@ class HTMLPurifier_EntityParser
                 $entity;
         }
     }
-    
 }
-
 ?>

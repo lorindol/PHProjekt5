@@ -1,19 +1,18 @@
 <?php
 /**
-* postgresql driver
-*
-* @package    db layer
-* @module     main
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: postgresql.inc.php,v 1.12 2006/11/07 00:28:28 gustavo Exp $
-*/
+ * postgresql driver
+ *
+ * @package    	db layer
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: postgresql.inc.php,v 1.17 2007-05-31 08:11:59 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
 
 
 ini_set("pgsql.ignore_notice", "1");
-
 
 // Connect
 $dbIDnull = "pgnull";
@@ -22,7 +21,13 @@ if (!$_database_ressource_identifier)
 $_database_ressource_identifier = pg_connect((($db_host == "" or $db_host == "localhost") ? "" : "host= ".$db_host." ").(($db_pass == "") ? "" : "password=".$db_pass." ")."dbname=".$db_name." user=".$db_user) or pg_errormessage();
 if (!$_database_ressource_identifier)
 die("<b>Database connection failed!</b><br />Call admin, please.");
-// execute sql query
+
+/**
+ * Execute sql query
+ *
+ * @param string 	$query 	- Query string
+ * @return void
+ */
 function db_query($query) {
     global $_database_ressource_identifier, $f_row;
 
@@ -32,11 +37,8 @@ function db_query($query) {
     if      (preg_match("/INTO\s*(\w*)\s*/i",$query,$matches)){
         // hack for db_records-sequence
         if ($matches[1]=="db_records") { $matches[1] .= "_t";}
-        $dbIDnull = "nextval('" . $matches[1] . "_id_seq')"; 
+        $dbIDnull = "nextval('" . $matches[1] . "_id_seq')";
     }
-//    else if (preg_match("/into\s*(\w*)\s*/",$query,$matches)){
-//      $dbIDnull = "nextval('" . $matches[1] . "_id_seq')";
-//    }
     $query = ereg_replace("pgnull", $dbIDnull, $query);
 
     // the new pg 7.3 doesn't allow empty strings to store on integer fields - yes, yes, we did that! :-()
@@ -75,14 +77,24 @@ function db_query($query) {
     return($tmp);
 }
 
-// fetch row statement
+/**
+ * Fetch row statement
+ *
+ * @param array 	$result 	- Querry result
+ * @return array       			Data array
+ */
 function db_fetch_row($result) {
     return pg_fetch_row($result);
-    //if (++$f_row[$result] > pg_numrows($result)) return 0;
-    //else return pg_fetch_row($result, ($f_row[$result]-1));
 }
 
-// Error-Messages
+/**
+ * Error-Messages
+ * only display them if error reporting for phprojekt is activated.
+ * else exit with a non path disclosing error message
+ *
+ * @param void
+ * @return void
+ */
 function db_die() {
     // since from php version 4.2 on new postgres functions are introduced we have to distinguish
     if (substr(phpversion(),0,1) == "4" and substr(phpversion(),2,1) < "2") echo pg_errormessage($_database_ressource_identifier);
@@ -90,9 +102,13 @@ function db_die() {
     die("</div></body></html>");
 }
 
-// error code
+/**
+ * Error code
+ *
+ * @param  object  $resource		- Resourse object of the query
+ * @return string					Error message
+ */
 function get_sql_errno($resource) {
     return pg_result_error($resource);
 }
-
 ?>

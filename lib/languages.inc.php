@@ -1,6 +1,16 @@
 <?php
+/**
+ * Languages array
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: languages.inc.php,v 1.11 2007-06-25 13:51:08 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
-// $Id: languages.inc.php,v 1.6 2006/12/18 12:42:10 nina Exp $
 
 $languages = array(
                     'al' => 'Albanian',
@@ -34,6 +44,7 @@ $languages = array(
                     'pl' => 'Polish',
                     'ro' => 'Romanian',
                     'ru' => 'Russian',
+                    'sv' => 'Serbian',
                     'si' => 'Slovenian',
                     'sk' => 'Slovak',
                     'se' => 'Svenska',
@@ -42,5 +53,4 @@ $languages = array(
                     'tw' => 'Taiwan,R.O.C.(TW)',
                     'uk' => 'Ukrainian'
                 );
-
 ?>

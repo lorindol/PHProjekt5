@@ -1,16 +1,16 @@
 <?php
 /**
-* handles the controls for the default calendar view
-*
-* @package    calendar
-* @module     main
-* @author     Paolo Panto, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_control.php,v 1.129.2.2 2007/01/24 14:27:35 alexander Exp $
-*/
-if (!defined('lib_included')) die('Please use index.php!');
+ * handles the controls for the default calendar view
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Paolo Panto, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_control.php,v 1.137 2008-01-11 02:43:31 gustavo Exp $
+ */
 
+if (!defined('lib_included')) die('Please use index.php!');
 
 $event_owner = $user_ID;
 $event_group = $user_group;
@@ -29,19 +29,22 @@ if ($mode == "view") {
 // ****************
 
 $buttons = array();
-$output = '<div id="global-header">';
-$output .= calendar_tab_selection();
+$output = '';
+if ($justform < 1 ) {
+    $output = calendar_tab_selection();
+}
 $output .= breadcrumb($module, breadcrumb_data($mode, $view));
 $output .= '</div>';
-
 
 if ($justform > 0) {
     $output .= '<div id="global-content" class="popup">';
 } else {
+    define('SUBNAV',false);
+    include_once(LIB_PATH.'/navigation.inc.php');
     $output .= '<div id="global-content">';
 }
 
-if (!calendar_is_selector_view()) {
+if (!calendar_is_selector_view() && $justform < 1) {
     $output .= calendar_view_selection($oncontextmenu);
 }
 
@@ -50,7 +53,6 @@ if ( !in_array($mode, array('forms','view','data')) &&
     if (!$date_selector_form_header) {
         $output .= calendar_date_selection_header();
     }
-    #$output .= calendar_date_selection();
 }
 
 if ($view == 3 && !in_array($mode, array('forms','data'))) {
@@ -139,7 +141,7 @@ function calendar_view_selection($oncontextmenu='') {
 
     $buttons = array();
     // new event
-    $buttons[] = array('type' => 'link', 'href' => 'calendar.php?mode=forms'.$_params, 'text' => __('New'), 'active' => (!$ID && ($mode=='forms' || $mode=='data')));
+    $buttons[] = array('type' => 'link', 'href' => 'calendar.php?mode=forms'.$_params.$_class, 'text' => __('New'), 'active' => (!$ID && ($mode=='forms' || $mode=='data')));
     $buttons[] = array('type' => 'text', 'text' => __('View').':');
     // day
     $buttons[] = array('type' => 'link', 'href' => 'calendar.php?mode=1'.$_params, 'text' => __('Day'), 'active' => ($mode == 1 || $mode == 5));
@@ -155,6 +157,9 @@ function calendar_view_selection($oncontextmenu='') {
     if ($view != 3 || ($view == 3 && count($combisel) < 2)) {
         $buttons[] = array('type' => 'link', 'href' => 'calendar.php?mode=year'.$_params, 'text' => __('Year'), 'active' => ($mode=='year'));
     }
+    if ($view == 3 && count($combisel) >= 2) {
+        $buttons[] = array('type' => 'link', 'href' => 'calendar.php?mode=gantt&amp;view=3&amp;year='.$year,'text' => __('Year'), 'active' => false);
+    }
     // completely disabled in combi view
     if ($view != 3) {
         // event list
@@ -166,7 +171,16 @@ function calendar_view_selection($oncontextmenu='') {
     $_day   = date('d', mktime(date('H')+PHPR_TIMEZONE, date('i'), date('s'), date('m'), date('d'), date('Y')));
     $_weekday = date('w', mktime(0,0,0, $_month, $_day, $_year));
     $buttons[] = array('type' => 'text', 'text' => $name_day[$_weekday].', '.$_year.'-'.$_month.'-'.$_day, 'active' => false);
-    return get_buttons_area($buttons, $oncontextmenu);
+
+    $tabs   = array();
+    $tmp    = get_export_link_data('calendar', false);
+    $tabs[] = array('href' => 'calendar.php?mode=uploadform'.$_params, 'active' => ($mode=='uploadform'), 'id' => 'tab5', 'target' => '_self', 'text' => __('Import'), 'position' => 'right');
+    $tabs[] = array('href' => $tmp['href'], 'active' => false, 'id' => 'tab4', 'target' => '_self', 'text' => $tmp['text'], 'position' => 'right');
+    
+    include_once(LIB_PATH."/module_navigation.inc.php");
+    $module_nav = new PHProjekt_Module_Navigation($tabs, $buttons, $oncontextmenu);
+    $output = $module_nav->get_output();
+    return $output;
 }
 
 
@@ -395,7 +409,8 @@ function calendar_show_datepicker() {
         $query = "SELECT ID
                     FROM ".DB_PREFIX."termine
                    WHERE datum LIKE '$datum2'
-                     AND an = ".(int)$event_owner;
+                     AND an = ".(int)$event_owner."
+                     AND is_deleted is NULL";
         $result3 = db_query($query) or db_die();
         $row3 = db_fetch_row($result3);
 
@@ -519,7 +534,7 @@ function calendar_show_datepicker() {
  */
 function calendar_combi_selection() {
     global $date_selector_form_header, $axis, $dist, $l_text31a, $l_text31b, $combisel;
-    global $user_ID, $user_kurz, $sql_user_group;
+    global $user_ID, $user_kurz, $sql_user_group, $mode;
     
     // profiles
     $profiles = '';
@@ -551,7 +566,7 @@ function calendar_combi_selection() {
         </select>
         <input type="submit" class="button" value="&#187;" name="action_select_user_or_profile" /></div>'."\n";
     
-    if (count($combisel) > 1) {
+    if (count($combisel) > 1 && $mode != 'gantt') {
         $ret .= '
         <span class="col5">'.__('time-axis:').'</span>
         <select name="axis">
@@ -627,6 +642,7 @@ function breadcrumb_data($mode, $view) {
     elseif ( 'forms' == $mode ) { $tuples[] = array('title'=>__('New')); }
     elseif ( 'year'  == $mode ) { $tuples[] = array('title'=>__('Year')); }
     elseif ( 'view'  == $mode ) { $tuples[] = array('title'=>__('List')); }
+    elseif ( 'uploadform'  == $mode ) { $tuples[] = array('title'=>__('Import a Calendar')); }
     
     return $tuples;
 }

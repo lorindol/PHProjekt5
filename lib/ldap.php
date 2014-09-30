@@ -1,21 +1,29 @@
 <?php
-
 /**
- * ldap.php - PHProjekt Version 5.2
- * copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
- * www.phprojekt.com
- * Author: Moritz Kiese
- * $Id: ldap.php,v 1.6 2006/08/25 05:34:24 polidor Exp $
+ * LDAP functions
  *
  * Modified March 15, 2003 James Bourne <jbourne@mtroyal.ab.ca>
- *   Updated to add more logging of errors
- *   Changed top end of array index for ldap->db array
+ * Updated to add more logging of errors
+ * Changed top end of array index for ldap->db array
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Moritz Kiese, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: ldap.php,v 1.10 2007-05-31 08:11:53 gustavo Exp $
  */
 
 // check whether lib.inc.php has been included
 if (!defined('lib_included')) die('Please use index.php!');
 
 
+/**
+ * Get ldap configuration of the user
+ *
+ * @param int 	$ID 	- User id
+ * @return void
+ */
 function get_ldap_usr_data($ID) {
     global $ldap_conf;
 
@@ -24,7 +32,8 @@ function get_ldap_usr_data($ID) {
                                tel1, tel2, fax, strasse, stadt, plz, land, sprache, mobil,
                                loginname, ldap_name, anrede, sms, role, proxy, settings
                           FROM ".DB_PREFIX."users
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $user_data = db_fetch_row($result);
 
     $user_ldap_conf = $user_data[19];
@@ -56,5 +65,4 @@ function get_ldap_usr_data($ID) {
         logit("ldap_connect failed in get_ldap_usr_data()");
     }
 }
-
 ?>

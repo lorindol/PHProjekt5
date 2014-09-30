@@ -1,16 +1,16 @@
 <?php
 /**
-* forum library script
-*
-* @package    forum
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: forum.inc.php,v 1.30.2.3 2007/08/11 16:27:28 polidor Exp $
-*/
-if (!defined('lib_included')) die('Please use index.php!');
+ * forum library script
+ *
+ * @package    forum
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: forum.inc.php,v 1.36 2008-01-08 01:50:08 polidor Exp $
+ */
 
+if (!defined('lib_included')) die('Please use index.php!');
 
 /**
 * lists all threads in a specified forum
@@ -30,13 +30,14 @@ function threads($fID) {
                         FROM    ".DB_PREFIX."forum
                                 ".sql_filter_flags($module, array('archive', 'read'))."
                         WHERE   parent = ".(int)$fID." 
-                            AND (antwort=0 OR antwort IS NULL OR parent = 0)
-                            AND (acc LIKE 'system'
+                        AND (acc LIKE 'system'
                     OR ((von = ".(int)$user_ID."
                          OR acc LIKE 'group'
                          OR acc LIKE '%\"$user_kurz\"%')
                        ".group_string($module).")) 
-                            ".sql_filter_flags($module, array('archive', 'read'), false)) or db_die();
+                          AND is_deleted is NULL
+                          AND (antwort=0 OR antwort IS NULL OR parent = 0)
+                              ".sql_filter_flags($module, array('archive', 'read'), false)) or db_die();
     $liste = make_list($result);
 
     // button bar
@@ -46,13 +47,13 @@ function threads($fID) {
     $hidden = array('mode' => 'forms', 'fID' => $fID);
     if(SID) $hidden[session_name()] = session_id();
     $buttons[] =(array('type' => 'link', 'href' => 'forum.php?sort='.$sort.'&mode=view', 'text' => __('Summary'), 'active' => false));
-    $buttons[] = array('type' => 'form_start', 'hidden' => $hidden);
+    $buttons[] = array('type' => 'form_start', 'hidden' => $hidden, 'enctype' => 'multipart/form-data');
     // submit
     $buttons[] = array('type' => 'submit', 'name' => 'newbei', 'value' => __('New posting'), 'active' => false);
     // form end
     $buttons[] = array('type' => 'form_end');
     // delete posting
-    $buttons[] = array('type' => 'link', 'href' => 'forum.php?mode=options&amp;tree_mode='.$tree_mode.'&amp;fID='.$fID.$sid.'&amp;csrftoken='.make_csrftoken(), 'text' => __('Delete posting'), 'active' => false);
+    $buttons[] = array('type' => 'link', 'href' => 'forum.php?mode=options&amp;tree_mode='.$tree_mode.'&amp;fID='.$fID.$sid, 'text' => __('Delete posting'), 'active' => false);
     $output = '<div id="global-content">';
     $output .= get_buttons_area($buttons, 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');
     $output .= get_top_page_navigation_bar();
@@ -69,11 +70,12 @@ function threads($fID) {
     $int=0;
     if($max>count($liste))$max=count($liste);
     for ($i=($_SESSION['page']['forum']*$perpage); $i < $max; $i++) {
-        $result = db_query("SELECT  *
-                            FROM    ".DB_PREFIX."forum
-                                    ".sql_filter_flags($module, array('archive', 'read'))."
-                            WHERE   ID = ".(int)$liste[$i]." 
-                            ".sql_filter_flags($module, array('archive', 'read'), false)) or db_die();
+        $result = db_query("SELECT *
+                              FROM ".DB_PREFIX."forum
+                                   ".sql_filter_flags($module, array('archive', 'read'))."
+                             WHERE ID = ".(int)$liste[$i]." 
+                               AND is_deleted is NULL
+                                    ".sql_filter_flags($module, array('archive', 'read'), false)) or db_die();
 
         $row = db_fetch_row($result);
         $output1='';
@@ -116,8 +118,11 @@ function show_ans($fID, $ID) {
     global $arrproj, $max, $liste;
     global $date_format_object;
 
-    $result = db_query("select * FROM ".DB_PREFIX."forum
-            WHERE parent = ".(int)$fID."  AND antwort = ".(int)$ID)or db_die();
+    $result = db_query("SELECT * 
+                          FROM ".DB_PREFIX."forum
+                         WHERE parent = ".(int)$fID."
+                           AND antwort = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $liste= make_list($result);
 
     $output.="<table class=\"ruler\" id=\"contacts\" summary=\"__('In this table you can find all threads listed')\">
@@ -130,8 +135,10 @@ function show_ans($fID, $ID) {
     </thead><tbody>";
     if($max>count($liste))$max=count($liste);
     for ($i=($_SESSION['page']['forum']*$perpage); $i < $max; $i++) {
-        $result = db_query("SELECT * from ".DB_PREFIX."forum where ID = ".(int)$liste[$i])
-        or db_die();
+        $result = db_query("SELECT *
+                              FROM ".DB_PREFIX."forum
+                             WHERE ID = ".(int)$liste[$i]."
+                               AND is_deleted is NULL") or db_die();
 
         $row = db_fetch_row($result);
 
@@ -171,13 +178,14 @@ function antworten($antwort, $int="", $output2="") {
     global $date_format_object;
 
     $output1='';
-    $result = db_query("select ID,antwort,von,titel,remark,kat,datum,gruppe,lastchange,notify
-                        from ".DB_PREFIX."forum
-                       where antwort = ".(int)$antwort." and
-                             (von = ".(int)$user_ID." or acc like 'system' or
-                             ((acc like 'group'  or acc like '%$user_kurz%') and
-                             ".DB_PREFIX."forum.gruppe = ".(int)$user_group."))
-                    order by lastchange desc") or db_die();
+    $result = db_query("SELECT ID,antwort,von,titel,remark,kat,datum,gruppe,lastchange,notify
+                          FROM ".DB_PREFIX."forum
+                         WHERE antwort = ".(int)$antwort." and
+                               is_deleted is NULL and
+                               (von = ".(int)$user_ID." or acc like 'system' or
+                               ((acc like 'group'  or acc like '%$user_kurz%') and
+                               ".DB_PREFIX."forum.gruppe = ".(int)$user_group."))
+                      ORDER BY lastchange desc") or db_die();
     while ($row = db_fetch_row($result)) {
         $nr_answers++;
 
@@ -216,9 +224,10 @@ function forum_buttons($ID) {
     // if the radio button 'open' was selected: set all main projects to open:
     if ($tree_mode == "open") { $arrproj[$ID] = 1; }
     // find out whether there is at at least 1 subproject
-    $result = db_query("select ID
-                        from ".DB_PREFIX."forum
-                       where antwort = ".(int)$ID) or db_die();
+    $result = db_query("SELECT ID
+                          FROM ".DB_PREFIX."forum
+                         WHERE antwort = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
 
     if ($row[0] > 0) {
@@ -241,8 +250,11 @@ function forum_buttons($ID) {
 * @return int number of articles in forum
 */
 function get_articles($ID, $field, $cons="") {
-    $result = db_query("SELECT COUNT(ID) FROM ".DB_PREFIX."forum
-                         WHERE ".qss($field)." = ".(int)$ID." $cons") or db_die();
+    $result = db_query("SELECT COUNT(ID)
+                          FROM ".DB_PREFIX."forum
+                         WHERE ".qss($field)." = ".(int)$ID."
+                           AND is_deleted is NULL
+                               $cons") or db_die();
     $row = db_fetch_row($result);
     return $row[0];
 }
@@ -261,6 +273,7 @@ function get_lastarticle($ID, $field, $cons="") {
     $result = db_query("SELECT datum
                           FROM ".DB_PREFIX."forum
                          WHERE ".qss($field)." = ".(int)$ID." $cons
+                           AND is_deleted is NULL
                       ORDER BY datum DESC") or db_die();
     $row = db_fetch_row($result);
     return $date_format_object->convert_dbdatetime2user($row[0]);

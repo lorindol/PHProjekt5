@@ -1,31 +1,40 @@
 <?php
 /**
-* displays related records in a module
-*
-* main records are e.g. contacts, projects, related records are e.g. events, notes, todos, mails etc.
-*
-* This file stores common functions for reading and writing
-* project-related times that are referenced from modules.
-*
-* @package    library
-* @module     timecard
-* @author     Franz Graf, $Author: nina $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: show_related.inc.php,v 1.61.2.3 2007/05/10 07:24:04 nina Exp $
-*/
+ * Displays related records in a module
+ *
+ * main records are e.g. contacts, projects, related records are e.g. events, notes, todos, mails etc.
+ *
+ * This file stores common functions for reading and writing
+ * project-related times that are referenced from modules.
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Franz Graf, $Author: albrecht $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: show_related.inc.php,v 1.70 2008-03-04 10:51:59 albrecht Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
-// show realted objects from module designer
+/**
+ * Show realted objects from module designer
+ *
+ * @param string 	$related_module     	- Module name
+ * @param string 	$linkb              			- Module link
+ * @param string 	$query              			- Query string
+ * @param string 	$referer            			- Referer
+ * @return string								HTML output
+ */
 function show_related($related_module, $linkb, $query='', $referer='') {
     global $mode,  $ID, $user_ID, $user_kurz, $sql_user_group, $fields, $fieldlist,$link,$operator;
     global $filter_module, $filter, $rule, $keyword, $filter_ID, $flist, $projekt_ID, $contact_ID;
-    global $nrel_get, $nrel_sess, $sort_module,$getstring;
-    global $module;
+    global $nrel_get, $nrel_sess, $sort_module;
+    global $module, $related_objects;
 
     // we have to change the global(!) $module here for the filter-stuff.
     // Thus backup it now to undo that step at the end of the function
-    $backup_module = $module; 
+    $backup_module = $module;
     $module = $related_module;
 
     $link = $linkb;
@@ -66,12 +75,11 @@ function show_related($related_module, $linkb, $query='', $referer='') {
             $caption = __('Calendar');
             $news = __('New Event');
             $table='termine';
-            break;  
-      case 'Protokoll':
-            $caption = __('Protokoll');
-            $news = __('New Protokoll');
-            $table='protokoll';
-            $getstring="addon=Protokoll";
+            break;
+        case 'costs':
+            $caption = __('Costs');
+            $news = __('New cost');
+            $table='costs';
             break;
         default:
             // to be completed .....
@@ -82,20 +90,22 @@ function show_related($related_module, $linkb, $query='', $referer='') {
 
     $module_alias = $module;
     if ($module == 'dateien') $module_alias = 'filemanager';
-    if ($module == 'Protokoll') $module_alias = 'addons';
 
     if (isset($nrel_get[$module])) {
         $perpage = $nrel_get[$module];
         $nrel_sess[$module] = $perpage;
         $_SESSION['nrel_sess'] =& $nrel_sess;
     }
-    else if (isset($nrel_sess[$module])) {
+    elseif (isset($related_objects) && 0 < (int)$related_objects) {
+        $perpage = $related_objects;
+    }
+    elseif (isset($nrel_sess[$module])) {
         $perpage = $nrel_sess[$module];
     }
     else {
         $perpage = 5;
     }
-
+    
     if (isset($query) && !empty($query)) {
         $query = ' and '.$query;
     }
@@ -125,18 +135,19 @@ function show_related($related_module, $linkb, $query='', $referer='') {
 
     $has_to_be_sorted = ($sort_module == $module);
     if($module=='helpdesk') {
-        $nwhere = " WHERE (acc_read LIKE 'system' OR ((von = ".(int)$user_ID." OR acc_read LIKE 'group' OR acc_read LIKE '%\"$user_kurz\"%') AND $sql_user_group)) ";   
+        $nwhere = " WHERE (acc_read LIKE 'system' OR ((von = ".(int)$user_ID." OR acc_read LIKE 'group' OR acc_read LIKE '%\"$user_kurz\"%') AND $sql_user_group)) ";
     }
     else if ($module != 'calendar') {
-        $nwhere = " WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') AND $sql_user_group)) ";   
+        $nwhere = " WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') AND $sql_user_group)) ";
     } else {
         $nwhere = " WHERE (von = ".(int)$user_ID." OR an = ".(int)$user_ID.") ";
     }
-   
+
     $nwhere .= "
                     $query
-                    $where 
-                    ".sql_filter_flags($module, array('archive', 'read'), false);   
+                    $where
+                    ".sql_filter_flags($module, array('archive', 'read'), false);
+
     $res=db_query("SELECT COUNT(*) FROM ".qss(DB_PREFIX.$table).
                     sql_filter_flags($module, array('archive', 'read')) .
                     $nwhere) or db_die();
@@ -146,94 +157,142 @@ function show_related($related_module, $linkb, $query='', $referer='') {
     $fieldlist = array();
 
     $outputrel = '
-    <div class="rel_object">
-        <h4>'.$caption.'</h4>
-        <input title="'.__('This button opens a popup window').'" name="tcstart" value="'.$news.'" class="button" onclick ="manage_related_object(\''.PATH_PRE.'\',\''.$module_alias.'\',\''.$projekt_ID.'\',\''.$contact_ID.'\',\''.$sid.'\',\''.$getstring.'\');" type="button" />
+        <input title="'.__('This button opens a popup window').'" name="tcstart" value="'.$news.'" class="button" onclick ="manage_related_object(\''.PATH_PRE.'\',\''.$module_alias.'\',\''.$projekt_ID.'\',\''.$contact_ID.'\',\''.$sid.'\');" type="button" />
 
     ';
-    if($relcount>0){
-        $outputrel .= get_filter_edit_bar(true,$link);
-        $outputrel .= get_status_bar();
-    }
+
+    $outputrel .= get_filter_edit_bar(true,$link);
+    $outputrel .= get_status_bar();
+
     //reset module!
     $element_module= $module;
     $module = $backup_module;
-    if($relcount>0){
-        if( $element_module == 'helpdesk'){
-            $outputrel .= build_table(array('ID', 'von', 'acc_read', 'parent'), $element_module, $nwhere, 0, $perpage, $link, 700, true);
-        }
-        else if ($element_module != 'calendar') {
-            $outputrel .= build_table(array('ID', 'von', 'acc', 'parent'), $element_module, $nwhere, 0, $perpage, $link, 700, true);
-        } else {
-            $outputrel .= build_table(array('ID', 'von', 'event'), $element_module, $nwhere, 0, $perpage, $link, 700, true);
-        }
-    }
-    // everything's over - undo the module-change now in order to keep 
-    // the environment unchanged
     
-    $outputrel .= '</div>';
+    if( $element_module == 'helpdesk'){
+        $outputrel .= build_table(array('ID', 'von', 'acc_read', 'parent'), $element_module, $nwhere, 0, $perpage, $link, 700, true);
+    } else if ($element_module != 'calendar') {
+        $outputrel .= build_table(array('ID', 'von', 'acc', 'parent'), $element_module, $nwhere, 0, $perpage, $link, 700, true);
+    } else {
+        $outputrel .= build_table(array('ID', 'von', 'event'), $element_module, $nwhere, 0, $perpage, $link, 700, true);
+    }
+
+    // everything's over - undo the module-change now in order to keep
+    // the environment unchanged
+
     return $outputrel;
 }
 
-
-// show notes related to a record
+/**
+ * Show notes related to a record
+ *
+ * @param string 	$where   	- Query string
+ * @param string 	$referer 	- Referer
+ * @return string				HTML output
+ */
 function show_related_notes($where, $referer) {
     global $module;
     $out = show_related('notes', $module, $where, $referer);
     return $out;
 }
 
-
-// show files related to a record
+/**
+ * Show files related to a record
+ *
+ * @param string 	$where   	- Query string
+ * @param string 	$referer 	- Referer
+ * @return string				HTML output
+ */
 function show_related_files($where, $referer) {
     global $module;
     $out = show_related('dateien', $module, $where, $referer);
     return $out;
 }
 
-
-// show todos related to a record
+/**
+ * Show todos related to a record
+ *
+ * @param string 	$where   	- Query string
+ * @param string 	$referer 	- Referer
+ * @return string				HTML output
+ */
 function show_related_todo($where, $referer) {
     global $module;
     $out = show_related('todo', $module, $where, $referer);
     return $out;
 }
 
-// show emails related to a record
+/**
+ * Show emails related to a record
+ *
+ * @param string 	$where   	- Query string
+ * @param string 	$referer 	- Referer
+ * @return string				HTML output
+ */
 function show_related_mail($where, $referer) {
     global $module;
     $out = show_related('mail', $module, $where, $referer);
     return $out;
 }
 
-// show helpdesk related to a record
+/**
+ * Show helpdesk related to a record
+ *
+ * @param string 	$where   	- Query string
+ * @param string 	$referer 	- Referer
+ * @return string				HTML output
+ */
 function show_related_helpdesk($query, $referer) {
     global $module;
     $out = show_related('helpdesk', $module, $query, $referer);
     return $out;
 }
 
-// show events related to a record
+/**
+ * Show events related to a record
+ *
+ * @param string 	$where   	- Query string
+ * @param string 	$referer 	- Referer
+ * @return string				HTML output
+ */
 function show_related_events($query, $referer) {
     global $module;
     $out = show_related('calendar', $module, $query, $referer);
     return $out;
 }
 
-// show projects related to a record 8at the moment only contacts
+/**
+ * Show projects related to a record 8at the moment only contacts
+ *
+ * @param string 	$where   	- Query string
+ * @param string 	$referer 	- Referer
+ * @return string				HTML output
+ */
 function show_related_projects($query, $referer) {
     global $module;
     $out = show_related('projects', $module, $query, $referer);
     return $out;
 }
 
-// show protocolls related to a record 8
-function show_related_protokolls($query, $referer) {
+/**
+ * Show projects related to a record 8at the moment only contacts
+ *
+ * @param string 	$where   	- Query string
+ * @param string 	$referer 	- Referer
+ * @return string				HTML output
+ */
+function show_related_costs($query, $referer) {
     global $module;
-    $out = show_related('Protokoll', $module, $query, $referer);
+    $out = show_related('costs', $module, $query, $referer);
     return $out;
 }
 
+/**
+ *
+ *
+ * @param string	$referer		- Referer
+ * @param string	$module		- Module name
+ * @return array
+ */
 function show_nrel($referer, $module) {
     global $nrel_sess, $nrel_get, $sid;
 

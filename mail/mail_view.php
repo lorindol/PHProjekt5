@@ -1,10 +1,12 @@
 <?php
-
-// mail_view.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: mail_view.php,v 1.84.2.8 2007/05/27 00:41:07 polidor Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_view.php,v 1.91 2008-02-04 15:09:32 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -12,12 +14,14 @@ if (!defined("lib_included")) die("Please use index.php!");
 // check role
 if (check_role("mail") < 1) die("You are not allowed to do this!");
 
+include_once(LIB_PATH."/module_navigation.inc.php");
 // sadly enough here comes the third check whether the imap library is installed ;-)
 if (!function_exists('imap_open')) die("Sorry but the full functionality of the mail client requires the imap-extension
                                         of php. Please ensure that this extension is active on your system.<br />
                                         In the meantime if you want to use the mail send module, set PHPR_QUICKMAIL=1; in the config.inc.php");
 
 include_once(LIB_PATH."/email_getpart.inc.php");
+filter_mode($filter_ID);
 sort_mode($module,'date_inserted');
 read_mode($module);
 archive_mode($module);
@@ -35,7 +39,7 @@ $tree_mode = isset($tree_mode) ? qss($tree_mode) : '';
 $is_related_obj = isset($is_related_obj) ? (bool) $is_related_obj : false;
 $rule = isset($rule) ? check_rule($rule) : '';
 $filter_ID = isset($filter_ID) ? (int) $filter_ID : null;
-$operator = isset($operator) && $operator == 'OR' ? $operator : ' AND ';
+$operator = isset($operator) ? qss($operator) : '';
 
 // unset all references to attachments and let the script create them
 //session_unregister("file_ID");
@@ -81,11 +85,11 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
     }
 
     $result = db_query("SELECT ID, von, accountname, hostname, type, username, password, deletion
-                               FROM ".DB_PREFIX."mail_account 
+                               FROM ".DB_PREFIX."mail_account
                                WHERE von = ".(int)$user_ID." AND $where") or db_die();
 
     while ($row = db_fetch_row($result)) {
-        
+
         $account_ID = $row[0];
 
         $list = '';
@@ -101,7 +105,7 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
 
         // mail server connection
         $conn = new fetchmail($row[3], $row[5], $row[6], $row[4]);
-        
+
         if ($row[7] == 1) {
             $checked         = 'checked ';
             if ($action <> "process_new_mail") {
@@ -114,7 +118,7 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
             if ($action <> "process_new_mail") {
                 if ($_POST['delete'] == 'all') {
                     $_POST['delete'] = array();
-    
+
                 }
             }
             $no_delete = true;
@@ -129,7 +133,7 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
             if (is_array($mails_on_server) && count($mails_on_server) > 0) {
 
                 $list = "<table 'width=100%'>
-                                      
+
                               <form name='messages' action='mail.php' method='post'>
                                   <input type='hidden' name='mode' value='view' />
                                   <input type='hidden' name='action' value='process_new_mail' />
@@ -168,9 +172,9 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
             }
         }
         elseif (xss($_REQUEST['list_mails']) == 1) {
-            
+
             $list .= $conn->get_mail_table();
-            
+
         }
         else {
 
@@ -181,9 +185,9 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
             $conn->get_mail($_POST['download'],$_POST['delete'], PHPR_ATT_PATH);
 
             foreach ($conn->email as $emailNbr => $oneEmail) {
-                
+
                 $message_ID = addslashes($oneEmail['message_ID']);
-                    
+
                 $skip_mail = 0;
 
                 // check whether this message is already in the database
@@ -194,11 +198,12 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
                     if (!empty($message_ID)) {
 
                         $result3 = db_query("SELECT ID
-                                                    FROM ".DB_PREFIX."mail_client
-                                                    WHERE message_ID = '".(int) $message_ID."'") or db_die();
-    
+                                               FROM ".DB_PREFIX."mail_client
+                                              WHERE message_ID = '$message_ID'
+                                                AND is_deleted is NULL") or db_die();
+
                         $row3 = db_fetch_row($result3);
-    
+
                         if ($row3[0] > 0) {
                             $skip_mail = 1;
                         }
@@ -232,10 +237,10 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
                         }
 
                         $result3 = db_query("SELECT ID
-                                                 FROM ".DB_PREFIX."contacts 
-                                                 WHERE (acc LIKE 'system' 
-                                                        OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') 
-                                                        ".group_string($module).")) 
+                                                 FROM ".DB_PREFIX."contacts
+                                                 WHERE (acc LIKE 'system'
+                                                        OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')
+                                                        ".group_string($module)."))
                                                         AND email LIKE '$sender_email'") or db_die();
 
                         $row3 = db_fetch_row($result3);
@@ -253,20 +258,20 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
                         if ($parent_project == 0) {
                             $parent_project = 0;
                         }
-                        
+
                         $oneEmail['message_ID'] = addslashes($oneEmail['message_ID']);
 
                         // save mail to db
                         $query = "INSERT INTO ".DB_PREFIX."mail_client
-                                                   (von,                  subject,          body,               sender,          recipient,          cc,date_received,touched,typ,parent, date_sent,            header,          replyto,          body_html,           contact,          projekt ,  message_ID, gruppe , date_inserted , account_ID ) 
+                                                   (von,                  subject,          body,               sender,          recipient,          cc,date_received,touched,typ,parent, date_sent,            header,          replyto,          body_html,           contact,          projekt ,  message_ID, gruppe , date_inserted , account_ID )
                                             VALUES (".(int)$user_ID.",'{$oneEmail[subject]}','{$oneEmail[body_text]}','{$oneEmail[sender]}','{$oneEmail[recipient]}','{$oneEmail[cc]}','$dbTSnull',0,'m',".(int)$parents[$i].",'{$oneEmail[date]}','{$oneEmail[header]}','{$oneEmail[replyto]}','{$oneEmail[body_html]}',".(int)$parent_contact.",".(int)$parent_project.",'$message_ID', ".(int)$user_group.", '$dbTSnull' ,".(int)$account_ID.")";
-                        
+
                         $result3 = db_query($query) or db_die();
 
                         // fetch ID as reference for attachment storage
                         $result3 = db_query("SELECT max(ID)
-                                             FROM ".DB_PREFIX."mail_client 
-                                             WHERE von = ".(int)$user_ID."  
+                                             FROM ".DB_PREFIX."mail_client
+                                             WHERE von = ".(int)$user_ID."
                                              AND date_received LIKE '$dbTSnull'") or db_die();
 
                         $row3 = db_fetch_row($result3);
@@ -289,7 +294,7 @@ if ($action == "fetch_new_mail" || $action == "process_new_mail") {
                                 $att_tempname = $oneAttachment['att_tempname'];
 
                                 $result3 = db_query("INSERT INTO ".DB_PREFIX."mail_attach
-                                                               (parent,  filename,       tempname,   filesize ) 
+                                                               (parent,  filename,       tempname,   filesize )
                                                         VALUES (".(int)$mail_ID.",'$att_name','$att_tempname',".(int)$att_size.")") or db_die();
 
                                 $total_size += $att_size;
@@ -363,27 +368,24 @@ if (!$action) {
 
 
     // call the main filter routine
-    // $where = "1=1 ";
-    $where = main_filter($filter,$rule,$keyword,$filter_ID,'mail','',$operator);
+    $where = "1=1 ";
+    $where.= main_filter($filter,$rule,$keyword,$filter_ID,'mail','',$operator);
 
-    $result = db_query("select ID
-                             from ".DB_PREFIX."mail_client
-                             ".sql_filter_flags($module, array('archive', 'read'))."
-                             WHERE 
-                             (von = ".(int)$user_ID." OR (acc LIKE 'system' OR
-                              ((von = ".(int)$user_ID."  
-                                OR acc LIKE 'group'
-                                OR acc LIKE '%\"$user_kurz\"%')
-                               ".group_string($module)."))) ".sql_filter_flags($module, array('archive', 'read'), false)." 
-                               $where 
-                             ".sort_string()) or db_die();
+    $result = db_query("SELECT ID
+                          FROM ".DB_PREFIX."mail_client
+                               ".sql_filter_flags($module, array('archive', 'read'))."
+                         WHERE $where and
+                               is_deleted is NULL and
+                               (von = ".(int)$user_ID." OR (acc LIKE 'system' OR
+                               ((von = ".(int)$user_ID."
+                               OR acc LIKE 'group'
+                               OR acc LIKE '%\"$user_kurz\"%')
+                               ".group_string($module)."))) ".sql_filter_flags($module, array('archive', 'read'), false)."
+                               ".sort_string()) or db_die();
 
     $liste= make_list($result);
 
-    //tabs
-    $tabs = array();
-    $output = '<div id="global-header">';
-    $output .= get_tabs_area($tabs);
+
     $output .= breadcrumb($module);
     $output .= '</div>';
 
@@ -398,17 +400,24 @@ if (!$action) {
     $buttons[] = array('type' => 'link', 'href' => $_SERVER['SCRIPT_NAME'].'?mode=options'.$sid.'&amp;csrftoken='.make_csrftoken(), 'text' => __('Options'), 'active' => false);
     $buttons[] = array('type' => 'link', 'href' => $_SERVER['SCRIPT_NAME'].'?mode=data&amp;action=empty_trash_can&amp;sort='.$sort.'&amp;up='.$up.$sid.'&amp;csrftoken='.make_csrftoken(), 'text' => __('Empty Trash Can'), 'active' => false);
     $output .= '<div id="global-content">';
-    $output .= get_buttons_area($buttons, 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');
+// tabs
+$tabs = array();
+$exp = get_export_link_data($module);
+$tabs[] = array('href' => $exp['href'], 'active' => $exp['active'], 'id' => 'export', 'target' => '_self', 'text' => $exp['text'], 'position' => 'right');
+unset($exp);
+$module='mail';
+$module_nav = new PHProjekt_Module_Navigation($tabs, $buttons, 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');
+$output .= $module_nav ->get_output();
 
-    $sql= " WHERE 
+
+    $sql= " WHERE $where AND
             (von = ".(int)$user_ID." OR
             (acc LIKE 'system' OR
-              ((von = ".(int)$user_ID." 
+              ((von = ".(int)$user_ID."
                 OR acc LIKE 'group'
                 OR acc LIKE '%\"$user_kurz\"%')
                ".group_string($module).")))
-            ".sql_filter_flags($module, array('archive', 'read'), false)." 
-            $where 
+            ".sql_filter_flags($module, array('archive', 'read'), false)."
             ".sort_string();
 
     $result_rows = build_table(array('ID','von','message_ID','parent'), $module, $sql, $_SESSION['page'][$module], $perpage);

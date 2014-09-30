@@ -1,3 +1,60 @@
+Version 5.3 beta (23. Januar 2008)
+  * Project management:
+  - Introduction of phases and milestones
+  - project bookings in the project form itself
+  - Show work load of users (see section timescales)
+  - stoplight system for ratios on budget and time of the project
+   (used vs. remaining budget or time, related to progress)
+  - Introduction of project templates
+  - Project start/end day are visible in the calendar
+  - Integration of PBridge into PHProjekt
+    (Bridge and sync to ganttproject)
+  * New module: timescales
+    Timescales work like a gantt diagram, but show many more information.
+    The current available timescales are:
+  - Calendar
+  - Capacity plan
+  - task plan
+  - work load
+  Selection of each setting profile can be stored and retrieved.
+  * Finance:
+  - Introduction of cost center and cost unit
+  - Own editor for both lists in the administration section
+  - Statistic of bookings can be filtered with cost units and centers
+  - New module: costs (related to projects)  
+  - costs will be considered in project statistics
+  * Contacts:
+  - new submodule companies:
+    A new module companies has been introduced below the contacts tab.
+    It has a hierarchical structure and several contacts can be related to
+    each node.
+  - Status: The list view for group members show 'present/away/expected'
+    status based on timecard and vacation module entries. Mouseover on the icons show the
+    events of this user for today.
+  * Layout of forms:
+    The form view of many modules has been expanded with a tab layout (turn
+    this on in settings/output form).
+    In the module designer, new tabs with custom fields can be managed. Each new tab
+    can be limited to certain roles.
+  * Audit com pliancy:
+  - option that all deleted records still exists (soft delete)
+  - option that only admins are allowed to delete records
+  * Helpdesk:
+    New context menu actions:
+  - set status to solved
+  - set status to closed
+  - assign tickets to me
+    Each actions includes several records
+  * Calendar sync:
+  - Introduction of ical and caldav API
+  - Sync with thunderbird/lightning
+  * Filters:
+  - Stored filters can be accessed by others
+  - Expert filter system: create your own filters sql-like!
+  * Roles:
+    The role system now includes submodules and can be defined per user and
+    group.
+
 Version 5.2 (15 Dec 2006)
   * DB2 support
   * Extended Helpdesk

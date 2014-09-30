@@ -1,14 +1,15 @@
 <?php
 /**
-* forum controller script
-*
-* @package    filemanager
-* @module     main
-* @author     Albrecht Guenther, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: forum.php,v 1.31.2.3 2007/01/23 15:35:47 alexander Exp $
-*/
+ * forum controller script
+ *
+ * @package    filemanager
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: forum.php,v 1.34 2007-05-31 08:11:15 gustavo Exp $
+ */
+
 define('PATH_PRE','../');
 $module = 'forum';
 require_once(PATH_PRE.'lib/lib.inc.php');

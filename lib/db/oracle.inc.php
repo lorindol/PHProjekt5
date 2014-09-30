@@ -1,14 +1,14 @@
 <?php
 /**
-* oracle driver
-*
-* @package    db layer
-* @module     main
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: oracle.inc.php,v 1.9 2006/11/07 00:28:28 gustavo Exp $
-*/
+ * oracle driver
+ *
+ * @package    	db layer
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: oracle.inc.php,v 1.14 2007-05-31 08:11:59 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
 
 // Connect
@@ -19,7 +19,12 @@ $datestmt = OCIParse($_database_ressource_identifier, "alter session set NLS_DAT
 OCIExecute($datestmt);
 if (!$_database_ressource_identifier) die("<b>Database connection failed!</b><br />Call admin, please.");
 
-// execute sql query
+/**
+ * Execute sql query
+ *
+ * @param string 	$query 	- Query string
+ * @return void
+ */
 function db_query($query) {
     global $_database_ressource_identifier;
 
@@ -42,19 +47,36 @@ function db_query($query) {
     return $stmt;
 }
 
-// fetch row statement
+/**
+ * Fetch row statement
+ *
+ * @param array 	$result	 - Querry result
+ * @return array       			Data array
+ */
 function db_fetch_row ($result) {
     OCIFetchInto($result, $row, OCI_RETURN_NULLS+OCI_RETURN_LOBS);
     return $row;
 }
 
-// Error-Messages
+/**
+ * Error-Messages
+ * only display them if error reporting for phprojekt is activated.
+ * else exit with a non path disclosing error message
+ *
+ * @param void
+ * @return void
+ */
 function db_die() {
     echo OCIError($stmt);
     die("</div></body></html>");
 }
 
-// error code
+/**
+ * Error code
+ *
+ * @param  object  $resource		- Resourse object of the query
+ * @return string					Error message
+ */
 function get_sql_errno($resource) {
     $error = OCIError();
     if ($error !== false) {
@@ -62,5 +84,4 @@ function get_sql_errno($resource) {
     }
     return '';
 }
-
 ?>

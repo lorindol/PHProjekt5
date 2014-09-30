@@ -1,15 +1,23 @@
 <?php
-
-// navigation.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Alexander Haslberger, $Author: albrecht $
-// $Id: navigation.inc.php,v 1.73.2.7 2007/05/09 19:02:28 albrecht Exp $
+/**
+ * Navigation class
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Alexander Haslberger, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: navigation.inc.php,v 1.83 2007-10-10 23:14:04 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
-
+/**
+ * Class for manage the navigations links
+ *
+ * @package lib
+ */
 class PHProjekt_Navigation {
 
     var $output = '';
@@ -20,31 +28,39 @@ class PHProjekt_Navigation {
     var $all_modules = array();
     var $config = array();
     var $skin = 'default';
+    var $sub_nav_entries = array();
+    var $sub_nav = array();
+    var $sub_modules = array();
 
     /**
-    * @param
-    * @return
-    */
+     * Construct function
+     *
+     * @param void
+     * @return void
+     */
     function PHProjekt_Navigation(){
         // some application paras
-        $this->actor_id                  = isset($GLOBALS['user_ID']) ? qss($GLOBALS['user_ID']) : '';
-        $this->actor_user_group          = isset($GLOBALS['user_group']) ? qss($GLOBALS['user_group']) : '';
-        $this->actor_access              = isset($GLOBALS['user_type']) ? qss($GLOBALS['user_type']) : '';
-        $this->application_mode          = isset($GLOBALS['mode']) ? qss($GLOBALS['mode']) : '';
-        $this->application_mode2         = isset($GLOBALS['mode2']) ? qss($GLOBALS['mode2']) : '';
-        $this->application_action        = isset($GLOBALS['action']) ? qss($GLOBALS['action']) : '';
-        $this->application_sure          = isset($GLOBALS['sure']) ? qss($GLOBALS['sure']) : '';
-        $this->application_view          = isset($GLOBALS['view']) ? qss($GLOBALS['view']) : '';
-        $this->application_module        = isset($GLOBALS['module']) ? qss($GLOBALS['module']) : '';
-        $this->application_language      = isset($GLOBALS['langua']) ? qss($GLOBALS['langua']) : '';
-        $this->application_nav_searchbox = isset($GLOBALS['nav_searchbox']) ? qss($GLOBALS['nav_searchbox']) : '';
-        $this->application_addon         = isset($GLOBALS['addon']) ? qss($_REQUEST['addon']) : '';
+        $this->actor_id                  			= isset($GLOBALS['user_ID']) ? qss($GLOBALS['user_ID']) : '';
+        $this->actor_user_group          		= isset($GLOBALS['user_group']) ? qss($GLOBALS['user_group']) : '';
+        $this->actor_access              			= isset($GLOBALS['user_type']) ? qss($GLOBALS['user_type']) : '';
+        $this->application_mode          		= isset($GLOBALS['mode']) ? qss($GLOBALS['mode']) : '';
+        $this->application_mode2         		= isset($GLOBALS['mode2']) ? qss($GLOBALS['mode2']) : '';
+        $this->application_action        		= isset($GLOBALS['action']) ? qss($GLOBALS['action']) : '';
+        $this->application_sure          		= isset($GLOBALS['sure']) ? qss($GLOBALS['sure']) : '';
+        $this->application_view          		= isset($GLOBALS['view']) ? qss($GLOBALS['view']) : '';
+        $this->application_module        		= isset($GLOBALS['module']) ? qss($GLOBALS['module']) : '';
+        $this->application_language      		= isset($GLOBALS['langua']) ? qss($GLOBALS['langua']) : '';
+        $this->application_nav_searchbox 	= isset($GLOBALS['nav_searchbox']) ? qss($GLOBALS['nav_searchbox']) : '';
+        $this->application_addon         		= isset($GLOBALS['addon']) ? qss($_REQUEST['addon']) : '';
     }
+
     /**
-    * @param
-    * @return
-    */
-    function render(){
+     * Show menu links
+     *
+     * @param void
+     * @return void
+     */
+    function render() {
         // import layout config data
         $this->set_config_data();
         // add global
@@ -59,87 +75,86 @@ class PHProjekt_Navigation {
         $this->add_addons();
         $this->render_addons();
     }
+
     /**
-    * @param
-    * @return
-    */
-    function add_modules(){
-        foreach($this->all_modules as $module){
-            $const_name = 'PHPR_'.strtoupper($module[1]);
-            if((defined($const_name) && constant($const_name) && (check_role($module[2]) > 0 || in_array($module[1], array('links'))))
-                || in_array($module[1], array('summary'))){
-                $this->module_entries[$module[2]] = array($module[0], __($module[3]), $module[4]);
+     * Add module links
+     *
+     * @param void
+     * @return void
+     */
+    function add_modules() {
+        foreach($this->all_modules as $mod_name=>$module){
+            if(check_role($mod_name)>=1){
+                $this->module_entries[$mod_name] = array($module[0], enable_vars($module[1]), $module[2], $module[3]);
             }
         }
     }
+
     /**
-    * @param
-    * @return
-    */
-    function render_modules(){
+     * Show module links
+     *
+     * @param void
+     * @return string	 	HTML output
+     */
+    function render_modules() {
         $this->output .= $this->render_headline('Modules');
         $this->output .= "\n<ul>";
         $this->numeration['modules'] = 0;
+
         foreach($this->module_entries as $k => $v){
+
+            // special case for timecard
+            if ($k == 'timecard') {
+                if (check_role("timecard") < 2) {
+                    continue;
+                }
+            }
+
             $class = ($this->is_active($k)) ? ' class="active"' : '';
             // contacts => Two modules in one
 
-            global $cont_action;
-
-            // add text
-            if($v[2] == 1){
-                $str  = '<li';
-                $str .= ($class != '') ? $class.'>' : '>';
-                $str .= "\n\t";
-                $str .= '<a%s href="../%s/%s.php?%s" title="%s">%s';
-                $str .= '</a></li>%s';
-                if (($k == 'contacts')&&($cont_action == 'members')) {
-                    $this->output .= sprintf($str, $class, $k, 'members', SID, strip_tags($v[1]), $v[1], "\n");
-                } else {
-                    $this->output .= sprintf($str, $class, $k, $k, SID, strip_tags($v[1]), $v[1], "\n");
-                }
-            }
-            // add image
-            elseif($v[2] == 2){
-                $str  = '<li';
-                $str .= ($class != '') ? $class.'>' : '>';
-                $str .= "\n\t";
-                $str .= '<a href="../%s/%s.php?%s" title="%s">';
-                $str .= '<img src="../layout/%s/img/%s.png" alt="%s" width="20" />';
-                $str .= '</a></li>%s';
-                if (($k == 'contacts')&&($cont_action == 'members')) {
-                    $this->output .= sprintf($str, $k, 'members', SID, strip_tags($v[1]), $this->skin, $k, $v[1], "\n");
-                } else {
-                    $this->output .= sprintf($str, $k, $k, SID, strip_tags($v[1]), $this->skin, $k, $v[1], "\n");
-                }
-            }
-
-            // add text and image
-            elseif($v[2] == 3){
-                $str  = '<li';
-                $str .= ($class != '') ? $class.'>' : '>';
-                $str .= "\n\t";
-                $str .= '<a%s href="../%s/%s.php?%s" title="%s">';
-                $str .= '<img src="../layout/%s/img/%s.png" alt="%s" width="20" /> %s';
-                $str .= '</a></li>%s';
-                if (($k == 'contacts')&&($cont_action == 'members')) {
-                    $this->output .= sprintf($str, $class, $k, 'members', SID, strip_tags($v[1]), $this->skin, $k, $v[1], $v[1], "\n");
-                } else {
-                    $this->output .= sprintf($str, $class, $k, $k, SID, strip_tags($v[1]), $this->skin, $k, $v[1], $v[1], "\n");
-                }
+            switch ($v2) {
+                case 2:
+                    $str  = '<li';
+                    $str .= ($class != '') ? $class.'>' : '>';
+                    $str .= "\n\t";
+                    $str .= '<a href="../%s%s" title="%s">';
+                    $str .= '<img src="../layout/%s/img/%s.png" alt="%s" width="20" />';
+                    $str .= '</a></li>%s';
+                    $this->output .= sprintf($str, $v[3],SID, strip_tags($v[1]), $this->skin, $k, $v[1], "\n");
+                    break;
+                case 3:
+                    $str  = '<li';
+                    $str .= ($class != '') ? $class.'>' : '>';
+                    $str .= "\n\t";
+                    $str .= '<a%s href="../%s%s" title="%s">';
+                    $str .= '<img src="../layout/%s/img/%s.png" alt="%s" width="20" /> %s';
+                    $str .= '</a></li>%s';
+                    $this->output .= sprintf($str, $class, $v[3],SID, strip_tags($v[1]), $this->skin, $k, $v[1], $v[1], "\n");
+                default:
+                    // add text
+                    $str  = '<li';
+                    $str .= ($class != '') ? $class.'>' : '>';
+                    $str .= "\n\t";
+                    $str .= '<a%s href="../%s%s" title="%s">%s';
+                    $str .= '</a></li>%s';
+                    $this->output .= sprintf($str, $class, $v[3],  SID, strip_tags($v[1]), $v[1], "\n");
+                    break;
             }
         }
         $this->output .= "\n</ul>";
     }
-    /**
-    * @param
-    * @return
-    */
-    function add_addons() {
 
+    /**
+     * Add addons links
+     *
+     * @param void
+     * @return void
+     */
+    function add_addons()  {
+    	
         // check if the addons are rendered
         if (isset($_SESSION['addons']) && is_array($_SESSION['addons'])) {
-
             // use the addond found on previous session
             $this->addons_entries = $_SESSION['addons'];
         }
@@ -153,7 +168,7 @@ class PHProjekt_Navigation {
                 while($file = readdir($fp)) {
                     // but exclude links, index files, system files etc.
                     if(is_dir($addons_dir.$file) and $file != 'CVS' and
-                        $file != '.' and $file != '..' and !ereg('^_', $file) ){
+                        !ereg('^[_.]', $file) ){
                         $this->addons_entries[] = $file;
                     }
                 }
@@ -164,11 +179,14 @@ class PHProjekt_Navigation {
             }
         }
     }
+
     /**
-    * @param
-    * @return
-    */
-    function render_addons(){
+     * Show addons links
+     *
+     * @param void
+     * @return string 		HTML output
+     */
+    function render_addons() {
         if(!$this->addons_entries){
             return '';
         }
@@ -182,13 +200,15 @@ class PHProjekt_Navigation {
             $str .= '<span class="navLink%s">%s</span></a></li>%s';
             $this->output .= sprintf($str, $addon, $sid, ucfirst($addon), $selected, ucfirst($addon), "\n");
         }
-        // $this->output .= "\n<div style=\"height: 100px; line-height: 100px;\">&nbsp;</div>";
         $this->output .= "\n</ul>";
     }
+
     /**
-    * @param
-    * @return
-    */
+     * Add controls links
+     *
+     * @param void
+     * @return void
+     */
     function add_controls(){
         foreach($this->controls as $control){
             // activated ?
@@ -205,7 +225,6 @@ class PHProjekt_Navigation {
                     $this->control_entries[] =
                         '<form action="../search/search.php" target="_top">'
                         .'<input type="hidden" name="csrftoken" value="'.make_csrftoken().'" />'
-
                         ."\n\t"
                         .'<input type="text" name="searchterm" id="searchterm" title="'.__('Search').'" value="'.__('Search').'" onfocus="this.value=\'\'" />'
                         ."\n\t"
@@ -297,56 +316,65 @@ class PHProjekt_Navigation {
             }
         }
     }
+
     /**
-    * @param
-    * @return
-    */
-    function render_controls(){
+     *  Show controls links
+     *
+     * @param void
+     * @return string 		HTML output
+     */
+    function render_controls() {
         if(!$this->control_entries){
             return '';
         }
-        $this->output .= $this->render_headline('Controls');
+        $this->output .= $this->render_headline(__('Controls'));
         $this->output .= "\n<ul>";
         $this->numeration['controls'] = 0;
 
         foreach($this->control_entries as $control){
-
             $control = "\n\t".$control;
             $str  = '<li%s>%s</li>%s';
             $this->output .= sprintf($str, (strstr($control, 'class="active"') ? ' class="active"' : ''), $control, "\n");
         }
         $this->output .= "\n</ul>";
     }
+
     /**
-    * @param
-    * @return
-    */
+     * Show headline
+     *
+     * @param void
+     * @return string		HTML output
+     */
     function render_headline($headline){
         if(isset($this->config['show_headlines']) && $this->config['show_headlines']){
             return "<h4>".__($headline)."</h4>";
         }
         return '';
     }
+
     /**
-    * @param
-    * @return
-    */
+     * Sort links
+     *
+     * @param string	$a 		- First element
+     * @param string	$b 	- Second element
+     * @return string			- Sorted element
+     */
     function sort_entries($a, $b){
         if($a[0] == $b[0]){
             return 0;
         }
         return ($a[0] < $b[0]) ? -1 : 1;
-
     }
+
     /**
      * This method will echo the navigation bar
      *
      * @uses PHPR_INSTALL_DIR to determine the path where is necessary to get the logo
      * @uses PHPR_LOGO to check if is set any logo
+     * @param void
      * @return void
     */
     function draw() {
-
         // check if there is set a different logo on config.inc.php
         if (defined('PHPR_LOGO') && file_exists(PHPR_INSTALL_DIR.PHPR_LOGO)) {
             $logo_src = "/".PHPR_INSTALL_DIR.PHPR_LOGO;
@@ -366,10 +394,13 @@ class PHProjekt_Navigation {
         echo '</div>';
         echo "\n<!-- END NAVIGATION -->\n\n";
     }
+
     /**
-    * @param
-    * @return
-    */
+     * Get and show the group select
+     *
+     * @param void
+     * @return void
+     */
     function get_group_box() {
         // determine whether this is the first or second from onthis page
         // -> must know this to get the onchange-js properly working
@@ -379,7 +410,6 @@ class PHProjekt_Navigation {
         $groups = $_SESSION['user_all_groups'];
         if (count($groups)>0){
             $optgrplabel = __('Usergroup') . ':';
-
             $out .=
             "\t"
             .'<form name="grsel" action="../index.php" method="post">'
@@ -399,20 +429,26 @@ class PHProjekt_Navigation {
                 ($this->actor_user_group == $key ? ' selected="selected"' : '').
                 ' title="'.$item['name'].'">'.$item['kurz']."</option>";
             }
+
             $out .= "\n</optgroup>\n\t</select>";
             $out .= "\n\t".get_go_button('nav_button', 'button', '', '&#187;');
             $out .= "\n\t</form>";
-
         }
         return $out;
     }
+
     /**
-    * @param
-    * @return
-    */
+     * Return if the module is active
+     *
+     * @param string 	$k		- Module name
+     * @return boolean			True if is active
+     */
     function is_active($k){
         // Normal modules
         if ($this->application_module == $k)
+            return true;
+        // Submodules
+         else if($this->sub_modules[$this->application_module] == $k)
             return true;
         // Addons
         else if (isset($this->application_addon) && $this->application_addon == $k)
@@ -424,10 +460,13 @@ class PHProjekt_Navigation {
         else
             return false;
     }
+
     /**
-    * @param
-    * @return
-    */
+     * Set Skin
+     *
+     * @param string	$skin	- Skin to use
+     * @return void
+     */
     function set_skin($skin = 'default'){
         $file = dirname(__FILE__).'/../layout/'.$skin.'/'.$skin.'.inc.php';
         if(file_exists($file)){
@@ -437,24 +476,60 @@ class PHProjekt_Navigation {
             $this->skin = 'default';
         }
     }
-    /**
-    * @param
-    * @return
-    */
-    function set_config_data(){
 
+    /**
+     * Set the config values
+     *
+     * @param void
+     * @return void
+     */
+    function set_config_data(){
         define('FILE_SKIN',dirname(__FILE__).'/../layout/'.$this->skin.'/'.$this->skin.'.inc.php');
         include(FILE_SKIN);
-        $this->all_modules = $modules;
+        include_once(LIB_PATH.'/dbman_lib.inc.php');
         $this->controls = $controls;
         $this->config = $config;
+        $this->all_modules = $_SESSION['main_modules_data'];
+        $this->sub_nav = $_SESSION['sub_nav'];
+        $this->sub_modules = $_SESSION['sub_modules'];
     }
 
+    /**
+     * This function draws the sub navigation
+     *
+     * @param void
+     * @return void
+     */
+    function draw_sub_nav(){
+        $this -> organize_sub_nav();
+        echo get_tabs_area($this ->sub_nav_entries);
+    }
+
+    /**
+     * @param void
+     * @return void
+     */
+    function organize_sub_nav(){
+        $parent = $this->sub_modules[$this->application_module] ? $this->sub_modules[$this->application_module] : $this->application_module;
+        if (is_array($this->sub_nav[$parent])){
+            $parent_tab= $this->module_entries[$parent];
+            $href= '../'.$parent_tab[3];
+                $active = $this->application_module == $parent ? true : false;
+                if(!$active) $this ->sub_nav_entries[] = array('href' => $href, 'id' => 'tab'.$i, 'target' => '_self', 'text' =>$parent_tab[1] , 'position' => 'left',  'active' => $active);
+                    $i=0;
+            foreach ($this->sub_nav[$parent] as $mod =>$modules){
+                $i++;
+                $href= '../'.$modules[3];
+                $active = $this->application_module == $mod ? true : false;
+                if (!$active and check_role($mod)>=1) $this ->sub_nav_entries[] = array('href' => $href, 'id' => 'tab'.$i, 'target' => '_self', 'text' => enable_vars($modules[1]), 'position' => 'left',  'active' => $active);
+            }
+        }
+    }
 }
 
 $nav = new PHProjekt_Navigation();
 $nav->set_skin($skin);
 $nav->render();
 $nav->draw();
-
+if(SUBNAV==true)$nav->draw_sub_nav();
 ?>

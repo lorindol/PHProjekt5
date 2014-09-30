@@ -1,15 +1,20 @@
 <?php
+/**
+ * provides selector snippets for the project
+ *
+ * @package    projects
+ * @subpackage selector
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: 
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
 require_once(LIB_PATH."/selector/selector.inc.php");
 
-$tabs = array();
-// form start
-echo '<div id="global-header">';
-echo get_tabs_area($tabs);
-echo '</div>';
 echo '<div id="global-content">'."\n";
 
 // --------- Selektor config ---------

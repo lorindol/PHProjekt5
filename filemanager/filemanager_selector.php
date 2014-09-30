@@ -1,22 +1,18 @@
 <?php
 /**
-* filemanager selector script
-*
-* @package    filemanager
-* @module     selector
-* @author     Gustavo Solt, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: filemanager_selector.php,v 1.13 2006/11/10 04:50:46 polidor Exp $
-*/
+ * filemanager selector script
+ *
+ * @package    filemanager
+ * @subpackage selector
+ * @author     Gustavo Solt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: filemanager_selector.php,v 1.16 2007-05-31 08:10:58 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(LIB_PATH.'/selector/selector.inc.php');
 
-$tabs = array();
-// form start
-echo '<div id="global-header">';
-echo get_tabs_area($tabs);
-echo '</div>';
 echo '<div id="global-content">'."\n";
 
 // --------- Selektor config ---------

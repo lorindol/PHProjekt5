@@ -1,6 +1,12 @@
 <?php
-
-// $Id: cti_asterisk.inc.php,v 1.7 2006/10/02 11:30:45 nina Exp $
+/**
+ * @package    misc
+ * @subpackage cti
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: cti_asterisk.inc.php,v 1.8 2007-05-31 08:12:27 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined('lib_included')) die('Please use index.php!');

@@ -1,22 +1,18 @@
 <?php
 /**
-* forum selector script
-*
-* @package    forum
-* @module     selector
-* @author     Gustavo Solt, $Author: nina $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: forum_selector.php,v 1.9 2006/10/18 11:30:59 nina Exp $
-*/
+ * forum selector script
+ *
+ * @package    forum
+ * @subpackage selector
+ * @author     Gustavo Solt, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: forum_selector.php,v 1.13 2007-11-09 10:28:55 nina Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(LIB_PATH.'/selector/selector.inc.php');
 
-$tabs = array();
-// form start
-echo '<div id="global-header">';
-echo get_tabs_area($tabs);
-echo '</div>';
 echo '<div id="global-content">'."\n";
 
 // --------- Selektor config ---------
@@ -104,10 +100,10 @@ if (isset($_SESSION['forumdata']['formdata']['titel'])) {
 
 // remark
 if (isset($_POST['remark'])) {
-    $_SESSION['forumdata']['formdata']['remark'] = xss($_POST['remark']);
+    $_SESSION['forumdata']['formdata']['remark'] = xss_purifier($_POST['remark']);
 }
 if (isset($_SESSION['forumdata']['formdata']['remark'])) {
-    echo "<input type='hidden' name='remark' value='".xss($_SESSION['forumdata']['formdata']['remark'])."' />\n";
+    echo "<input type='hidden' name='remark' value='".xss_purifier($_SESSION['forumdata']['formdata']['remark'])."' />\n";
 }
 
 // notify_others

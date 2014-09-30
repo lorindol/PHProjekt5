@@ -1,17 +1,17 @@
 <?php
-
 /**
  * Holiday calculation for switzerland / appenzell innerrhoden
  *
- * @author David Soria Parra <soria_parra@mayflower.de>
- * @since PHProjekt 5.1
- * @package PHProjekt
- * @subpackage Calendar
- * @since $Id: specialdays_switzerland_ai.php,v 1.2 2006/12/18 14:24:04 nina Exp $
+ * @package    calendar
+ * @subpackage main
+ * @author     David Soria Parra <soria_parra@mayflower.de>
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: specialdays_switzerland_ai.php,v 1.6 2007-05-31 08:12:03 gustavo Exp $
  */
 if (!defined('lib_included')) die('Please use index.php!');
-class SpecialDays_Switzerland_AI
 
+class SpecialDays_Switzerland_AI
 {
 	var $name;
 	
@@ -95,3 +95,4 @@ class SpecialDays_Switzerland_AI
 		return $data;
 	}
 }
+?>

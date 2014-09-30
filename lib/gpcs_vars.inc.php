@@ -1,20 +1,24 @@
 <?php
-
-// $Id: gpcs_vars.inc.php,v 1.31.2.8 2007/04/25 01:57:37 polidor Exp $
-
-//---------------------------------------------
-// import of get,  post, cookie and session vars
-//   independent of register_globals and magic_quotes_gpc
-//   all 4 combinations of this ini settings have identical results.
-
-//   The POST section shows how to import arrays. The other sections
-//   must be changed in this way if arrays are expected.
+/**
+ * Import of get,  post, cookie and session vars
+ * independent of register_globals and magic_quotes_gpc
+ * all 4 combinations of this ini settings have identical results.
+ *
+ * The POST section shows how to import arrays. The other sections
+ * must be changed in this way if arrays are expected.
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: gpcs_vars.inc.php,v 1.40 2007-05-31 08:11:53 gustavo Exp $
+ */
 
 extract_and_slash($_GET);
 extract_and_slash($_POST);
 extract_and_slash($_COOKIE);
 extract_and_slash($_REQUEST);
-
 
 // avoid redirection to outer space
 if (defined('PATH_PRE')) {
@@ -23,7 +27,7 @@ if (defined('PATH_PRE')) {
 
 // bypass soap request
 if (!defined('soap_request')) {
-    if (session_id() == "") {
+    if (session_id() <= 0) {
         session_name(PHPR_SESSION_NAME);
         session_start();
     }
@@ -47,7 +51,7 @@ if (ini_get('register_globals') != 1) {
 }
 //--------------------------------------------
 // Import of ONLY ONE uploaded file with the static handle 'userfile'.
-//  Can be later improved to handle multifile upload.
+// Can be later improved to handle multifile upload.
 // set variable $userfile to zero in order to avoid that it will be redirected ...
 $userfile = '';
 if (isset($_FILES['userfile'])){
@@ -57,7 +61,6 @@ if (isset($_FILES['userfile'])){
     $userfile = $_FILES['userfile']['tmp_name'];
 }
 
-//---------------------------------------------
 // Import some used server/environment vars
 $HTTP_USER_AGENT = $_SERVER['HTTP_USER_AGENT'];
 $PHP_SELF = $_SERVER['SCRIPT_NAME'];
@@ -65,9 +68,13 @@ $PHP_SELF = $_SERVER['SCRIPT_NAME'];
 if(isset($module)){
     $module = qss($module);
 }
-//---------------------------------------------
-// Treatment for runtime-generated data (SQL, ecec()...)
-// Result independent of magic_quotes_runtime.
+/**
+ * Treatment for runtime-generated data (SQL, ecec()...)
+ * Result independent of magic_quotes_runtime.
+ *
+ * @param misc 	$x 	- Data to convert
+ * @return misc   		Data converted
+ */
 function quote_runtime($x) {
     if (!get_magic_quotes_runtime()) {
         if (is_array($x)) array_walk($x, 'arr_addsl');
@@ -76,10 +83,14 @@ function quote_runtime($x) {
     return $x;
 }
 
-//---------------------------------------------
-// register session vars independent of register_globals
-// function call:  reg_sess_vars(array_of_varnames);
-//       example:  reg_sess_vars(array("probe","test"));
+/**
+ * Register session vars independent of register_globals
+ * function call:  reg_sess_vars(array_of_varnames);
+ *       example:  reg_sess_vars(array("probe","test"));
+ *
+ * @param array 	$sess_vars 	- Array of values
+ * @return void
+ */
 function reg_sess_vars($sess_vars) {
     if (is_array($sess_vars)) {
         foreach ($sess_vars as $varname) {
@@ -91,17 +102,27 @@ function reg_sess_vars($sess_vars) {
     }
 }
 
-//-----------------------------------------------
-// unregister a session var independent of register_globals
-// function call: unreg_sess_var(varname);
-//       example: unreg_sess_var("probe");
+/**
+ * Unregister a session var independent of register_globals
+ * function call: unreg_sess_var(varname);
+ * @example  unreg_sess_var("probe");
+ *
+ * @param misc 	$varname 	- Value
+ * @return void
+ */
 function unreg_sess_var($varname) {
     if (!is_numeric($varname) and !is_string($varname)) return;
     unset($_SESSION[$varname]);
 }
 
 
-//-----------------------------------------------
+/**
+ * Add quotes
+ *
+ * @param misc 	$item 		- Value
+ * @param misc 	$key  		- Without use
+ * @return misc      			Converted value
+ */
 function arr_addsl(&$item, $key) {
     $item = addslashes($item);
 }
@@ -110,7 +131,8 @@ function arr_addsl(&$item, $key) {
  * Slashes the passed array (_GET, _POST, ...) and imports the contained
  * variables into the global namespace
  *
- * @param array $var
+ * @param array 	$var  	- Array with values
+ * @return array     			Converted values
  */
 function extract_and_slash(&$var) {
 	if (!isset($var)) { return; }
@@ -124,7 +146,7 @@ function extract_and_slash(&$var) {
 						'_FILES',
 						'_SERVER',
 						'_SESSION',
-						'_FILES', 						
+						'_FILES',
 						'HTTP_GET_VARS',
 						'HTTP_POST_VARS',
 						'HTTP_COOKIE_VARS',
@@ -149,5 +171,4 @@ function extract_and_slash(&$var) {
 		}
 	}
 }
-
 ?>

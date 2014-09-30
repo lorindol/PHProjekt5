@@ -1,10 +1,12 @@
 <?php
-
-// notes_forms.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: gustavo $
-// $Id: notes_forms.php,v 1.65.2.3 2007/10/04 14:09:23 gustavo Exp $
+/**
+ * @package    notes
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: notes_forms.php,v 1.72 2008-01-09 14:01:47 nina Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -31,8 +33,9 @@ if ($ID > 0) {
     // fetch values from db
     $query = "SELECT ID, von, name, remark, contact, ext, div1, div2, projekt, sync1, sync2, acc, acc_write, parent,gruppe
                 FROM ".DB_PREFIX."notes
-               WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')".group_string().")) AND
-                     ".DB_PREFIX."notes.ID = ".(int)$ID;
+               WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')".group_string()."))
+                 AND ".DB_PREFIX."notes.ID = ".(int)$ID."
+                 AND is_deleted is NULL";
     $result = db_query($query) or db_die();
     $row = db_fetch_row($result);
     if (!$row[0]) die("You are not privileged to do this!");
@@ -43,7 +46,7 @@ if ($ID > 0) {
     change_group($row[14]);      
 }
 //unset ID when copying project
-$ID=prepare_ID_for_copy($ID,$copy);
+$ID=prepare_ID_for_copy($ID,$copyform);
 if ($ID) $head = slookup('notes', 'name', 'ID', $ID, true);
 else     $head = __('New note');
 if (!$head) $head = __('New note');
@@ -51,17 +54,31 @@ if (!$head) $head = __('New note');
 // tabs
 $tabs    = array();
 if ($justform == 2) $justform = 1;
-$hidden = array('justform' => $justform);
+
+$hidden = array('justform' => $justform, 'ID' => $ID, 'mode' => 'data');
+
+if (SID) $hidden[session_name()]= session_id();
+
+foreach ($view_param as $key=>$value) {
+
+    $hidden[$key] = $value;
+
+}
+
 $buttons = array();
 if (SID) $hidden[session_name()] = session_id();
 
 // form start
-$buttons[] = array('type' => 'form_start', 'name' => 'frm', 'hidden' => $hidden, 'onsubmit' => 'return chkForm(\'frm\',\'name\',\''.__('Please insert a name').'\');', 'enctype' => "multipart/form-data");
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
+
+$buttons[] = array('type' => 'form_start', 'name' => 'frm', 'hidden' => $hidden, 'onsubmit' => 'return chkForm(\'frm\',\'name\',\''.__('Please insert a name').'\');');
+
 $output .= breadcrumb($module, array(array('title' => htmlentities($head))));
 $output .= '</div>';
 
+$output .= get_buttons($buttons);
+
+
+$buttons = array();
 if (!$read_o) {
     if (!$ID) {
         // create new note
@@ -82,7 +99,7 @@ if (!$read_o) {
         // modify note
         $buttons[] = array('type' => 'submit', 'name' => 'modify_b', 'value' => __('OK'), 'active' => false);
         $buttons[] = array('type' => 'submit', 'name' => 'modify_update_b', 'value' => __('Apply'), 'active' => false);
-        $buttons[]  = array('type' => 'submit', 'name' => 'copy', 'value' => __('copy'), 'active' => false);
+        $buttons[]  = array('type' => 'link', 'href' => "notes.php?mode=forms&ID=".$ID."&copyform=1&justform=".$justform, 'text' => __('copy'), 'active' => false);
 
         // cancel
         if ($justform > 0) {
@@ -116,19 +133,22 @@ if (!$read_o) {
 
 $output .= $content_div;
 $output .= get_buttons_area($buttons);
+
+
+
+$out_array=array();
+
+
+
 /*******************************
 *       basic fields
 *******************************/
-$form_fields = array();
-$form_fields[] = array('type' => 'hidden', 'name' => 'ID', 'value' => $ID);
-$form_fields[] = array('type' => 'hidden', 'name' => 'mode', 'value' => 'data');
-$form_fields[] = array('type' => 'hidden', 'name' => 'justform', 'value' => $justform);
-if (SID) $form_fields[] = array('type' => 'hidden', 'name' => session_name(), 'value' => session_id());
-foreach ($view_param as $key=>$value) {
-    $form_fields[] = array('type' => 'hidden', 'name' => $key, 'value' => $value);
-}
-$form_fields[] = array('type' => 'parsed_html', 'html' => build_form($fields));
-$basic_fields  = get_form_content($form_fields);
+
+
+
+$basic_fields  = build_form($fields);
+
+
 
 /*******************************
 *    categorization fields
@@ -138,10 +158,10 @@ $select_field = '<label for="parent" class="label_block">'.__('Parent object').'
                  <select id="parent" class="halfsize" name="parent"'.read_o($read_o).'><option value="0"></option>';
 $select_field .= show_elements_of_tree("notes",
                         "name",
-                        "WHERE (acc LIKE 'system' OR ((von = $user_ID OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') AND $sql_user_group))",
+                        "WHERE (acc LIKE 'system' OR ((von = $user_ID OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') AND $sql_user_group)) AND is_deleted is NULL",
                         "acc",
                         " ORDER BY name", $row[13], "parent", $ID);
-$select_field .= '</select>';
+$select_field .= '</select><br /><br />';
 $form_fields[] = array('type' => 'parsed_html', 'html' => $select_field);
 $categorization_fields = get_form_content($form_fields);
 
@@ -163,39 +183,39 @@ if (!isset($acc_write)) {
     else $acc_write = xss($_POST['acc_write']);
 }
 
-$form_fields[] = array('type' => 'parsed_html', 'html' => access_form2($str_persons, 1, $acc_write, 0, 1,'acc',$read_acc));
+$form_fields[] = array('type' => 'parsed_html', 'html' => access_form($str_persons, 1, $acc_write, 0, 1,'acc',$read_acc));
 $assignment_fields = get_form_content($form_fields);
 
-$output .= '
-<br />
-
-<div class="inner_content">
-    <a name="content"></a>
-    <a name="oben" id="oben"></a>
-    <fieldset>
-    <legend>'.__('Basis data').'</legend>
-    '.$basic_fields.'
-    </fieldset>
-
-    <fieldset>
-    <legend>'.__('Categorization').'</legend>
-    '.$categorization_fields.'
-    </fieldset>
-
-    '.$assignment_fields.'
-</div>
-
-</form>
-';
 
 
-if ($ID > 0) {
-    $output .= "<br />\n";
-    // show history
-    if (PHPR_HISTORY_LOG == 2) $output .= history_show('notes', $ID);
-}
 
-$output .= '</div>';
+
+$out_array = array_merge($out_array,$basic_fields);
+
+$out_array[]=array(__('Categorization'),'<br/>'.$categorization_fields);
+
+$out_array[]=array(__('Release'),$assignment_fields);
+
+if ($ID > 0 and PHPR_HISTORY_LOG == 2) $out_array[]=array(__('History'),history_show('notes', $ID));
+
+
+
+$output.= generate_output($out_array);
+
+
+
+$output .= '<div class="hline"></div>';
+
+$output .= get_buttons_area($buttons);
+
+$output .= '<div class="hline"></div>';
+
+
+
+$output .= '</form>';
+
+
+
 echo $output;
 
 ?>

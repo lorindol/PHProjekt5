@@ -1,17 +1,17 @@
 <?php
-
-// setup_function.php - PHProjekt Version 5.2
-// copyright  ©  2000-2006 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Eduardo Polidor, $Author: polidor $
-// $Id: setup_functions.php,v 1.40.2.5 2007/05/22 05:02:56 polidor Exp $
-
-/*
-This functions will be used on setup script. The check_* functions are functions to get a 'default'
-or 'correct' value.
-The get_*_options functions will create an array with all options for a field.
-The display_* functions just have html parts to be printed.
-*/
+/**
+ * This functions will be used on setup script. The check_* functions are functions to get a 'default'
+ * or 'correct' value.
+ * The get_*_options functions will create an array with all options for a field.
+ * The display_* functions just have html parts to be printed.
+ *
+ * @package    setup
+ * @subpackage main
+ * @author     Eduardo Polidor, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: setup_functions.php,v 1.48 2008-03-04 14:31:51 gustavo Exp $
+ */
 
 /**
  * This function tries to determine the correct language for installation. 
@@ -396,7 +396,6 @@ function alert_message($message, $die = true, $buttons = true) {
     if (!$_SESSION['dont_die'])
     {
         display_header();
-        // echo "<div class='inner_content'><br /><div class='boxHeader'>".__('Setup PHProjekt')."</div>";
         display_help($step,$mode);
         echo "<div class='boxContent'><fieldset class='settings'><legend>".__('Setup PHProjekt')."</legend>";
         echo $message;
@@ -664,8 +663,7 @@ function test_db_connection($drop_database = true)
  * @return string with the charcode
  */
 function get_char_set($langua) {
-
-
+    
     if (eregi('pl|cz|hu|si',$langua)) {   $dir_tag = 'ltr'; $LANG_CODE = 'ISO-8859-2'; }
     else if (eregi('sk',$langua)) {       $dir_tag = 'ltr'; $LANG_CODE = 'windows-1250'; }
     else if (eregi('ru|uk',$langua)) {    $dir_tag = 'ltr'; $LANG_CODE = 'windows-1251'; }
@@ -768,7 +766,6 @@ function display_header ($lcfg = 'charset=iso-8859-1') {
  * @param string $step Step where the user are
  * @param string $mode Mode to configure the system (basic or advanced)
  * @param string $setupType Setup routine
- * @param string $charser_encoding
  */
 function display_help($step = 'initial', $mode = 'basic', $setupType = 'install')
 {
@@ -823,9 +820,10 @@ function display_help($step = 'initial', $mode = 'basic', $setupType = 'install'
             echo __('<b>WARNING: Your PHP version is too old. For security reasons we highly recommend upgrading it.</b><br />');
         }
         
+        
         if (defined('LANG_CODE') && LANG_CODE <> 'ISO-8859-1' && LANG_CODE <> 'utf8' && !function_exists('iconv'))
         {
-            echo "<br />".__('<b>WARNING: the function iconv don\'t exists. It is necessary for language conversion.</b><br />');
+            echo "<br />".__("<b>WARNING: the function iconv don't exists. It is necessary for language conversion.</b><br />");
         }
 
         echo "</fieldset></div><br />";
@@ -950,12 +948,12 @@ function validate_form()
   if (typeof(document.forms[0].rootpass) =='object') {
     if (document.forms[0].rootpass.value == '')
     {
-      alert('".str_replace("'",'"',__('Please, select a password for "root" user.'))."');
+      alert('".str_replace("'",'"',__('Please, select a password for root user.'))."');
       toReturn = false;
     }
     if (document.forms[0].rootpass.value == 'root')
     {
-      alert('".str_replace("'",'"',__('Please, select a password other than "root" for "root" user.'))."');
+      alert('".str_replace("'",'"',__('Please, select a password other than -root- for root user.'))."');
       toReturn = false;
     }
     else {
@@ -970,7 +968,7 @@ function validate_form()
       if (document.forms[0].testcreation.checked == true) {
         if (document.forms[0].testpass.value == '' || document.forms[0].testpass.value == 'test')
         {
-          alert('".str_replace("'",'"',__('Please, select a password for "test" user (please, do not use "test").'))."');
+          alert('".str_replace("'",'"',__('Please, select a password other than -test- for test user.'))."');
           toReturn = false;
         }
         else {

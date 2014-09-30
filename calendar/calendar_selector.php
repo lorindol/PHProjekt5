@@ -1,14 +1,15 @@
 <?php
 /**
-* provides selector snippets for the calendar
-*
-* @package    calendar
-* @module     selector
-* @author     Albrecht Guenther, $Author: nina $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_selector.php,v 1.54 2006/10/18 11:21:03 nina Exp $
-*/
+ * provides selector snippets for the calendar
+ *
+ * @package    calendar
+ * @subpackage selector
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_selector.php,v 1.57 2008-01-11 02:43:31 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(LIB_PATH.'/selector/selector.inc.php');
 
@@ -51,7 +52,8 @@ switch ($_SESSION['calendardata']['formdata']['_selector_type']) {
 $sel->finishFormSubmitName = 'finishForm.'.$_SESSION['calendardata']['formdata']['_return'];
 $sel->set_hidden_fields(array('mode' => $_SESSION['calendardata']['formdata']['_mode'],
                               'view' => $_SESSION['calendardata']['formdata']['_view'],
-                              'ID' => $_SESSION['calendardata']['formdata']['_ID']));
+                              'ID' => $_SESSION['calendardata']['formdata']['_ID'],
+                              'justform'  => $justform));
 
 // get the selected values
 if (!isset($stuff['preselect'])) {
@@ -91,6 +93,11 @@ if ($_SESSION['calendardata']['formdata']['_dist']) {
 }
 if (SID) {
     echo "    <input type='hidden' name='".session_name()."' value='".session_id()."' />\n";
+}
+
+if ($justform) $_SESSION['calendardata']['formdata']['justform'] = $justform;
+if (isset($_SESSION['calendardata']['formdata']['justform']) && ($_SESSION['calendardata']['formdata']['justform'])) {
+    echo "<input type='hidden' name='calendardata' value='1' />\n";
 }
 
 $keys = array_keys($stuff['preselect']);

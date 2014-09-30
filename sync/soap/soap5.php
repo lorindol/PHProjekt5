@@ -4,7 +4,7 @@
  *
  * @package    soap
  * @subpackage main
- * @author     Albrecht Guenther, $Author: albrecht $
+ * @author     Albrecht Guenther, $Author: gustavo $
  * @licence    GPL, see www.gnu.org/copyleft/gpl.html
  * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
  * @version    $Id: soap5.php

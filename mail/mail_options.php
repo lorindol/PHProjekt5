@@ -1,10 +1,12 @@
 <?php
-
-// mail_options.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: albrecht $
-// $Id: mail_options.php,v 1.29.2.1 2007/02/20 11:16:46 albrecht Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_options.php,v 1.33 2007-05-31 08:12:08 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) { die("Please use index.php!"); }
@@ -19,7 +21,6 @@ check_csrftoken();
 $tabs = array();
 
 
-$output = '<div id="global-header">'.get_tabs_area($tabs).'</div>';
 $output .= breadcrumb($module, array(array('title'=>__('Options'))));
 
 $output .= '<div id="global-content">';
@@ -138,10 +139,11 @@ $output.= "<input type='hidden' name='csrftoken' value='".make_csrftoken()."'/>\
 // text 'all incoming mail'
 $output.= __('All')." ".__('imcoming Mails')." ".__('in').":\n";
 $output.= "<select name='dir'><option value=''></option>";
-$result2 = db_query("select ID, subject
-                           from ".DB_PREFIX."mail_client
-                          where von = ".(int)$user_ID." and
-                                typ like 'd'") or db_die();
+$result2 = db_query("SELECT ID, subject
+                       FROM ".DB_PREFIX."mail_client
+                      WHERE von = ".(int)$user_ID." and
+                            is_deleted is NULL and
+                            typ like 'd'") or db_die();
 while ($row2 = db_fetch_row($result2)) {
     $output.= "<option value='".(int)$row2[0]."'";
     $disabl ="";
@@ -170,10 +172,11 @@ $output.= "<input type='hidden' name='csrftoken' value='".make_csrftoken()."'/>\
 // text 'all outgoing mail'
 $output.= __('All')." ".__('sent Mails')." ".__('in').":\n";
 $output.= "<select name='dir'> <option value=''></option>";
-$result2 = db_query("select ID, subject
-                           from ".DB_PREFIX."mail_client
-                          where von = ".(int)$user_ID." and
-                                typ like 'd'") or db_die();
+$result2 = db_query("SELECT ID, subject
+                       FROM ".DB_PREFIX."mail_client
+                      WHERE von = ".(int)$user_ID." and
+                            is_deleted is NULL and
+                            typ like 'd'") or db_die();
 while ($row2 = db_fetch_row($result2)) {
     $output.= "<option value='".(int)$row2[0]."'";
     $disabl ="";

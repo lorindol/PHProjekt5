@@ -1,20 +1,31 @@
 <?php
-
-// show_group_users.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: alexander $
-// $Id: show_group_users.inc.php,v 1.18.2.1 2007/01/23 11:53:06 alexander Exp $
+/**
+ * Group users functions
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: show_group_users.inc.php,v 1.23 2008-03-13 17:49:38 gustavo Exp $
+ */
 
 // check whether lib.inc.php has been included
 if (!defined('lib_included')) die('Please use index.php!');
 
-
-// show all users of a group
+/**
+ * Show all users of a group
+ *
+ * @param int 		$user_group     	- Group id
+ * @param array 	$exclude_user 	- Excluded users
+ * @param array 	$field        		- Field data
+ * @param boolean 	$filtered   		- Filter users?
+ * @return                   					HTML select
+ */
 function show_group_users($user_group, $exclude_user, $field, $filtered=false) {
     global $user_ID;
 
-    if ($filtered) $user_filter = "status = 0 AND (usertype = 0 OR usertype = 2)";
+    if ($filtered) $user_filter = "status = 0 AND (usertype != 1)";
     else           $user_filter = '';
 
     // group system, fetch ID's from the other users
@@ -41,6 +52,7 @@ function show_group_users($user_group, $exclude_user, $field, $filtered=false) {
                                        $field_arr))
                                   $user_self
                                   $user_filter
+                             AND ".DB_PREFIX."users.is_deleted is NULL
                          ORDER BY nachname";
       $result3 = db_query($query) or db_die();
 
@@ -61,6 +73,7 @@ function show_group_users($user_group, $exclude_user, $field, $filtered=false) {
                                FROM ".DB_PREFIX."users
                                     $user_self
                                     $user_filter
+                                AND is_deleted is NULL
                            ORDER BY nachname") or db_die();
     }
 
@@ -74,7 +87,8 @@ function show_group_users($user_group, $exclude_user, $field, $filtered=false) {
         $users_in_group[$row3[1]] = true;
         $result4 = db_query("SELECT nachname, kurz, vorname
                                FROM ".DB_PREFIX."users
-                              WHERE ID = ".(int)$row3[0]) or db_die();
+                              WHERE ID = ".(int)$row3[0]."
+                                AND is_deleted is NULL") or db_die();
         $row4 = db_fetch_row($result4);
         // str for selected items
         if (eregi("\"".$row4[1]."\";", $field)) {
@@ -85,16 +99,15 @@ function show_group_users($user_group, $exclude_user, $field, $filtered=false) {
             // other items
             $str_other .= '<option value="'.$row4[1].'"';
             $str_other .= " title='$row4[0], $row4[2]'>$row4[0], $row4[2]</option>\n";
-            $remaining_users--; 
+            $remaining_users--;
         }
     }
     // first show the selected items
-    $str = $str_selected;
+    $str .= $str_selected;
     $str .= " <option value=''>- - - - - - -</option>\n";
     // now show the others
     $str .= $str_other;
 
     return $str;
 }
-
 ?>

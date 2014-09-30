@@ -1,15 +1,15 @@
 <?php
-
-// votum_view.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: albrecht $
-// $Id: search_view.php,v 1.18.2.2 2007/05/09 19:02:28 albrecht Exp $
+/**
+ * @package    search
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: search_view.php,v 1.23 2008-01-02 22:14:18 gustavo Exp $
+ */
 
 // check whether lib.inc.php has been included
 if (!defined('lib_included')) die('Please use index.php!');
-
-
 
 // button bar
 $buttons = array();
@@ -19,7 +19,6 @@ $output .= get_buttons_area($buttons);
 if ($searchterm) {
 	check_csrftoken();
     include_once('./search_forms.php');
-    //$output .= $ou;
 }
 else {
     $ou = '';
@@ -30,7 +29,7 @@ $output .= '
 <div class="inner_content">
     '.$out1.'
     <br />
-    '.xss($ou).'
+    '.$ou.'
 </div>
 ';
 

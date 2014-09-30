@@ -1,33 +1,34 @@
 <?php
 /**
-* selector library routines
-*
-* @package    selector
-* @module     main
-* @author     Franz Graf, Gustavo Solt, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: selector.inc.php,v 1.49.2.2 2007/01/24 14:27:36 alexander Exp $
-*/
+ * Selector library routines
+ *
+ * @package    	selector
+ * @subpackage 	main
+ * @author     	Franz Graf, Gustavo Solt, $Author: albrecht $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: selector.inc.php,v 1.59 2008-02-07 12:25:31 albrecht Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 /**
-* Build a selectbox filled with users.
-* Selected users are shown selected and on top.
-* A certain number of other users is shown below.
-* This function is only to be used in connection w/ the selector!
-* The valus will be the users' shortnames. The displayed text: 'surname, name (group)'
-*
-* @access public
-* @param string $name           Name of the selectbox
-* @param array  $selected_users array of shortnames or IDs that should be selected
-* @param string $selector_name  name of the selector
-* @param int    $exclude_ID     (optional) exclude this ID in the select
-* @param string $html           (optional) String printed into the select-tag (ie: "id='bar' class='foo'")
-* @param int    $size           (optional) size of the multiple-select
-* @param int    $multiple       (optional) select multiple or normal (default = 1 = multiple)
-* @return string complete select or empty string on errors
-*/
+ * Build a selectbox filled with users.
+ * Selected users are shown selected and on top.
+ * A certain number of other users is shown below.
+ * This function is only to be used in connection w/ the selector!
+ * The valus will be the users' shortnames. The displayed text: 'surname, name (group)'
+ *
+ * @access public
+ * @param string 	$name           			- Name of the selectbox
+ * @param array  	$selected_users 	- Array of shortnames or IDs that should be selected
+ * @param string 	$selector_name  	- Name of the selector
+ * @param int    		$exclude_ID     		- (optional) Exclude this ID in the select
+ * @param string 	$html           			- (optional) String printed into the select-tag (ie: "id='bar' class='foo'")
+ * @param int    		$size           			- (optional) Size of the multiple-select
+ * @param int    		$multiple       		- (optional) Select multiple or normal (default = 1 = multiple)
+ * @return string 							Complete select or empty string on errors
+ */
 function selector_create_select_users($name, $selected_users=array(), $selector_name, $exclude_ID = 0, $html = "", $size = 7, $multiple = '1') {
     global $read_o;
 
@@ -52,8 +53,8 @@ function selector_create_select_users($name, $selected_users=array(), $selector_
     // input is not completely nonsense now
 
     // create head
-    if ($multiple) { 
-        $str_multiple = "multiple='multiple' size='". $size ."'"; 
+    if ($multiple) {
+        $str_multiple = "multiple='multiple' size='". $size ."'";
     } else {
         $str_multiple = "";
     }
@@ -74,7 +75,7 @@ function selector_create_select_users($name, $selected_users=array(), $selector_
     $remaining_users = PHPR_FILTER_MAXHITS;
     while ((list(,$temp) = each($temp_users)) and $remaining_users > 0) {
         if (!in_array($temp[0],$selected_users)) {
-            $remaining_users--; 
+            $remaining_users--;
             $output .= " <option value='".$temp[0]."' title='".$temp[2]."'>".$temp[1]."</option>\n";
         }
     }
@@ -91,22 +92,21 @@ function selector_create_select_users($name, $selected_users=array(), $selector_
     return $output;
 }
 
-
 /**
-* Select a set of users for the selector-dropdown.
-* If an non-empty array is referenced, the shortnames in the
-* array are selected only. Otherwise, all users are selected.
-* A tuple will look like this:
-*  array('test1', 'surname, name (group)')
-* The result depends on PHPR_ACCESS_GROUPS which may restrict access
-* to users of certain groups.
-* If the calling user acts as a proxy (global[act_for]) the permissions
-* of the act_for-user are taken.
-*
-* @param  array $ids            (optional) array of user IDs
-* @param  int   $exclude_ID     (optional) exclude this ID in the select
-* @return array Array of arrays: array(ID, string)
-*/
+ * Select a set of users for the selector-dropdown.
+ * If an non-empty array is referenced, the shortnames in the
+ * array are selected only. Otherwise, all users are selected.
+ * A tuple will look like this:
+ *  array('test1', 'surname, name (group)')
+ * The result depends on PHPR_ACCESS_GROUPS which may restrict access
+ * to users of certain groups.
+ * If the calling user acts as a proxy (global[act_for]) the permissions
+ * of the act_for-user are taken.
+ *
+ * @param  array 	$ids            		- (optional) Array of user IDs
+ * @param  int   		$exclude_ID     - (optional) Exclude this ID in the select
+ * @return array 						- Array of arrays: array(ID, string)
+ */
 function selector_get_users($ids=array(), $exclude_ID = 0) {
     $ids              = (array) $ids; // select only these IDs
     $additional_where = array();      // additional where for query
@@ -124,8 +124,8 @@ function selector_get_users($ids=array(), $exclude_ID = 0) {
     if ($exclude_ID) {
         $additional_where[] = " u.ID != $exclude_ID ";
     }
-    
-    if (PHPR_ACCESS_GROUPS != 2) { 
+
+    if (PHPR_ACCESS_GROUPS != 2) {
         $g_grup_ID = selector_get_groupIds();
         if (is_array($g_grup_ID) and $g_grup_ID[0] > 0) {
             $additional_where[] = "gu.grup_ID IN (".implode(",", $g_grup_ID).")";
@@ -146,6 +146,8 @@ function selector_get_users($ids=array(), $exclude_ID = 0) {
                LEFT JOIN ".DB_PREFIX."gruppen    g ON u.gruppe = g.ID
                LEFT JOIN ".DB_PREFIX."grup_user gu ON u.ID = gu.user_ID
                    WHERE 1=1 $additional_where
+                     AND u.is_deleted is NULL
+                     AND u.status != 1
                 ORDER BY u.nachname, u.vorname, g.kurz";
     }
     else {
@@ -153,6 +155,7 @@ function selector_get_users($ids=array(), $exclude_ID = 0) {
                     FROM ".DB_PREFIX."users u, ".DB_PREFIX."gruppen g
                    WHERE u.gruppe = g.ID
                          $additional_where
+                     AND u.is_deleted is NULL
                 ORDER BY u.nachname, u.vorname, g.kurz";
     }
 
@@ -167,14 +170,14 @@ function selector_get_users($ids=array(), $exclude_ID = 0) {
     return $return_array;
 }
 
-
 /**
-* Get the groupIDs the user may access.
-* This depends on PHPR_ACCESS_GROUPS.
-* Once the data is selected it is 'cached' in a static-variable.
-*
-* @return array Array with allowed groupIds as values or empty array if all allowed.
-*/
+ * Get the groupIDs the user may access.
+ * This depends on PHPR_ACCESS_GROUPS.
+ * Once the data is selected it is 'cached' in a static-variable.
+ *
+ * @param void
+ * @return array 			Array with allowed groupIds as values or empty array if all allowed.
+ */
 function selector_get_groupIds() {
     $userID = $GLOBALS['user_ID'];
 
@@ -225,22 +228,22 @@ function selector_get_groupIds() {
 }
 
 /**
-* Build a selectbox filled with contacts.
-* Selected contacts are shown selected and on top.
-* A certain number of other users is shown below.
-* This function is only to be used in connection w/ the selector!
-* The valus will be the contact' shortnames. The displayed text: 'nachname,vorname,(firma)'
-*
-* @access public
-* @param string $name               Name of the selectbox
-* @param array  $selected_contacts  array of shortnames or IDs that should be selected
-* @param string $selector_name      name of the selector
-* @param int    $exclude_ID         (optional) exclude this ID in the select
-* @param string $html               (optional) String printed into the select-tag (ie: "id='bar' class='foo'")
-* @param int    $size               (optional) size of the multiple-select
-* @param int    $multiple           (optional) select multiple or normal (default = 0 = single)
-* @return string complete select or empty string on errors
-*/
+ * Build a selectbox filled with contacts.
+ * Selected contacts are shown selected and on top.
+ * A certain number of other users is shown below.
+ * This function is only to be used in connection w/ the selector!
+ * The valus will be the contact' shortnames. The displayed text: 'nachname,vorname,(firma)'
+ *
+ * @access public
+ * @param string 	$name              			- Name of the selectbox
+ * @param array  	$selected_contacts  	- Array of shortnames or IDs that should be selected
+ * @param string 	$selector_name      		- Name of the selector
+ * @param int    		$exclude_ID         		- (optional) Exclude this ID in the select
+ * @param string 	$html               			- (optional) String printed into the select-tag (ie: "id='bar' class='foo'")
+ * @param int    		$size               			- (optional) Size of the multiple-select
+ * @param int    		$multiple           			- (optional) Select multiple or normal (default = 0 = single)
+ * @return string 								- Complete select or empty string on errors
+ */
 function selector_create_select_contacts($name, $selected_contacts=array(), $selector_name, $exclude_ID = 0, $html = "", $size = 1, $multiple = '0') {
     global $read_o;
 
@@ -257,13 +260,13 @@ function selector_create_select_contacts($name, $selected_contacts=array(), $sel
     $selected_contacts = $selected_contacts_tmp;
 
     // create head
-    if ($multiple) { 
-        $str_multiple = "multiple='multiple' size='". $size ."'"; 
+    if ($multiple) {
+        $str_multiple = "multiple='multiple' size='". $size ."'";
     } else {
         $str_mulitple = "";
     }
     $output = "<select $html $str_multiple name='$name' ".read_o($read_o).">\n";
-    
+
     // get all selected contacts if the array is not empty
     if (count($selected_contacts)) {
         $temp_contacts = selector_get_contacts($selected_contacts, $exclude_ID);
@@ -279,7 +282,7 @@ function selector_create_select_contacts($name, $selected_contacts=array(), $sel
     $remaining_contacts = PHPR_FILTER_MAXHITS;
     while ((list(,$temp) = each($temp_contacts)) and $remaining_contacts > 0) {
         if (!in_array($temp[0],$selected_contacts)) {
-            $remaining_contacts--; 
+            $remaining_contacts--;
             $output .= " <option value='".$temp[0]."' title='".$temp[2]."'>".$temp[1]."</option>\n";
         }
     }
@@ -296,26 +299,26 @@ function selector_create_select_contacts($name, $selected_contacts=array(), $sel
     return $output;
 }
 
-
 /**
-* Select a set of contacts for the selector-dropdown.*
-* @param  int    $exclude_ID  (optional) exclude this ID in the select
-* @param  array  $ids         (optional) array of contacts IDs
-* @return array  Array of arrays: array(ID, string)
-*/
+ * Select a set of contacts for the selector-dropdown.*
+ *
+ * @param  int  		$exclude_ID		- (optional) Exclude this ID in the select
+ * @param  array  	$ids         			- (optional) Array of contacts IDs
+ * @return array  					 	- Array of arrays: array(ID, string)
+ */
 function selector_get_contacts($ids=array(), $exclude_ID = 0) {
     global $user_group;
-    
+
     $ids              = (array) $ids;                // select only these IDs
-    $opt_where        = (!empty($user_group) ? array("gruppe=".qss($user_group)) : array()); // additional where for query
+    $opt_where        = (!empty($user_group) ? array("c.gruppe=".qss($user_group)) : array()); // additional where for query
     $return_array     = array();
 
     $g_grup_ID = selector_get_groupIds();
     if (is_array($g_grup_ID) && count($g_grup_ID) > 0) {
-        $opt_where[] = "gruppe IN ('".implode("','", $g_grup_ID)."')";
+        $opt_where[] = "c.gruppe IN ('".implode("','", $g_grup_ID)."')";
     }
 
-    $order = 'ORDER BY nachname ASC, vorname ASC';
+    $order = 'ORDER BY nachname ASC, vorname ASC, name ASC';
 
     $where = implode(" AND ", $opt_where);
     if ($where == "") {
@@ -324,7 +327,7 @@ function selector_get_contacts($ids=array(), $exclude_ID = 0) {
 
     // All values, in tree view
     if (empty($ids)) {
-        $tmp = get_elements_of_tree('contacts', 'nachname, vorname, firma', 'WHERE '. $where, 'acc_read', $order, '', 'parent', $exclude_ID);
+        $tmp = get_elements_of_tree('contacts', 'c.nachname, c.vorname, o.name', 'AS c LEFT JOIN '.DB_PREFIX.'organisations as o ON o.ID = c.ID AND o.is_deleted is NULL WHERE '. $where .' AND c.is_deleted is NULL', 'acc_read', $order, '', 'parent', $exclude_ID, 'c.');
         foreach($tmp as $option_data){
             $return_array[] = array( $option_data['value'],
                                      (str_repeat('&nbsp;&nbsp;', $option_data['depth'])).$option_data['text']
@@ -335,12 +338,12 @@ function selector_get_contacts($ids=array(), $exclude_ID = 0) {
             $ids[$key] = (int) $val;
         }
         // select only a certain set of contacts
-        $opt_where[] = " ID IN (".implode(",", $ids).")";
+        $opt_where[] = " c.ID IN (".implode(",", $ids).")";
 
         // exclude this ID
         $exclude_ID = intval($exclude_ID);
         if ($exclude_ID) {
-            $opt_where[] = " ID != $exclude_ID ";
+            $opt_where[] = " c.ID != $exclude_ID ";
         }
 
         $where = implode(" AND ", $opt_where);
@@ -348,15 +351,22 @@ function selector_get_contacts($ids=array(), $exclude_ID = 0) {
             $where = "1=1";
         }
 
-        $query = "SELECT ID, nachname, vorname, firma
-                    FROM ".DB_PREFIX."contacts
-                   WHERE $where $order";
+        $query = "SELECT c.ID, c.nachname, c.vorname, o.name
+                    FROM ".DB_PREFIX."contacts AS c
+               LEFT JOIN ".DB_PREFIX."organisations as o ON o.ID = c.ID AND o.is_deleted is NULL
+                   WHERE $where
+                     AND c.is_deleted is NULL
+                         $order";
         $result = db_query($query) or db_die();
 
+        $founds = array();
         while ($row = db_fetch_row($result)) {
-            $return_array[] = array( $row[0],
-                                     $row[1].", ".$row[2]." (".$row[3].")"
-                                    );
+            if (!in_array($row[0],$founds)) {
+                $return_array[] = array( $row[0],
+                                         $row[1].", ".$row[2]." (".$row[3].")"
+                                        );
+                $founds[] = $row[0];
+           }
         }
     }
 
@@ -364,22 +374,22 @@ function selector_get_contacts($ids=array(), $exclude_ID = 0) {
 }
 
 /**
-* Build a selectbox filled with projects.
-* Selected projects are shown selected and on top.
-* A certain number of other projects is shown below.
-* This function is only to be used in connection w/ the selector!
-* The valus will be the project' names. The displayed text: 'name'
-*
-* @access public
-* @param string $name               Name of the selectbox
-* @param array  $selected_projects  array of names or IDs that should be selected
-* @param string $selector_name      name of the selector
-* @param int    $exclude_ID         (optional) exclude this ID in the select
-* @param string $html               (optional) String printed into the select-tag (ie: "id='bar' class='foo'")
-* @param int    $size               (optional) size of the multiple-select
-* @param int    $multiple           (optional) select multiple or normal (default = 0 = single)
-* @return string complete select or empty string on errors
-*/
+ * Build a selectbox filled with projects.
+ * Selected projects are shown selected and on top.
+ * A certain number of other projects is shown below.
+ * This function is only to be used in connection w/ the selector!
+ * The valus will be the project' names. The displayed text: 'name'
+ *
+ * @access public
+ * @param string 	$name               			- Name of the selectbox
+ * @param array  	$selected_projects  	- Array of names or IDs that should be selected
+ * @param string 	$selector_name      		- Name of the selector
+ * @param int    		$exclude_ID         		- (optional) Exclude this ID in the select
+ * @param string 	$html               			- (optional) String printed into the select-tag (ie: "id='bar' class='foo'")
+ * @param int    		$size               			- (optional) Size of the multiple-select
+ * @param int    		$multiple           			- (optional) Select multiple or normal (default = 0 = single)
+ * @return string 								- Complete select or empty string on errors
+ */
 function selector_create_select_projects($name, $selected_projects=array(), $selector_name, $exclude_ID = 0, $html = "", $size = 1, $multiple = '0') {
     global $read_o;
 
@@ -396,13 +406,13 @@ function selector_create_select_projects($name, $selected_projects=array(), $sel
     $selected_projects = $selected_projects_tmp;
 
     // create head
-    if ($multiple) { 
-        $str_multiple = "multiple='multiple' size='". $size ."'"; 
+    if ($multiple) {
+        $str_multiple = "multiple='multiple' size='". $size ."'";
     } else {
         $str_multiple = "";
     }
     $output = "<select $html $str_multiple name='$name' ".read_o($read_o).">\n";
-    
+
     // get all selected projects if the array is not empty
     if (count($selected_projects)) {
         $temp_projects = selector_get_projects($selected_projects, $exclude_ID);
@@ -418,7 +428,7 @@ function selector_create_select_projects($name, $selected_projects=array(), $sel
     $remaining_projects = PHPR_FILTER_MAXHITS;
     while ((list(,$temp) = each($temp_projects)) and $remaining_projects > 0) {
         if (!in_array($temp[0],$selected_projects)) {
-            $remaining_projects--; 
+            $remaining_projects--;
             $output .= " <option value='".$temp[0]."'>".$temp[1]."</option>\n";
         }
     }
@@ -435,13 +445,13 @@ function selector_create_select_projects($name, $selected_projects=array(), $sel
     return $output;
 }
 
-
 /**
-* Select a set of projects for the selector-dropdown.*
-* @param  array  $ids        (optional) array of projects IDs
-* @param  int    $exclude_ID (optional) exclude this ID in the select
-* @return array Array of arrays: array(ID, string)
-*/
+ * Select a set of projects for the selector-dropdown.*
+ *
+ * @param  array 	$ids        			- (optional) Array of projects IDs
+ * @param  int  		$exclude_ID 	- (optional) Exclude this ID in the select
+ * @return array 						- Array of arrays: array(ID, string)
+ */
 function selector_get_projects($ids=array(), $exclude_ID = 0) {
     global $user_ID,$user_kurz;
     $allowed_groups='';
@@ -456,8 +466,7 @@ function selector_get_projects($ids=array(), $exclude_ID = 0) {
                                 AND $allowed_groups))"); // additional where for query
     $return_array     = array();
 
-   
-    $order = 'ORDER BY name ASC';
+    $order = sort_string('projects');
 
     $where = implode(" AND ", $opt_where);
     if ($where == "") {
@@ -466,7 +475,7 @@ function selector_get_projects($ids=array(), $exclude_ID = 0) {
 
     // All values, in tree view
     if (empty($ids)) {
-        $tmp = get_elements_of_tree('projekte', 'name', 'WHERE '. $where, 'acc', $order, '', 'parent', $exclude_ID);
+        $tmp = get_elements_of_tree('projekte', 'name', 'WHERE '.$where.' AND is_deleted is NULL', 'acc', $order, '', 'parent', $exclude_ID);
         foreach($tmp as $option_data){
             $return_array[] = array( $option_data['value'],
                                      (str_repeat('&nbsp;&nbsp;', $option_data['depth'])).$option_data['text']
@@ -476,7 +485,7 @@ function selector_get_projects($ids=array(), $exclude_ID = 0) {
         foreach($ids as $key => $val){
             $ids[$key] = (int) $val;
         }
-    // selected items
+        // selected items
         // select only a certain set of users
         $opt_where[] = " ID IN (".implode(",",$ids).")";
 
@@ -490,10 +499,152 @@ function selector_get_projects($ids=array(), $exclude_ID = 0) {
         if ($where == "") {
             $where = "1=1";
         }
-        
+
         $query = "SELECT ID, name
                     FROM ".DB_PREFIX."projekte
-                   WHERE $where $order";
+                   WHERE $where
+                     AND is_deleted is NULL
+                         $order";
+        $result = db_query($query) or db_die();
+
+        while ($row = db_fetch_row($result)) {
+            $return_array[] = array( $row[0],
+                                     $row[1]
+                                    );
+        }
+    }
+
+    return $return_array;
+}
+
+/**
+ * Build a selectbox filled with organisations.
+ * Selected organisations are shown selected and on top.
+ * A certain number of other organisations is shown below.
+ * This function is only to be used in connection w/ the selector!
+ * The valus will be the organisations' names. The displayed text: 'name'
+ *
+ * @access public
+ * @param string 	$name                       		- Name of the selectbox
+ * @param array  	$selected_organisations     - Array of names or IDs that should be selected
+ * @param string 	$selector_name              	- Name of the selector
+ * @param int    		$exclude_ID                 	- (optional) Exclude this ID in the select
+ * @param string 	$html                       			- (optional) String printed into the select-tag (ie: "id='bar' class='foo'")
+ * @param int    		$size                       			- (optional) Size of the multiple-select
+ * @param int    		$multiple                   		- (optional) Select multiple or normal (default = 0 = single)
+ * @return string 									Complete select or empty string on errors
+ */
+function selector_create_select_organisations($name, $selected_organisations=array(), $selector_name, $exclude_ID = 0, $html = "", $size = 1, $multiple = '0') {
+    global $read_o;
+
+    // only get int values
+    $selected_organisations_tmp = array();
+    if (is_array($selected_organisations)) {
+        foreach ($selected_organisations as $key => $value) {
+            $key = xss($key);
+            $selected_organisations_tmp[$key] = intval(xss($value));
+        }
+    } else {
+        $selected_organisations_tmp[0] = intval(xss($selected_organisations));
+    }
+    $selected_organisations = $selected_organisations_tmp;
+
+    // create head
+    if ($multiple) {
+        $str_multiple = "multiple='multiple' size='". $size ."'";
+    } else {
+        $str_mulitple = "";
+    }
+    $output = "<select $html $str_multiple name='$name' ".read_o($read_o).">\n";
+
+    // get all selected organisations if the array is not empty
+    if (count($selected_organisations)) {
+        $temp_organisations = selector_get_organisations($selected_organisations, $exclude_ID);
+        foreach ($temp_organisations as $temp) {
+            $output .= " <option value='".$temp[0]."' selected='selected'>".$temp[1]."</option>\n";
+        }
+        unset($temp_organisations, $temp);
+    }
+    $output .= " <option value=''>- - - - - - -</option>\n";
+
+    // get _all_ organisations and show the first PHPR_FILTER_MAXHITS except the selected organisations
+    $temp_organisations = selector_get_organisations(array(), $exclude_ID);
+    $remaining_organisations = PHPR_FILTER_MAXHITS;
+    while ((list(,$temp) = each($temp_organisations)) and $remaining_organisations > 0) {
+        if (!in_array($temp[0],$selected_organisations)) {
+            $remaining_organisations--;
+            $output .= " <option value='".$temp[0]."'>".$temp[1]."</option>\n";
+        }
+    }
+    // is there more data than currently shown?
+    if ($remaining_organisations<=0 and count($temp_organisations) > PHPR_FILTER_MAXHITS) {
+        $output .= " <option value=''>. . .</option>\n";
+    }
+    unset($temp_organisations, $temp, $remaining_organisations);
+
+    // add the footer
+    $output .= "</select>\n";
+    $output .= "<input type=\"image\" src=\"../img/cont.gif\" title=\"".__('Organisation selector')."\" name=\"".$selector_name."\"". read_o($read_o) ."/>\n";
+
+    return $output;
+}
+
+/**
+ * Select a set of organisations for the selector-dropdown.*
+ *
+ * @param  array 	$ids        			- (optional) Array of organisations IDs
+ * @param  int 		$exclude_ID 	- (optional) Exclude this ID in the select
+ * @return array						Array of arrays: array(ID, string)
+ */
+function selector_get_organisations($ids=array(), $exclude_ID = 0) {
+    global $user_ID,$user_kurz;
+    $allowed_groups='';
+    $g_grup_ID = selector_get_groupIds();
+    if (is_array($g_grup_ID) && $g_grup_ID[0] > 0) {
+        $allowed_groups = "gruppe IN (".implode(",", $g_grup_ID).")";
+    }
+    if($allowed_groups == '')$allowed_groups = '1=1';
+    $ids              = (array) $ids;                // select only these IDs
+    $opt_where        = array("(acc LIKE 'system'
+                                OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')
+                                AND $allowed_groups))"); // additional where for query
+    $return_array     = array();
+
+    $order = sort_string('organisations');
+
+    $where = implode(" AND ", $opt_where);
+    if ($where == "") {
+        $where = "1=1";
+    }
+
+    // All values, in tree view
+    if (empty($ids)) {
+        $tmp = get_elements_of_tree('organisations', 'name', 'WHERE '. $where." AND is_deleted is NULL", 'acc', $order, '', 'parent', $exclude_ID);
+        foreach($tmp as $option_data){
+            $return_array[] = array( $option_data['value'],
+                                     (str_repeat('&nbsp;&nbsp;', $option_data['depth'])).$option_data['text']
+                                    );
+        }
+    } else {
+        // selected items
+        // select only a certain set of users
+        $opt_where[] = " ID IN (".implode(",",$ids).")";
+
+        // exclude this ID
+        $exclude_ID = intval($exclude_ID);
+        if ($exclude_ID) {
+            $opt_where[] = " ID != $exclude_ID ";
+        }
+
+        $where = implode(" AND ", $opt_where);
+        if ($where == "") {
+            $where = "1=1";
+        }
+
+        $query = "SELECT ID, name
+                    FROM ".DB_PREFIX."organisations
+                   WHERE is_deleted is NULL
+                     AND $where $order";
         $result = db_query($query) or db_die();
 
         while ($row = db_fetch_row($result)) {
@@ -510,13 +661,13 @@ function selector_get_projects($ids=array(), $exclude_ID = 0) {
  * Return the config options for the selectot
  * @author Gustavo Solt
  *
- * @param  string $type  - Type of the selector contact/project/user/etc
- * @param  string $title - Title to display
- * @return array  - (extras => extras for quickadd, opt_where => where options, opt => general optiopns)
+ * @param  string 	$type  	- Type of the selector contact/project/user/organisations/etc
+ * @param  string 	$title 		- Title to display
+ * @return array  				(extras => extras for quickadd, opt_where => where options, opt => general optiopns)
  */
 function get_selector_config($type, $title) {
     global $user_group;
-    
+
     switch($type) {
         case "contact":
         case "one_contact":
@@ -540,7 +691,7 @@ function get_selector_config($type, $title) {
             if (is_array($g_grup_ID) && $g_grup_ID[0] > 0) {
                 $opt_where[] = "c.gruppe IN (".implode(",", $g_grup_ID).")";
             }
-        
+
             $opt = array(   'title'     => $title,
                             'table'     => array('contacts AS c'),
                             'where'     => $opt_where,
@@ -549,7 +700,7 @@ function get_selector_config($type, $title) {
                             'display'   => array('c.nachname','c.vorname'),
                             'dstring'   => '%s, %s',
                             'filter'    => array('text' => array(   'nachname' => __('Family Name'),
-                                                                    'vorname' => __('First Name')
+                                                                    'vorname'  => __('First Name')
                                                                 )
                                                 )
                         );
@@ -573,6 +724,28 @@ function get_selector_config($type, $title) {
                         'order'     => 'p.name ASC',
                         'ID'        => 'p.ID',
                         'display'   => array('p.name'),
+                        'dstring'   => '%s',
+                        'filter'    => array('text' => array('name' => __('Name')))
+                    );
+        break;
+
+    case "organisation":
+        // Options for Quickaddings
+        $extras = array();
+
+        // Options for datasource
+        $opt_where = array("o.gruppe=$user_group");
+        $g_grup_ID = selector_get_groupIds();
+        if (is_array($g_grup_ID) && $g_grup_ID[0] > 0) {
+            $opt_where[] = "o.gruppe IN (".implode(",", $g_grup_ID).")";
+        }
+
+        $opt = array(   'title'     => $title,
+                        'table'     => array('organisations AS o'),
+                        'where'     => $opt_where,
+                        'order'     => 'o.name ASC',
+                        'ID'        => 'o.ID',
+                        'display'   => array('o.name'),
                         'dstring'   => '%s',
                         'filter'    => array('text' => array('name' => __('Name')))
                     );
@@ -609,7 +782,7 @@ function get_selector_config($type, $title) {
                         'dstring'   => '%s, %s (%s)',
                         'filter'    => array('text' => array(   'nachname'  => __('Family Name'),
                                                                 'vorname'   => __('First Name')
-                                                            ) 
+                                                            )
                                             )
                     );
         break;

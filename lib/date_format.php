@@ -1,72 +1,70 @@
 <?php
-
-// date_format.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Giampaolo Pantò, $Author: albrecht $
-// $Id: date_format.php,v 1.13.2.3 2007/02/12 11:00:34 albrecht Exp $
+/**
+ * Date format class
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Giampaolo Pantò, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: date_format.php,v 1.20 2007-05-31 08:11:51 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
-
 /**
-* Basic class to do the date conversion stuff (and something more).
-*
-* @package PHProjekt
-* @author  Giampaolo Pantò, Munich-Germany <panto@mayflower.de>
-*/
+ * Basic class to do the date conversion stuff (and something more).
+ *
+ * @package lib
+ */
 class Date_Format
 {
-
     /**
-    * The available date formats
-    * @var array
-    */
+     * The available date formats
+     * @var array
+     */
     var $_date_formats;
 
     /**
-    * The date format stored in the db (iso)
-    * @var string
-    */
+     * The date format stored in the db (iso)
+     * @var string
+     */
     var $_db_format;
 
     /**
-    * The date format of the current user
-    * @var string
-    */
+     * The date format of the current user
+     * @var string
+     */
     var $_user_format;
 
     /**
-    * The the separator of the user date format
-    * @var string
-    */
+     * The the separator of the user date format
+     * @var string
+     */
     var $_user_separator;
 
     /**
-    * The default (fallback) date format
-    * @var string
-    */
+     * The default (fallback) date format
+     * @var string
+     */
     var $_default_format;
 
     /**
-    * True if the conversion runs in an error, false otherwise
-    * @var bool
-    */
+     * True if the conversion runs in an error, false otherwise
+     * @var bool
+     */
     var $_convert_error;
 
-
     /**
-    * Constructor
-    *
-    * Define here more date formats:
-    * 'short definition' => 'php date() format'
-    *
-    * @param string $user_format  the date format of the user (eg. "dd-mm-yyyy")
-    *
-    */
-    function Date_Format($user_format='')
-    {
+     * Constructor
+     *
+     * Define here more date formats:
+     * 'short definition' => 'php date() format'
+     *
+     * @param string $user_format 	- The date format of the user (eg. "dd-mm-yyyy")
+     */
+    function Date_Format($user_format='') {
         $this->_convert_error = false;
         $this->_db_format = 'Y-m-d';
         $this->_date_formats = array( 'dd.mm.yyyy' => 'd.m.Y'
@@ -86,16 +84,13 @@ class Date_Format
         $this->_user_separator = $separator{0};
     }
 
-
     /**
-    * Get the available date formats
-    *
-    * @param bool $as_values  true to get the array keys as values
-    *
-    * @return array  the available date formats
-    */
-    function get_date_formats($as_values=false)
-    {
+     * Get the available date formats
+     *
+     * @param boolean	$as_values 	- True to get the array keys as values
+     * @return array         				The available date formats
+     */
+    function get_date_formats($as_values=false) {
         if ($as_values) {
             return array_keys($this->_date_formats);
         } else {
@@ -103,51 +98,41 @@ class Date_Format
         }
     }
 
-
     /**
-    * Get the date format of the user
-    *
-    * @return string  the date format of the user (eg. "dd-mm-yyyy")
-    */
-    function get_user_format()
-    {
+     * Get the date format of the user
+     *
+     * @return string 	The date format of the user (eg. "dd-mm-yyyy")
+     */
+    function get_user_format() {
         return $this->_user_format;
     }
 
-
     /**
-    * Get the separator of the user date format
-    *
-    * @return string  the separator as a single char
-    */
-    function get_user_separator()
-    {
+     * Get the separator of the user date format
+     *
+     * @return string 	The separator as a single char
+     */
+    function get_user_separator() {
         return $this->_user_separator;
     }
 
-
     /**
-    * Check if the given date is a valid user format
-    *
-    * @param string $date  the user date which should be checked
-    *
-    * @return bool  true if valid, false otherwise
-    */
-    function is_user_date($date)
-    {
+     * Check if the given date is a valid user format
+     *
+     * @param string $date 		- The user date which should be checked
+     * @return boolean       		True if valid, false otherwise
+     */
+    function is_user_date($date) {
         return $this->is_db_date($this->convert_user2db($date));
     }
 
-
     /**
-    * Check if the given date is a valid db/iso format ("yyyy-mm-dd")
-    *
-    * @param string $date  the db/iso date which should be checked
-    *
-    * @return bool  true if valid, false otherwise
-    */
-    function is_db_date($date)
-    {
+     * Check if the given date is a valid db/iso format ("yyyy-mm-dd")
+     *
+     * @param string $date 		- The db/iso date which should be checked
+     * @return boolean      		True if valid, false otherwise
+     */
+    function is_db_date($date) {
         $d = (int) substr($date, -2);
         $m = (int) substr($date, 5, 2);
         $y = (int) substr($date, 0, 4);
@@ -155,79 +140,65 @@ class Date_Format
         return checkdate($m, $d, $y);
     }
 
-
     /**
-    * Check if the given timestamp belongs to a weekend
-    *
-    * @param string $timestamp  the timestamp which should be checked
-    *
-    * @return bool  true if this is the case, false otherwise
-    */
-    function is_weekend($timestamp)
-    {
+     * Check if the given timestamp belongs to a weekend
+     *
+     * @param string $timestamp 	- The timestamp which should be checked
+     * @return boolean				True if this is the case, false otherwise
+     */
+    function is_weekend($timestamp) {
         if (date('w', $timestamp) == 0 || date('w', $timestamp) == 6) {
             return true;
         }
         return false;
     }
 
-
     /**
-    * Converts the given date from the user format to the db/iso format ("yyyy-mm-dd")
-    *
-    * @param string $date  the date which should be converted into the db/iso format
-    *
-    * @return string  the converted date or $date on an error
-    */
-    function convert_user2db($date)
-    {
+     * Converts the given date from the user format to the db/iso format ("yyyy-mm-dd")
+     *
+     * @param string $date  	- The date which should be converted into the db/iso format
+     * @return string      			The converted date or $date on an error
+     */
+    function convert_user2db($date) {
         return $this->convert_date($date, $this->_date_formats[$this->_user_format], $this->_db_format);
     }
 
     /**
-    * Converts the given date from the user format to the js Date format ("yyyy/mm/dd")
-    *
-    * @param string $date  the date which should be converted into the db/iso format
-    *
-    * @return string  the converted date or $date on an error
-    */
-    function convert_user2jsDate($date)
-    {
+     * Converts the given date from the user format to the js Date format ("yyyy/mm/dd")
+     *
+     * @param string $date  	- The date which should be converted into the db/iso format
+     * @return string      			The converted date or $date on an error
+     */
+    function convert_user2jsDate($date) {
         return $this->convert_date($date, $this->_date_formats[$this->_user_format], 'Y/m/d');
     }
 
     /**
-    * Converts the given date from the db format to the js Date format ("yyyy/mm/dd")
-    *
-    * @param string $date  the date which should be converted into the db/iso format
-    *
-    * @return string  the converted date or $date on an error
-    */
-    function convert_db2jsDate($date)
-    {
+     * Converts the given date from the db format to the js Date format ("yyyy/mm/dd")
+     *
+     * @param string $date  	- The date which should be converted into the db/iso format
+     * @return string      			The converted date or $date on an error
+     */
+    function convert_db2jsDate($date) {
         return $this->convert_date($date, $this->_db_format, 'Y/m/d');
     }
 
     /**
-    * Converts the given date from the db/iso format ("yyyy-mm-dd") to the user format
-    *
-    * @param string $date  the date which should be converted into the user format
-    *
-    * @return string  the converted date or $date on an error
-    */
-    function convert_db2user($date)
-    {
+     * Converts the given date from the db/iso format ("yyyy-mm-dd") to the user format
+     *
+     * @param string $date  	- The date which should be converted into the user format
+     * @return string      			The converted date or $date on an error
+     */
+    function convert_db2user($date) {
         return $this->convert_date($date, $this->_db_format, $this->_date_formats[$this->_user_format]);
     }
 
-
     /**
-    * Converts the given phprojekt "timestamp" ("yyyymmdd") to the user format
-    *
-    * @param string $date  the phprojekt "timestamp" which should be converted into the user format
-    *
-    * @return string  the converted date or $date on an error
-    */
+     * Converts the given phprojekt "timestamp" ("yyyymmdd") to the user format
+     *
+     * @param string $date  	- The phprojekt "timestamp" which should be converted into the user format
+     * @return string      			The converted date or $date on an error
+     */
     function convert_dbdate2user($date)
     {
         if (strlen($date) != 8) {
@@ -237,16 +208,13 @@ class Date_Format
         return $this->convert_db2user($ret);
     }
 
-
     /**
-    * Converts the given phprojekt "timestamp" ("yyyymmddhhmmss") to the user format
-    *
-    * @param string $date  the phprojekt "timestamp" which should be converted into the user format
-    *
-    * @return string  the converted date or $date on an error
-    */
-    function convert_dbdatetime2user($date)
-    {
+     * Converts the given phprojekt "timestamp" ("yyyymmddhhmmss") to the user format
+     *
+     * @param string $date  	- The phprojekt "timestamp" which should be converted into the user format
+     * @return string      			The converted date or $date on an error
+     */
+    function convert_dbdatetime2user($date) {
         if (strlen($date) != 14) {
             return $date;
         }
@@ -255,18 +223,15 @@ class Date_Format
         return $ret;
     }
 
-
     /**
-    * Common method to convert date formats
-    *
-    * @param string $input_date     the date which should be converted
-    * @param string $input_format   the input date format
-    * @param string $output_format  the output date format
-    *
-    * @return string  the converted date or $input_date on an error
-    */
-    function convert_date($input_date, $input_format, $output_format)
-    {
+     * Common method to convert date formats
+     *
+     * @param string $input_date     	- The date which should be converted
+     * @param string $input_format   	- The input date format
+     * @param string $output_format	- The output date format
+     * @return string               			The converted date or $input_date on an error
+     */
+    function convert_date($input_date, $input_format, $output_format) {
         if (empty($input_date)) {
             $this->_convert_error = true;
             return $input_date;
@@ -307,44 +272,39 @@ class Date_Format
         return $ret;
     }
 
-
     /**
-    * Get the filled maxlength attribute for the html input tag
-    *
-    * @return string  the filled maxlength attribute
-    */
-    function get_maxlength_attribute()
-    {
+     * Get the filled maxlength attribute for the html input tag
+     *
+     * @param void
+     * @return string 	The filled maxlength attribute
+     */
+    function get_maxlength_attribute() {
         return 'maxlength="'.strlen($this->get_user_format()).'"';
     }
 
-
     /**
-    * Get the filled title attribute for html tags
-    *
-    * @param string $prepend  prepend this stuff to the attribute
-    *
-    * @return string  the filled title attribute
-    */
-    function get_title_attribute($prepend='')
-    {
+     * Get the filled title attribute for html tags
+     *
+     * @param string	$prepend		- Prepend this stuff to the attribute
+     * @return string        			The filled title attribute
+     */
+    function get_title_attribute($prepend='') {
         if ($prepend != '') {
             $prepend .= ' - ';
         }
         return 'title="'.$prepend.__('Date format').': '.$this->get_user_format().'"';
     }
 
-
     /**
-    * Get the javascript values for the functions which are needed to convert the date format
-    *
-    * @return array ($seq,$user_separator,$searchfor);
-    */
-    function get_javascript_convert_value_functions()
-    {
+     * Get the javascript values for the functions which are needed to convert the date format
+     *
+     * @param void
+     * @return array 		Array (seq,user_separator,searchfor)
+     */
+    function get_javascript_convert_value_functions() {
         $seq = explode($this->_user_separator, strtolower($this->_date_formats[$this->_user_format]));
         $seq = array_flip($seq);
-                
+
         $user_separator =($this->_user_separator=="/"?"\/":$this->_user_separator);
 
         $searchfor = preg_replace( array('/d/', '/m/', '/y/', '/['.$user_separator.']/'),
@@ -355,12 +315,12 @@ class Date_Format
     }
 
     /**
-    * Get the javascript functions which are needed to convert the date format
-    *
-    * @return string  the javascript code
-    */
-    function get_javascript_convert_functions()
-    {
+     * Get the javascript functions which are needed to convert the date format
+     *
+     * @param void
+     * @return string 		The javascript code
+     */
+    function get_javascript_convert_functions() {
         list($seq, $user_separator, $searchfor) = $this->get_javascript_convert_value_functions();
 
         $ret = '
@@ -378,16 +338,13 @@ class Date_Format
     }
 
     /**
-     * Converts a PHProject date (YYYY-mm-dd) into an u*nix timestamp
+     * Converts a PHProject date (YYYY-mm-dd) into an unix timestamp
      *
-     * @param string $date
-     * @return integer
-     *
-     * @access public
-     * @author David Soria Parra
+     * @param string $date				- The date which should be converted into the user format
+     * @param string	$inputFormat	- String to use in the convert function
+     * @return int							Converted timestamp
      */
-    function get_timestamp_from_date($date, $inputFormat='Y-m-d')
-    {
+    function get_timestamp_from_date($date, $inputFormat='Y-m-d') {
         if($inputFormat!='Y-m-d')
             $date = Date_Format::convert_date($date, $inputFormat, $this->_db_format);
 
@@ -398,15 +355,11 @@ class Date_Format
     /**
      * Converst a timestamp to a PHProject date (YYYY-mm-dd) used in most of the date column of the DB
      *
-     * @param integer $timestamp
-     * @return string
-     *
-     * @static static
-     * @access public
-     * @author David Soria Parra
+     * @param int		$timestamp		- The phprojekt "timestamp" which should be converted into the user format
+     * @param string	$outputFormat	- String to use in the convert function
+     * @return string						Converted date
      */
-    function get_date_from_timestamp($timestamp, $outputFormat='Y-m-d')
-    {
+    function get_date_from_timestamp($timestamp, $outputFormat='Y-m-d') {
         $date = date("Y-m-d", $timestamp);
         if($inputFormat != 'Y-m-d')
             $date = Date_Format::convert_date($date, 'Y-m-d', $outputFormat);
@@ -415,16 +368,14 @@ class Date_Format
     }
 
     /**
-     * Returns an u*nix timestamp without the hours, minutes and seconds offset
+     * Returns an unix timestamp without the hours, minutes and seconds offset
      *
-     * @param integer $timestamp
-     * @return integer
-     * @author David Soria Parra
+     * @param int		$timestamp		- The phprojekt "timestamp" which should be converted into the user format
+     * @return int							Converted timestamp
      */
     function get_timestamp_at_midnight($timestamp)
     {
         return mktime(0,0,0, date("m",$timestamp), date("d", $timestamp), date("Y", $timestamp));
     }
 }
-
 ?>

@@ -1,10 +1,12 @@
 <?php
-
-// todo_forms.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: todo_forms.php,v 1.78.2.3 2007/05/09 04:57:03 polidor Exp $
+/**
+ * @package    todo
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: todo_forms.php,v 1.86 2008-01-10 03:10:55 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -30,6 +32,7 @@ if ($ID > 0) {
     $result = db_query("SELECT ID, von, acc_write, status, ext, progress, acc, gruppe
                           FROM ".DB_PREFIX."todo
                          WHERE ID = ".(int)$ID." 
+                           AND is_deleted is NULL
                            AND (acc LIKE 'system' OR von = ".(int)$user_ID." OR ext = ".(int)$user_ID." 
                                 OR ((acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')
                                     ".group_string()."))") or db_die();
@@ -42,13 +45,25 @@ if ($ID > 0) {
     change_group($row[7]);
 }
 
+//unset ID when copying project
+$ID=prepare_ID_for_copy($ID,$copyform);
 if ($ID) $head = slookup('todo', 'remark', 'ID', $ID,'1');
 else     $head = __('New todo');
 
 // tabs
 $tabs   = array();
 if ($justform == 2) $justform = 1;
-$hidden = array('justform' => $justform);
+
+$hidden = array('justform' => $justform, 'ID' => $ID, 'mode' => 'data');
+
+if (SID) $hidden[session_name()]= session_id();
+
+foreach ($view_param as $key=>$value) {
+
+    $hidden[$key] = $value;
+
+}
+
 $buttons = array();
 // form start
 if (SID) $hidden[session_name()] = session_id();
@@ -63,8 +78,10 @@ $buttons[] = array( 'type' => 'form_start',
 "checkUserDateFormat('anfang','".__('Begin').':\n'.$date_format_text."') &amp;&amp; ".
 "checkUserDateFormat('deadline','".__('Deadline').':\n'.$date_format_text."');");
 
-$output = '<div id="global-header">';
-$output.= get_tabs_area($tabs);
+
+
+
+
 $output.= breadcrumb($module, array(array('title'=> $head)));
 $output.= '</div>';
 $output.= get_buttons($buttons);
@@ -80,19 +97,22 @@ if (!$read_o && $ID > 0 && $row[4] == 0) {
 // end buttons chief only
 $output .= get_buttons_area($buttons);
 
+
+
+$out_array=array();
+
+
+
 /*******************************
 *       basic fields
 *******************************/
 $form_fields   = array();
-$form_fields[] = array('type' => 'hidden', 'name' => 'ID', 'value' => $ID);
-$form_fields[] = array('type' => 'hidden', 'name' => 'mode', 'value' => 'data');
-$form_fields[] = array('type' => 'hidden', 'name' => 'justform', 'value' => $justform);
-if (SID) $form_fields[] = array('type' => 'hidden', 'name' => session_name(), 'value' => session_id());
-foreach($view_param as $key => $value){
-    $form_fields[] = array('type' => 'hidden', 'name' => $key, 'value' => $value);
-}
-$form_fields[] = array('type' => 'parsed_html', 'html' => build_form($fields));
-$basic_fields = get_form_content($form_fields);
+
+
+
+$basic_fields = build_form($fields);
+
+
 
 /*******************************
 *   categorization fields
@@ -119,7 +139,6 @@ else if ($ID > 0) {
     $options = array();
     // select box only if the user is the recipient and the status is still pending ...
     if ($row[4] == $user_ID and ($row[3] == 2 || $row[3] == 0)) {
-        
         foreach ($status_arr as $statusnr => $statusname) {
             // possible values: accepted and rejected
             if ($statusnr >= 2 and $statusnr <= 4) {
@@ -144,12 +163,14 @@ if ($row[4] == $user_ID and ($row[3] > 1 and $row[3] < 5)) {
     $form_fields[] = array('type' => 'hidden', 'name' => 'mode', 'value' => 'data');
     $form_fields[] = array('type' => 'hidden', 'name' => 'cstatus', 'value' => $GLOBALS['cstatus']);
     $form_fields[] = array('type' => 'hidden', 'name' => 'category', 'value' => $GLOBALS['category']);
-    $form_fields[] = array('type' => 'hidden', 'name' => 'ID', 'value' => $ID);
-    //$form_fields[] = array('type' => 'hidden', 'name' => 'step', 'value' => 'update_progress');
+
     $form_fields[] = array('type' => 'text', 'name' => 'progress', 'label' => __('progress').__(':'), 'value' => $row[5], 'label_right' => ' %');
 }
 else {
-    $form_fields[] = array('type' => 'parsed_html', 'html' => $row[5].'%');
+    $form_fields[] = array('type' => 'parsed_html', 'html' => ' '.$row[5].'% &nbsp;');
+}
+if (($row[4] == $user_ID or $row[1]==$user_ID) and $row[3] == 5) {
+	 $form_fields[] = array('type' => 'checkbox', 'readonly'=>false,'name' => 'todo_reopen', 'label' =>'', 'label_right' => __('reopen'));
 }
 $categorization_fields = get_form_content($form_fields);
 
@@ -173,10 +194,14 @@ if (!isset($acc_write)) {
     else $acc_write = xss($_POST['acc_write']);
 }
 
-$form_fields[] = array('type' => 'parsed_html', 'html' => access_form2($str_persons, 1, $acc_write, 0, 1,'acc',$read_acc));
+$form_fields[] = array('type' => 'parsed_html', 'html' => access_form($str_persons, 1, $acc_write, 0, 1,'acc',$read_acc));
 $assignment_fields = get_form_content($form_fields);
 
-if (PHPR_HISTORY_LOG == 2) $history = history_show('todo', $ID);
+
+
+
+
+
 
 // project-related times
 include_once(LIB_PATH."/timeproj.inc.php");
@@ -186,35 +211,49 @@ if ((!empty($fields['project']['value']) or !$ID) and PHPR_PROJECTS) {
 }
 
 
-$output .= '
-<br />
-<div class="inner_content">
-    <a name="content"></a>
-    <a name="oben" id="oben"></a>
-    <fieldset>
-    <legend>'.__('Basis data').'</legend>
-    '.$basic_fields.'
-    </fieldset>
-';
+
+
+
+$out_array = array_merge($out_array,$basic_fields);
 
 if (!$ID){
-    $output .= get_notify_fields();
+
+    $out_array[]=array(__('Notification'),get_notify_fields());
+
 }
 
-$output .= '
-    <fieldset>
-    <legend>'.__('Categorization').'</legend>
-    '.$categorization_fields.'
-    </fieldset>
+$out_array[]=array(__('Categorization'),'<br/>'.$categorization_fields);
 
-    '.$project_specific_times.'
-    '.$assignment_fields.'
-    '.$history.'
-</div>
-<br style="clear:both" /><br />
-</form>
-';
-$output .= '</div>';
+$out_array[]=array(__('project related times'),$project_specific_times);
+
+$out_array[]=array(__('Release'),$assignment_fields);
+
+if ($ID > 0 and PHPR_HISTORY_LOG == 2) $out_array[]=array(__('History'),history_show('todo', $ID));
+
+
+
+// close the big form
+
+
+
+$output.= generate_output($out_array);
+
+
+
+$out_array=array();
+
+
+
+$output .= '<div class="hline"></div>';
+
+$output .= get_buttons_area($buttons);
+
+$output .= '<div class="hline"></div>';
+
+
+
+$output .= '</form>';
+
 echo $output;
 
 ?>

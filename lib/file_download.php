@@ -1,9 +1,14 @@
 <?php
-
-// file_download.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Nina
+/**
+ * Download function
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Nina, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id:
+ */
 
 define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');
@@ -12,8 +17,9 @@ download_attached_file($download_attached_file, $module);
 /**
  * Download a file using a random value stored on $file_ID array
  *
- * @param string $rnd random string used to find the file inside $file_ID array
- * @param string $module module name where the file was requested (unused)
+ * @param string 	$rnd 		- Random string used to find the file inside $file_ID array
+ * @param string 	$module 	- Module name where the file was requested (unused)
+ * @return void
  */
 function download_attached_file($rnd, $module='') {
     global $name, $file_ID;
@@ -35,3 +41,4 @@ function download_attached_file($rnd, $module='') {
     // stream the file
     readfile(PATH_PRE.PHPR_DOC_PATH.'/'.$arr[1]);
 }
+?>

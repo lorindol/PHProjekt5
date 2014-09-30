@@ -1,10 +1,12 @@
 <?php
-
-// timecard.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: florian $
-// $Id: timecard.php,v 1.32.2.2 2007/02/15 13:49:08 florian Exp $
+/**
+ * @package    timecard
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: timecard.php,v 1.35 2007-05-31 08:13:09 gustavo Exp $
+ */
 
 $module = 'timecard';
 define('PATH_PRE','../');
@@ -17,10 +19,26 @@ $_SESSION['common']['module'] = 'timecard';
 
 echo set_page_header();
 
-include_once(LIB_PATH.'/navigation.inc.php');
+if ($justform > 0) {
+    $content_div = '<div id="global-content" class="popup">';
+} else {
+    include_once(LIB_PATH.'/navigation.inc.php');
+    $content_div = '<div id="global-content">';
+}
+
+// show login/logout buttons
+if (PHPR_PROJECTS > 0 and ($action <> '1' and $action <> '2') and check_role('timecard') < 1) {
+    #echo '<a ';
+    #// include snippet with the buttons for login/logout into timecard
+    #include_once(LIB_PATH.'/tc_login.inc.php');
+    #show_timecard_button();
+}
+
 include_once('./timecard_'.MODE.'.php');
+
+if ($justform > 0) echo "\n</div>\n";
+
 echo '
-    </div>
 
 </div>
 </body>

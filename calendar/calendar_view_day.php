@@ -1,14 +1,15 @@
 <?php
 /**
-* calendar day view
-*
-* @package    calendar
-* @module     view
-* @author     Albrecht Guenther, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_view_day.php,v 1.67.2.2 2007/02/07 15:04:50 alexander Exp $
-*/
+ * calendar day view
+ *
+ * @package    calendar
+ * @subpackage view
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_view_day.php,v 1.75 2008-02-28 04:47:29 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(PATH_PRE.'/lib/specialdays.php');
 
@@ -131,20 +132,12 @@ class Calendar_View_Day
     function _get_events()
     {
         $ret = array();
-        $viewer = array(0);
-        $reader = array(0);
-        $proxy  = array(0);
-        $viewer = array_merge($viewer,calendar_get_represented_users('viewer'));
-        $reader = array_merge($reader,calendar_get_represented_users('reader'));
-        $proxy  = array_merge($proxy, calendar_get_represented_users('proxy'));
+
         $query = "SELECT ID, von, an, event, anfang, ende, visi, partstat, status, remark, datum
                     FROM ".DB_PREFIX."termine
-                   WHERE datum = '".$this->_date_format_object->get_date_from_timestamp($this->_date_timestamp)."'
-                   AND (    (an IN (".(int)$this->_user_id.") AND visi IN (0,1,2))
-                         OR (an IN (".implode($viewer,",").") AND visi IN (1))
-                         OR (an IN (".implode($reader,",").") AND visi IN (0,2))
-                         OR (an IN (".implode($proxy,",").") AND visi IN (0,1,2))  
-                       )
+                   WHERE datum = '".$this->_date_format_object->get_date_from_timestamp($this->_date_timestamp)."' 
+                   ".calendar_get_permission_where($this->_user_id, $this->_view)." 
+                   AND is_deleted is NULL
                 ORDER BY anfang, ende DESC, event";
         
         $res = db_query($query) or db_die();
@@ -161,6 +154,7 @@ class Calendar_View_Day
                            ,'remark'   => stripslashes($row[9])
                            ,'datum'    => $row[10]
                           );
+
             $event['event']  = calendar_process_event_text( $this->_user_id,
                                                             $event['visi'],
                                                             $event['event'] );
@@ -465,7 +459,7 @@ class Calendar_View_Day
                     }
                     if ($this->_show_remark) {
                         $remark  = '<div style="margin:3px;border-bottom:1px dashed #203040;"></div>'.
-                                   "\n".xss(nl2br($row['remark']))."\n";
+                                   "\n".xss_purifier(nl2br($row['remark']))."\n";
                     }
                     $rowspan = $row['_rowspan'];
                     $status  = ($row['status'] == '1') ? 5 : $row['partstat'] + 1;

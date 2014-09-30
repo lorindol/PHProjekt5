@@ -1,10 +1,12 @@
 <?php
-
-// todo.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Franz Graf, $Author: albrecht $
-// $Id: todo.inc.php,v 1.4 2006/08/22 08:05:54 albrecht Exp $
+/**
+ * @package    todo
+ * @subpackage main
+ * @author     Franz Graf, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: todo.inc.php,v 1.6 2007-11-09 10:28:54 nina Exp $
+ */
 
 // check whether lib.inc.php has been included
 if (!defined('lib_included')) die('Please use index.php!');
@@ -21,7 +23,7 @@ function todo_get_last_id($von = 0, $an = 0) {
     $query = "SELECT MAX(id)
                 FROM ".DB_PREFIX."todo 
                WHERE von = ".(int)$von."  AND ext = ".(int)$an;
-    $result = db_query(xss($query)) or db_die();
+    $result = db_query($query) or db_die();
     $row = db_fetch_row($result);
     
     if ($row === false) return -1;

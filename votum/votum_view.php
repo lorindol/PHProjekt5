@@ -1,10 +1,12 @@
 <?php
-
-// votum_view.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: votum_view.php,v 1.40.2.2 2007/03/04 23:31:48 polidor Exp $
+/**
+ * @package    votum
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: votum_view.php,v 1.45 2007-05-31 08:13:12 gustavo Exp $
+ */
 
 // check whether lib.inc.php has been included
 if (!defined("lib_included")) die("Please use index.php!");
@@ -12,13 +14,6 @@ if (!defined("lib_included")) die("Please use index.php!");
 // check role
 if (check_role("votum") < 1) die("You are not allowed to do this!");
 
-
-
-
-// tabs
-$tabs = array();
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
 $output .= breadcrumb($module);
 $output .= '</div>';
 
@@ -37,7 +32,8 @@ $output .= get_status_bar();
 *******************************/
 $result = db_query("SELECT ID, datum, von, thema, modus, an, fertig,
                                text1, text2, text3, zahl1, zahl2, zahl3, kein
-                          FROM ".DB_PREFIX."votum") or db_die();
+                      FROM ".DB_PREFIX."votum
+                     WHERE is_deleted is NULL") or db_die();
 $polls = '';
 $countp=0;
 while ($row = db_fetch_row($result)) {
@@ -60,8 +56,9 @@ while ($row = db_fetch_row($result)) {
             ".hidden_fields($hidden_fields)."\n";
         // fetch author from user table
         $result2 = db_query("SELECT nachname
-                                   FROM ".DB_PREFIX."users
-                                  WHERE ID = ".(int)$row[2]) or db_die();
+                               FROM ".DB_PREFIX."users
+                              WHERE ID = ".(int)$row[2]."
+                                AND is_deleted is NULL") or db_die();
         $row2 = db_fetch_row($result2);
         // display poll
         $polls .= "<img src='".IMG_PATH."/b.gif' border='0' width='7' alt='' /> &nbsp;&nbsp;<label for='radiopo$countp"."1"."'>".html_out($row[3])."</label><br />\n";
@@ -99,6 +96,7 @@ $result = db_query("SELECT ID, datum, von, thema, modus, an, fertig,
                                text1, text2, text3, zahl1, zahl2, zahl3, kein
                           FROM ".DB_PREFIX."votum
                          WHERE (an LIKE '%\"$user_ID\"%' OR von = ".(int)$user_ID.")
+                           AND is_deleted is NULL
                       ORDER BY ID DESC") or db_die();
 while ($row = db_fetch_row($result)) {
     // start output

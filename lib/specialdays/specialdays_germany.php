@@ -1,14 +1,14 @@
 <?php
 /**
-* holiday file for germany
-*
-* @package    calendar
-* @module     main
-* @author     Alex Reil, David Soria Parra, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: specialdays_germany.php,v 1.3 2006/08/22 08:05:49 albrecht Exp $
-*/
+ * holiday file for germany
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Alex Reil, David Soria Parra, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: specialdays_germany.php,v 1.6 2007-05-31 08:12:02 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
  
 class SpecialDays_Germany
@@ -140,3 +140,4 @@ class SpecialDays_Germany
 		return $data;
 	}
 }
+?>

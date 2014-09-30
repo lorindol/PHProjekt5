@@ -1,14 +1,15 @@
 <?php
 /**
-* provides form for import operation
-*
-* @package    contacts
-* @module     import
-* @author     Albrecht Guenther, $Author: nina $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: contacts_import_forms.php,v 1.38 2006/11/16 13:13:10 nina Exp $
-*/
+ * provides form for import operation
+ *
+ * @package    contacts
+ * @subpackage import
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: contacts_import_forms.php,v 1.43 2007-06-20 10:57:48 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // import routines are available for the following adress books:
@@ -167,7 +168,7 @@ if($import_contacts <> '' and $import_contacts != "import_contacts"){
     $outputimf.= '<div class="formbody">';
     // access mode
     include_once(LIB_PATH.'/access_form.inc.php');
-    $outputimf.= "<br />".access_form2(0, 0, 0, 0, 1)."\n";
+    $outputimf.= "<br />".access_form(0, 0, 0, 0, 1)."\n";
     // end of form and submit icon
     $outputimf.= "<br style='clear:both'/><br />\n</div>\n";
     $outputimf .='
@@ -186,7 +187,8 @@ if($import_contacts <> '' and $import_contacts != "import_contacts"){
     foreach ($doublet_fields_all as $db_name => $field_name) {  $outputimf.=  "<option value='$db_name'>$field_name</option>"; }
     $outputimf.=  "</select><br /><br />";
     $outputimf.=  "<label class='options' for='doublet_action'>".__('Action for duplicates')."</label> <select class='options' name='doublet_action' id='doublet_action'>\n";
-    $outputimf.=  "<option value='discard'>".__('Discard duplicates')."</option> <option value='dispose_child'>".__('Dispose as child');
+    $outputimf.=  "<option value='discard'>".__('Discard duplicates')."</option>";
+//    $outputimf.=  "<option value='dispose_child'>".__('Dispose as child');
     $outputimf.= "</option><option value='replace'>".__('Use doublet')."</option> </select>";
     $outputimf.= "</fieldset>\n";
     $outputimf .='';

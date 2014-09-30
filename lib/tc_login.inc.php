@@ -4,16 +4,22 @@
 *
 * Provides start and end button for the timecard
 *
-* @package    library
-* @module     timecard
-* @author     Albrecht Guenther, $Author: nina $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: tc_login.inc.php,v 1.10 2006/10/04 09:32:46 nina Exp $
+* @package    	lib
+* @subpackage 	timecard
+* @author     		Albrecht Guenther, $Author: gustavo $
+* @licence     GPL, see www.gnu.org/copyleft/gpl.html
+* @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+* @version    		$Id: tc_login.inc.php,v 1.14 2007-05-31 08:11:55 gustavo Exp $
 */
 if (!defined('lib_included')) die('Please use index.php!');
 
 
+/**
+ * Display the timecards button
+ *
+ * @param void
+ * @return  string		HTML tags
+ */
 function show_timecard_button() {
     global $user_ID, $sid;
 
@@ -39,5 +45,4 @@ function show_timecard_button() {
         echo "href='../index.php?module=timecard&mode=data&action=1".$sid."' target='_top'><img src='".IMG_PATH."/tc_login.gif' alt='".__('Begin')."' title='".__('Begin')."' border=0></a>\n";
     }
 }
-
 ?>

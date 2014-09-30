@@ -1,16 +1,17 @@
 <?php
-
-// index.php - PHProjekt Version 5.2
-// copyright  ©  2000-2007 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: albrecht $
-// $Id: index.php,v 1.54.2.5 2007/05/09 19:02:28 albrecht Exp $
-
+/**
+ * @package    main
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: index.php,v 1.67 2008-01-20 21:26:22 gustavo Exp $
+ */
 
 // ***********
 // preparation
 
-// define the error level for the next lines, it will be changed in the lib
+// define the error level for the next lines,  it will be changed in the lib
 // to the desired value.
 error_reporting(0);
 
@@ -27,6 +28,14 @@ require_once(PATH_PRE.'lib/lib.inc.php');
 // set baseurl
 $bu1 = explode('index.php', $_SERVER['SERVER_NAME'].xss($_SERVER['REQUEST_URI']));
 $_SESSION['baseurl'] = $bu1[0];
+
+// ****************
+// Toolbar token generator
+if (isset($_REQUEST['generateTokens']) && $_REQUEST['generateTokens'] == 'true') {
+   $tokens = get_csrftokens(100);
+   echo(json_encode($tokens));
+   exit();
+} 
 
 // redirect
 redirect();
@@ -134,6 +143,7 @@ if (!empty($_REQUEST['return_path']) and !ereg('logout|index.php', $_REQUEST['re
         $url .= '?'.SID;
     }
     $url = preg_replace('#([\r\n]+)#', '', $url);
+    $url = ereg_replace("&amp;","&",$url);
     header('Location: '.$url);
     exit;
 }
@@ -209,6 +219,19 @@ function track_logout() {
 function save_settings() {
     global $user_ID, $user_group, $f_sort, $flist, $diropen, $tdw;
     $tmp_settings = $_SESSION['settings'];
+
+
+    // special check for expert filter
+    if (PHPR_EXPERT_FILTERS == 1) {
+        if (is_array($flist)) {
+            foreach ($flist as $key => $value) {
+                if (is_string($value)) {
+                    $flist[$key] = addslashes($value);
+                }
+            }
+        }
+    }
+
     if ($f_sort)  $tmp_settings['f_sort_store']  = $f_sort;
     if ($flist)   $tmp_settings['flist_store']   = $flist;
     if ($diropen) $tmp_settings['diropen_store'] = $diropen;
@@ -222,6 +245,8 @@ function save_settings() {
     if ($_SESSION['show_html_editor']) {
         $tmp_settings['show_html_editor_settings'] = $_SESSION['show_html_editor'];
     }
+
+
     $tmp_settings['last_group']=$user_group;
     $result = db_query("UPDATE ".DB_PREFIX."users
                            SET settings = '".serialize($tmp_settings)."'

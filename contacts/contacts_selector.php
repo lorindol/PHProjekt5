@@ -1,22 +1,18 @@
 <?php
 /**
-* provides selector snippets for the contacts
-*
-* @package    contacts
-* @module     selector
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: contacts_selector.php,v 1.29 2006/11/10 04:50:46 polidor Exp $
-*/
+ * provides selector snippets for the contacts
+ *
+ * @package    contacts
+ * @subpackage selector
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: contacts_selector.php,v 1.34 2007-05-31 08:10:56 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(LIB_PATH.'/selector/selector.inc.php');
 
-$tabs = array();
-// form start
-echo '<div id="global-header">';
-echo get_tabs_area($tabs);
-echo '</div>';
 echo '<div id="global-content">'."\n";
 
 // --------- Selektor config ---------
@@ -37,6 +33,9 @@ switch($_SESSION['contactdata']['formdata']['_selector_type']) {
     case "user":
         $usersextras = $extras;
         break;
+    case "organisation":
+        $organisationsextras = $extras;
+        break;
 }
 // --------- End Selektor config ---------
 
@@ -51,6 +50,9 @@ switch ($_SESSION['contactdata']['formdata']['_selector_type']) {
         break;
     case "profile_contact":
         $sel = new PHProjektSelector($selector_name, 'contacts', $opt, 'multiple', 'select');
+        break;
+    case "organisation":
+        $sel = new PHProjektSelector($selector_name, 'organisations', $opt, 'multiple', 'select');
         break;
     case "member":
         $sel = new PHProjektSelector($selector_name, 'users', $opt, 'multiple', 'select');

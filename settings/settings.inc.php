@@ -1,14 +1,15 @@
 <?php
-
-// settings.inc.php - PHProjekt Version 5.1
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Franz Graf, $Author: alexander $
-// $Id: settings.inc.php,v 1.34.2.1 2007/01/18 11:41:10 alexander Exp $
+/**
+ * @package    settings
+ * @subpackage main
+ * @author     Franz Graf, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: settings.inc.php,v 1.39 2007-12-31 22:55:31 polidor Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
-
 
 /**
 * Get the variables from _REQUEST that should be serialized.
@@ -32,10 +33,12 @@ function settings_get_request_settings() {
     $temp['page_reload']            = $GLOBALS['page_reload']           = isset($_REQUEST['setting_page_reload']) ? xss($_REQUEST['setting_page_reload']) : '';
     $temp['start_tree_mode']        = $GLOBALS['start_tree_mode']       = isset($_REQUEST['setting_tree_mode']) ? xss($_REQUEST['setting_tree_mode']) : '';
     $temp['start_perpage']          = $GLOBALS['start_perpage']         = isset($_REQUEST['setting_perpage']) ? xss($_REQUEST['setting_perpage']) : '';
+    $temp['related_objects']        = $GLOBALS['related_objects']       = isset($_REQUEST['setting_related_objects']) ? xss($_REQUEST['setting_related_objects']) : '';
     $temp['accessibility_mode']     = $GLOBALS['accessibility_mode']    = isset($_REQUEST['setting_accessibility_mode']) ? xss($_REQUEST['setting_accessibility_mode']) : '';
     $temp['allow_logintoken']       = $GLOBALS['allow_logintoken']      = isset($_REQUEST['setting_allow_logintoken']) ? xss($_REQUEST['setting_allow_logintoken']) : '';
     $temp['tagesanfang']            = $GLOBALS['tagesanfang']           = isset($_REQUEST['setting_tagesanfang']) ? xss($_REQUEST['setting_tagesanfang']) : '';
     $temp['tagesende']              = $GLOBALS['tagesende']             = isset($_REQUEST['setting_tagesende']) ? xss($_REQUEST['setting_tagesende']) : '';
+    $temp['output_type']            = $GLOBALS['output_type']           = xss($_REQUEST['setting_output_type']);
     $temp['cal_hol_file']           = $GLOBALS['cal_hol_file']          = isset($_REQUEST['setting_cal_hol_file']) ? xss($_REQUEST['setting_cal_hol_file']) : '';
     $temp['cal_visi']               = $GLOBALS['cal_visi']              = isset($_REQUEST['setting_cal_visi']) ? xss($_REQUEST['setting_cal_visi']) : '';
     $temp['timestep_daily']         = $GLOBALS['timestep_daily']        = isset($_REQUEST['setting_timestep_daily']) ? xss($_REQUEST['setting_timestep_daily']) : '';
@@ -108,7 +111,8 @@ function get_profile_from_user($id) {
         $data['personen'] = array();
         $query = "SELECT ID
                     FROM ".DB_PREFIX."users
-                   WHERE kurz IN ($kurz)";
+                   WHERE kurz IN ($kurz)
+                     AND is_deleted is NULL";
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {
             $data['personen'][] = $row[0];

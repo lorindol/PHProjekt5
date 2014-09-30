@@ -1,14 +1,15 @@
 <?php
 /**
-* bookmarks list records script
-*
-* @package    bookmarks
-* @module     main
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: bookmarks_view.php,v 1.42 2006/11/07 00:28:20 gustavo Exp $
-*/
+ * bookmarks list records script
+ *
+ * @package    bookmarks
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: bookmarks_view.php,v 1.48 2008-02-04 15:09:28 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 include_once('../lib/dbman_lib.inc.php');
@@ -21,13 +22,15 @@ $fields['url']         = array('filter_show' => 1, 'form_name' => 'URL');
 $fields['bezeichnung'] = array('filter_show' => 1, 'form_name' => __('Name'));
 $fields['bemerkung']   = array('filter_show' => 1, 'form_name' => __('Text'));
 
+$operator = isset($operator) ? qss($operator) : '';
 
 $where = main_filter($filter, $rule, $keyword, $filter_ID, 'bookmarks','',$operator);
 
 $result = db_query("SELECT ID, datum, von, url, bezeichnung, bemerkung, gruppe
                       FROM ".DB_PREFIX."lesezeichen
                      WHERE $sql_user_group
-                           $where") or db_die();
+                           $where
+                       AND is_deleted is NULL") or db_die();
 $liste = make_list($result);
 
 if (!$sort) $sort = "bezeichnung";
@@ -45,12 +48,6 @@ $filter_rules = array('like'=>__('contains'),
 // navigation bar
 // **************
 
-//tabs
-$tabs   = array();
-$tmp    = get_export_link_data('bookmarks', false);
-$tabs[] = array('href' => $tmp['href'], 'active' => $tmp['active'], 'id' => 'tab4', 'target' => '_self', 'text' => $tmp['text'], 'position' => 'right');
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
 $output .= breadcrumb($module);
 $output .= '</div>';
 $output .= '<div id="global-content">';
@@ -90,7 +87,7 @@ $output .= "<a name='content'></a><br /><table>\n<thead>\n";
 $output .= "<tr>\n";
 
 $e1 = "<th class='column2' width='50%'>\n<b><a href='bookmarks.php?mode2=bookmarks&amp;up=$up2&amp;sort=".$sid;
-$e2="'><font color='#ffffff'>";
+$e2="'><font color='#000000'>";
 $e3 = "</font></a></b>\n</th>\n";
 
 // sort by title
@@ -105,6 +102,7 @@ $result = db_query("SELECT ID, datum, von, url, bezeichnung, bemerkung, gruppe
                       FROM ".DB_PREFIX."lesezeichen
                      WHERE $sql_user_group
                            $where
+                       AND is_deleted is NULL
                   ORDER BY ".qss($sort)." $direction") or db_die();
 
 while ($row = db_fetch_row($result)) {
@@ -123,7 +121,7 @@ while ($row = db_fetch_row($result)) {
         $output .= "<td><a href='$row[3]' target='_blank'>".html_out($row[4])."</a></td>\n";
         // button to modify the entry
         if ($row[2] == $user_ID) {
-            $output .= "<td><a href='bookmarks.php?mode2=bookmarks&amp;ID=$row[0]&amp;mode=forms&amp;aendern=1&amp;'.$sid.'><img src='".IMG_PATH."/b.gif' alt='".__('Modify')."' title='".__('Modify')."' width='7' border='0' /></a></td>\n";
+            $output .= "<td><a href=\"bookmarks.php?mode2=bookmarks&amp;ID=$row[0]&amp;mode=forms&amp;aendern=1&amp;$sid\"><img src='".IMG_PATH."/b.gif' alt='".__('Modify')."' title='".__('Modify')."' width='7' border='0' /></a></td>\n";
         }
         else {
             $output .= "<td>&nbsp;</td>\n";
@@ -135,9 +133,5 @@ while ($row = db_fetch_row($result)) {
 
 $output .= "</tbody>\n</table><br />\n";
 $output .= get_bottom_page_navigation_bar();
-$output .= '</div>';
 echo $output;
-
-//show_export_form("bookmarks");
-
 ?>

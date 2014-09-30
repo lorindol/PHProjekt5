@@ -1,18 +1,23 @@
 <?php
-
-// contextmenu.inc.php - PHProjekt Version 5.1
-// copyright  ©  2000-2006 Albrecht Guenther ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: alexander $
-// $Id: contextmenu.inc.php,v 1.34.2.2 2007/01/23 12:28:53 alexander Exp $
+/**
+ * Contect Menu functions
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: contextmenu.inc.php,v 1.39 2007-05-31 08:11:51 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
 /**
  * Class contextmenu
- * @abstract provides contextmenus (mouse right click) for several occasions: list view, column header etc.
- * @package PHProjekt
+ *
+ * @abstract Provides contextmenus (mouse right click) for several occasions: list view, column header etc.
+ * @package lib
  */
 class contextmenu
 {
@@ -21,9 +26,12 @@ class contextmenu
     var $menusysID;
 
     /**
-     * contextmenu for an entry in a list - mostly used if the whole line is referenced to the element
-     * @access public
-     * @return the whole html div
+     * Contextmenu for an entry in a list - mostly used if the whole line is referenced to the element
+     *
+     * @param  string	$module					- Module name
+     * @param  array		$listentries_single		- Simple option
+     * @param  array		$listentries_selected 	- Multiple options
+     * @return  string								The whole html div
      */
     function menu_table($module, $listentries_single, $listentries_selected) {
         // operations in all modules: modify, copy and delete
@@ -36,7 +44,7 @@ class contextmenu
         );
 
         $this->menulistID = $this->create_menuID();
-        $str = $this->menu_start($this->menulistID,'-1450px','-2000px','100px','200px','200px','');
+        $str .= $this->menu_start($this->menulistID,'-1450px','-2000px','100px','200px','200px','');
         $str .= $this->menu_entries($listmenu_start);
         if ($this->menu_entries($listentries_single)) {
             $str .= $this->menu_entries($listentries_single);
@@ -49,17 +57,15 @@ class contextmenu
         return $str;
     }
 
-
     /**
-     * contextmenu for a column header of a table
-     * @access public
-     * @param string module name
-     * @param string module to link
-     * @param bool   related Object
-     * @param bool  $is_addon true if called from a addon
-     * @return the whole html div
+     * Contextmenu for a column header of a table
+     *
+     * @param  string 	$module			- Module name
+     * @param  string 	$link				- Module link
+     * @param bool   		$is_related_obj - Related Object
+     * @param bool   		$is_addon 		- True if called from a addon
+     * @return  string						The whole html div
      */
-
     function menu_columnheader($module, $link=null, $is_related_obj=false, $is_addon=false) {
         if (!$link) $link = $module;
 
@@ -83,7 +89,7 @@ class contextmenu
             unset($addon);
         }
         $this->menucolID = $this->create_menuID();
-        $str = $this->menu_start($this->menucolID,'-350px','-2000px','100px','150px','80px',__('Column'));
+        $str .= $this->menu_start($this->menucolID,'-350px','-2000px','100px','150px','80px',__('Column'));
         $str .= $this->menu_line('<b>'.__('Width').'</b>');
         $str .= $this->menu_script($width);
         // doesn't work at the moment :-(
@@ -96,9 +102,10 @@ class contextmenu
     }
 
     /**
-     * contextmenu for actions concerning the list view of a module
-     * @access public
-     * @return the whole html div
+     * Contextmenu for actions concerning the list view of a module
+     *
+     * @param string $module	- The module name
+     * @return string 			The whole html div
      */
     function menu_page($module) {
         if ($module == 'forum') {
@@ -127,9 +134,11 @@ class contextmenu
         return $str;
     }
 
-    /** creates a name for this menu
-     * @access private
-     * @return a uniques string for the menu name like menu1, menu2 etc.
+    /**
+     * Creates a name for this menu
+     *
+     * @param void
+     * @return string 	A uniques string for the menu name like menu1, menu2 etc.
      */
     function create_menuID() {
         static $name;
@@ -139,9 +148,16 @@ class contextmenu
     }
 
     /**
-     * contextmenu for actions concerning the list view of a module
-     * @access private
-     * @return html part of the div
+     * Contextmenu for actions concerning the list view of a module
+     *
+     * @param int $id			- Menu ID
+     * @param int $top		- Top value
+     * @param int $left		- Left value
+     * @param int $z			- Z-index value
+     * @param int	$width	- Width value
+     * @param int	$height	- Height value
+     * @param string $title	- Without use
+     * @return string 		HTML part of the div
      */
     function menu_start($id, $top, $left, $z, $width, $height, $title) {
         $z = 99; // context menu should always overlay other layers
@@ -151,6 +167,12 @@ class contextmenu
         return $str;
     }
 
+    /**
+     * Javascript function
+     *
+     * @param array $entries	- Array with the data of the items
+     * @return string 			HTML part of the div
+     */
     function menu_entries($entries) {
         $str = '';
         if ($entries) {
@@ -161,16 +183,34 @@ class contextmenu
         return $str;
     }
 
+    /**
+     * Close link
+     *
+     * @param void
+     * @return string 	HTML part of the div
+     */
     function menu_close() {
         $str = $this->menu_line('<hr />');
         $str .= "<tr><td><a class='menu' href='javascript:nop()' onmousedown='document.onmouseup=hideMenu'>".__('Close')."</a></td></tr></table></div>\n";
         return $str;
     }
 
+    /**
+     * Make a line
+     *
+     * @param string $string	- Text in the line
+     * @return string				HTML part of the div
+     */
     function menu_line($string) {
         return   "<tr><td>".$string."</td></tr>";
     }
 
+    /**
+     * Javascript function link
+     *
+     * @param array	$actions	- Array with the javascript options
+     * @return string				HTML part of the div
+     */
     function menu_script($actions) {
         $str = '';
         foreach ($actions as $action) {
@@ -179,10 +219,16 @@ class contextmenu
         return $str;
     }
 
+    /**
+     * Save width link
+     *
+     * @param void
+     * @return string		HTML part of the div
+     */
     function save_width() {
         global $fields, $tdw, $module;
-        $str = "<tr><td><form method='post' action='".$module.".php' name='tdwfrm'>\n";
-        $hidden = array('mode'=>'view','filter'=>'','rule'=>'like','save_tdwidth'=>1);
+        $str .= "<tr><td><form method='post' action='".$module.".php' name='tdwfrm'>\n";
+        $hidden = array('mode'=>'view','filter'=>$field_name,'rule'=>'like','save_tdwidth'=>1);
         if (SID) $hidden[session_name()] = session_id();
         $str .= hidden_fields($hidden);
         if (is_array($fields)) {
@@ -204,16 +250,30 @@ class contextmenu
         return $str;
     }
 
+    /**
+     * Set width link
+     *
+     * @param void
+     * @return string		HTML part of the div
+     */
     function set_width() {
         global $fields, $tdw, $module;
         $str .= "<tr><td><form name='setwidth1' onsubmit=\"resizeImage(document.setwidth1.size.value,'absolut')\">\n";
         $str .= " &nbsp;". __('Width').": <input type='text' name='size' size='3' onfocus='document.onmouseup=nop;' /></form></td></tr>\n";
         return $str;
-
     }
+
     /**
-    * @access static
-    */
+     * Create the context menu
+     *
+     * @param  string 	$module					- Module name
+     * @param  string 	$link						- Module link
+     * @param bool   		$is_related_obj 		- Related Object
+     * @param  array		$listentries_single		- Simple option
+     * @param  array		$listentries_selected 	- Multiple options
+     * @param int			$contextmenu			- Second contextmenu value
+     * @return  string								The whole html div
+     */
     function draw_contextmenus($module, $link, $is_related_obj, $listentries_single, $listentries_selected, $contextmenu) {
         global $menu2;
         global $menu3;
@@ -231,27 +291,47 @@ class contextmenu
     }
 }
 
-
+/**
+ * Show read elements link
+ *
+ * @param string $module - Module name
+ * @return string       		Space or text link
+ */
 function show_read_flag($module) {
-
     (isset($_SESSION['show_read_elements']["$module"]) && $_SESSION['show_read_elements']["$module"] > 0) ? $str = '&nbsp;'. __('Show read elements') : $str = '&nbsp;'. __('Hide read elements') ;
     return $str;
 }
 
-
+/**
+ * Show archived elements link
+ *
+ * @param string $module - Module
+ * @return string      		Space or text link
+ */
 function show_archive_flag($module) {
     (isset($_SESSION['show_archive_elements'][$module]) and $_SESSION['show_archive_elements']["$module"] > 0) ? $str = '&nbsp;'. __('Show archive elements') : $str = '&nbsp;'. __('Hide archive elements');
     return $str;
 }
 
-
+/**
+ * Show html editor link
+ *
+ * @param string $module - Module
+ * @return string       		Space or text link
+ */
 function show_html_editor_flag($module) {
     (isset($_SESSION['show_html_editor'][$module]) and $_SESSION['show_html_editor']["$module"] > 0) ? $str = __('switch off html editor') : $str = __('switch on html editor');
     return $str;
 }
+
+/**
+ * Show all group link
+ *
+ * @param string $module - Module
+ * @return string       		Space or text link
+ */
 function show_group_flag($module) {
     (isset($_SESSION['show_all_groups'][$module]) and $_SESSION['show_all_groups']["$module"] > 0) ? $str =  __('show records from current group only') : $str = __('show records from all groups');
     return $str;
 }
-
 ?>

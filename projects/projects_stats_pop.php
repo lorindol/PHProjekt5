@@ -1,14 +1,13 @@
 <?php
-
 /**
  * Management of setting filters
  *
- * @package    Projects
- * @module     Project Statistics
+ * @package    projects
+ * @subpackage statistics
  * @author     Gustavo Solt
  * @licence    GPL, see www.gnu.org/copyleft/gpl.html
  * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
- * @version    $Id: projects_stats_pop.php,v 1.9.2.1 2007/02/27 08:14:10 thorsten Exp $
+ * @version    $Id: projects_stats_pop.php,v 1.16 2008-02-28 02:35:58 gustavo Exp $
  */
 
 define('PATH_PRE','../');
@@ -66,10 +65,10 @@ body {
         delete_statistic_setting($dele);
         echo $js_reload;
     } else if ($speichern) {
-        save_statistic_settings($speichern);
+    	save_statistic_settings($speichern);
         echo $js_reload;
     } else {
-        $filter = get_statistic_settings();
+        $filter = (array) get_statistic_settings();
         $hiddenfields = "<input type='hidden' name='module' value='$module' />\n".
                         "<input type='hidden' name='opener' value='$opener' />\n".
                         "<input type='hidden' name='mode'   value='$mode' />\n".
@@ -128,6 +127,75 @@ body {
 </html>
 ';
 }
+/**
+ * save the setting into the database
+ *
+ * save into projekt_statistik_einstellungen the setting
+ * save into projekt_statistik_projekte the project-setting relation
+ * save into projekt_statistik_user the user-setting relation
+ *
+ * @param string $name - name of the setting
+ * @return void
+ */
+function save_statistic_settings_celement($name)
+{
+	global $user_ID;
+
+    // insert the new setting
+	$query = "INSERT INTO ".DB_PREFIX."projekt_statistik_einstellungen
+						  (name,user_ID, filter_mode, startDate, endDate, withBooking, withComment,
+						  sortBy, isAllContractors, isAllCostunits, isAllCostcentres, period)
+				   VALUES ('".xss($name)."',
+                           ".(int)$user_ID.",
+                           '".xss($_SESSION['statistic']['filter_mode'])."',
+                           '".$_SESSION['statistic']['startDate']."',
+                           '".$_SESSION['statistic']['endDate']."',
+                           ".(int)$_SESSION['statistic']['withBooking'].",
+                           ".(int)$_SESSION['statistic']['withComment'].",
+                           '".$_SESSION['statistic']['sortBy']."',
+                           ".(int)$_SESSION['statistic']['isAllContractors'].",
+                           ".(int)$_SESSION['statistic']['isAllCostunits'].",
+                           ".(int)$_SESSION['statistic']['isAllCostcentres'].",
+                           '".$_SESSION['statistic']['period']."')";
+    $result = db_query($query) or db_die();
+    // get the inserted ID
+	$query = xss("SELECT ID
+                    FROM ".DB_PREFIX."projekt_statistik_einstellungen
+                   WHERE name = '".xss($name)."' AND
+                         startDate = '".$_SESSION['statistic']['startDate']."' AND
+                         endDate = '".$_SESSION['statistic']['endDate']."' AND
+                         withBooking = ".(int)$_SESSION['statistic']['withBooking']." AND
+                         withComment = ".(int)$_SESSION['statistic']['withComment']." AND
+                         sortBy = '".$_SESSION['statistic']['sortBy']."' AND
+                         user_ID = ".(int)$user_ID);
+    $result = db_query($query) or db_die();
+	$row = db_fetch_row($result);
+
+    // insert the users
+	if(is_array($_SESSION['statistic']['costcentrelist']) && !$_SESSION['statistic']['isAllCostcentres']) {
+		foreach($_SESSION['statistic']['costcentrelist'] as $costcentre) {
+			db_query("INSERT INTO ".DB_PREFIX."projekt_statistik_costcentres
+                                  (stat_einstellung_ID, costcentre_id)
+						   VALUES (".(int)$row[0].",".(int)$costcentre.")") or db_die();
+		}
+	}
+
+	if(is_array($_SESSION['statistic']['costunitlist']) && !$_SESSION['statistic']['isAllCostunits']) {
+		foreach($_SESSION['statistic']['costunitlist'] as $costunit) {
+			db_query("INSERT INTO ".DB_PREFIX."projekt_statistik_costunits
+                                  (stat_einstellung_ID, costunit_id)
+						   VALUES (".(int)$row[0].",".(int)$costunit.")") or db_die();
+		}
+	}
+
+	if(is_array($_SESSION['statistic']['contractorlist']) && !$_SESSION['statistic']['isAllContractors']) {
+		foreach($_SESSION['statistic']['contractorlist'] as $contractor) {
+			db_query("INSERT INTO ".DB_PREFIX."projekt_statistik_contractors
+                                  (stat_einstellung_ID, contractor_id)
+						   VALUES (".(int)$row[0].",".(int)$contractor.")") or db_die();
+		}
+	}
+}
 
 /**
  * save the setting into the database
@@ -137,6 +205,85 @@ body {
  * save into projekt_statistik_user the user-setting relation
  *
  * @param string $name - name of the setting
+ * @return void
+ */
+function save_statistic_settings_project($name)
+{
+	global $user_ID;
+
+    // insert the new setting
+	$query = "INSERT INTO ".DB_PREFIX."projekt_statistik_einstellungen
+						  (name, user_ID, filter_mode, startDate,endDate,
+						  withBooking, withComment, sortBy, isAllProjects,
+						  isAllUsers, show_group, period)
+				   VALUES ('".xss($name)."',
+                           ".(int)$user_ID.",
+                           ".xss($_SESSION['statistic']['filter_mode']).",
+                           '".$_SESSION['statistic']['startDate']."',
+                           '".$_SESSION['statistic']['endDate']."',
+                           ".(int)$_SESSION['statistic']['withBooking'].",
+                           ".(int)$_SESSION['statistic']['withComment'].",
+                           '".$_SESSION['statistic']['sortBy']."',
+                           ".(int)$_SESSION['statistic']['isAllProjects'].",
+                           ".(int)$_SESSION['statistic']['isAllUsers'].",
+                           ".(int)$_SESSION['statistic']['show_group'].",
+                           '".$_SESSION['statistic']['period']."')";
+    $result = db_query($query) or db_die();
+    // get the inserted ID
+	$query = "SELECT ID
+                    FROM ".DB_PREFIX."projekt_statistik_einstellungen
+                   WHERE name = '".xss($name)."' AND
+                         startDate = '".$_SESSION['statistic']['startDate']."' AND
+                         endDate = '".$_SESSION['statistic']['endDate']."' AND
+                         withBooking = ".(int)$_SESSION['statistic']['withBooking']." AND
+                         withComment = ".(int)$_SESSION['statistic']['withComment']." AND
+                         sortBy = '".$_SESSION['statistic']['sortBy']."' AND
+                         user_ID = ".(int)$user_ID;
+    $result = db_query($query) or db_die();
+	$row = db_fetch_row($result);
+
+    // insert the users
+	if(is_array($_SESSION['statistic']['userlist']) && !$_SESSION['statistic']['isAllUsers']) {
+		foreach($_SESSION['statistic']['userlist'] as $user) {
+			db_query("INSERT INTO ".DB_PREFIX."projekt_statistik_user
+                                  (stat_einstellung_ID, user_ID)
+						   VALUES (".(int)$row[0].",".(int)$user.")") or db_die();
+		}
+	}
+
+    // insert the project
+	if(is_array($_SESSION['statistic']['projectlist']) && !$_SESSION['statistic']['isAllProjects']) {
+
+        // array (date => project_id)
+        // get only the project ID
+        if (is_array($_SESSION['statistic']['projectlist'][0])) {
+            $array_tmp = array();
+            foreach($_SESSION['statistic']['projectlist'] as $tmp => $array_date) {
+                foreach($array_date as $project_ID) {
+                    $array_tmp[] = $project_ID;
+                }
+            }
+            $array_tmp = array_unique($array_tmp);
+        // array only the project_ID
+        } else {
+            $array_tmp = $_SESSION['statistic']['projectlist'];
+        }
+		foreach($array_tmp as $project) {
+			db_query("INSERT INTO ".DB_PREFIX."projekt_statistik_projekte
+                                         (stat_einstellung_ID, projekt_ID)
+							      VALUES (".(int)$row[0].",".(int)$project.")") or db_die();
+		}
+	}
+}
+
+/**
+ * save the setting into the database
+ *
+ * save into projekt_statistik_einstellungen the setting
+ * save into projekt_statistik_projekte the project-setting relation
+ * save into projekt_statistik_user the user-setting relation
+ *
+ * @param string name - name of the setting
  * @return void
  */
 function save_statistic_settings($name)
@@ -208,14 +355,15 @@ function save_statistic_settings($name)
 /**
  * Get all setting form one user
  *
- * @return array $settings [setting_id] => setting_name
+ * @param  void
+ * @return array settings - [setting_id] => setting_name
  */
 function get_statistic_settings()
 {
 	global $user_ID;
 	$result = db_query("SELECT ID, name
                           FROM ".DB_PREFIX."projekt_statistik_einstellungen
-                         WHERE user_ID=".$user_ID);
+                         WHERE user_ID=".(int)$user_ID) or db_die();
 
 	while($row = db_fetch_Row($result)) {
 		$settings[$row[0]] = $row[1];
@@ -240,10 +388,19 @@ function delete_statistic_setting($id)
                        WHERE stat_einstellung_ID=%d", $id)) or db_die("Error");
 	db_query(sprintf("DELETE FROM ".DB_PREFIX."projekt_statistik_user
                        WHERE stat_einstellung_ID=%d", $id)) or db_die("Error");
+	db_query(sprintf("DELETE FROM ".DB_PREFIX."projekt_statistik_contractors
+                       WHERE stat_einstellung_ID=%d", $id)) or db_die("Error");
+	db_query(sprintf("DELETE FROM ".DB_PREFIX."projekt_statistik_costcentres
+                       WHERE stat_einstellung_ID=%d", $id)) or db_die("Error");
+	db_query(sprintf("DELETE FROM ".DB_PREFIX."projekt_statistik_costunits
+                       WHERE stat_einstellung_ID=%d", $id)) or db_die("Error");
 }
 
 /**
  * Javascript function to use one setting filter
+ *
+ * @param int id - setting_id
+ * @return void
  */
 function use_statistic_setting($id)
 {

@@ -1,10 +1,14 @@
 <?php
-
-// get_contenttype.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $auth$
-// $Id: get_contenttype.inc.php,v 1.5.2.2 2007/01/11 16:23:18 gustavo Exp $
+/**
+ * Get content type for download files
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $auth$
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: get_contenttype.inc.php,v 1.12 2007-05-31 08:11:53 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -41,8 +45,6 @@ if (!$file_download_type) $file_download_type = 'attachment';
 if ($alt_down) $file_download_type = $alt_down;
 
 $contenttype = content_type($name);
-//echo "COntentty".$contenttype;
-//echo"filename: $name";
 if ($file_download_type == 'inline' && PHPR_DOWNLOAD_INLINE_OPTION == 1) {
     // Check the content assign to mime to filetype
     header("Content-type: $contenttype");
@@ -59,7 +61,12 @@ else {
     }
 }
 
-
+/**
+ * return the type of the file
+ *
+ * @param string 	$name  	- Name of the file
+ * @return string      			Type of the file
+ */
 function content_type($name) {
     // Defines the content type based upon the extension of the file
     $contenttype  = 'application/octet-stream';
@@ -85,7 +92,8 @@ function content_type($name) {
                            'pdf'  => 'application/pdf',
                            'tgz'  => 'application/x-gzip',
                            'gz'   => 'application/x-gzip',
-                           'vcf'  => 'text/vcf' );
+                           'vcf'  => 'text/vcf',
+                           'csv'  => 'application/vnd.ms-excel', );
 
     $name = ereg_replace("§"," ",$name);
     foreach ($contenttypes as $type_ext => $type_name) {
@@ -93,5 +101,4 @@ function content_type($name) {
     }
     return $contenttype;
 }
-
 ?>

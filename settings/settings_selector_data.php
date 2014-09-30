@@ -1,13 +1,19 @@
 <?php
-
-/*
+/**
  * This file check the $_REQUEST for see what selector was clicked
  * In first case, (Form to Selector) the data are stored on the SESSION and call the selector file.
  * In second case, (Selector to Form) get the selected data and continue with the form.
  * Author: Gustavo Solt gustavo.solt@gmail.com
+ *
+ * @package    settings
+ * @subpackage main
+ * @author     Albrecht Guenther, Franz Graf, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: settings_selector_data.php
  */
  
- // check whether the lib has been included - authentication!
+// check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!"); 
  
 // Common value

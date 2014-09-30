@@ -1,10 +1,12 @@
 <?php
-
-// todo.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: alexander $
-// $Id: todo.php,v 1.38.2.1 2007/01/22 14:15:56 alexander Exp $
+/**
+ * @package    todo
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: todo.php,v 1.42 2007-05-31 08:13:11 gustavo Exp $
+ */
 
 $module = 'todo';
 $contextmenu = 1;
@@ -80,12 +82,12 @@ echo '
  * @return void
  */
 function todo_init() {
-    global $ID, $contact_ID, $projekt_ID, $justform, $mode, $notes_view_both, $output;
+    global $ID, $contact_ID, $projekt_ID, $justform, $mode, $notes_view_both, $output, $date_format_object;
 
     $output = '';
 
-    $ID       = $_REQUEST['ID']       = isset($_REQUEST['ID']) ? (int) $_REQUEST['ID'] : 0;
-    $justform = $_REQUEST['justform'] = isset($_REQUEST['justform']) ? (int) $_REQUEST['justform'] : 0;
+    $ID         = $_REQUEST['ID']         = isset($_REQUEST['ID'])         ? (int)$_REQUEST['ID']         : 0;
+    $justform   = $_REQUEST['justform']   = isset($_REQUEST['justform'])   ? (int)$_REQUEST['justform']   : 0;
     $contact_ID = $_REQUEST['contact_ID'] = isset($_REQUEST['contact_ID']) ? xss($_REQUEST['contact_ID']) : '';
     $projekt_ID = $_REQUEST['projekt_ID'] = isset($_REQUEST['projekt_ID']) ? xss($_REQUEST['projekt_ID']) : '';
 
@@ -98,6 +100,13 @@ function todo_init() {
         }
     }
     $mode = xss($_REQUEST['mode']);
+    
+    if (isset($_POST['anfang'])) {
+        $anfang = $_POST['anfang'] = $date_format_object->convert_user2db(xss($_POST['anfang']));
+    }
+    if (isset($_POST['deadline'])) {
+        $ende = $_POST['deadline'] = $date_format_object->convert_user2db(xss($_POST['deadline']));
+    }
 }
 
 ?>

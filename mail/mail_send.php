@@ -1,16 +1,18 @@
 <?php
-
-// mail_send.php - PHProjekt Version 5.2
-// copyright  ©  2000-2007 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: mail_send.php,v 1.34.2.8 2007/05/27 00:41:07 polidor Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: albrecht $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_send.php,v 1.50 2008-03-04 10:52:00 albrecht Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
 // check role
-if (check_role("mail") < 2) die("You are not allowed to do this!");
+if (check_role("mail") < 2) die("</div><div id='global-content'>You are not allowed to do this!</div>");
 
 // check form token
 check_csrftoken();
@@ -21,7 +23,6 @@ if (count($mem)==1 and $mem[0]=="") unset($mem[0]);
 if (count($con)==1 and $con[0]=="") unset($con[0]);
 //next patch is for the value transmitted of the checkbox 'single'
 if ($single == 'checked') { $single = 'on'; }
-
 
 // build mail or fax list from all users and/or contacts
 if ($action) {
@@ -36,7 +37,8 @@ if ($action) {
             // fetch all names and the respective db field from the users
             $result = db_query("select nachname, ".qss($action)."
                             from ".DB_PREFIX."users
-                           where ID = ".(int)$mem[$i]) or db_die();
+                            where ID = ".(int)$mem[$i]."
+                        AND is_deleted is NULL") or db_die();
             $row = db_fetch_row($result);
             // the db field 'mail' or 'fax' has to be non empty
             if ($row[1] <> "") {
@@ -64,7 +66,8 @@ if ($action) {
                 // fetch email or fax from user
                 $result2 = db_query("select ".qss($action)."
                              from ".DB_PREFIX."users
-                            where kurz like '$adr_profil[$i]'") or db_die();
+                             where kurz like '$adr_profil[$i]'
+                             AND is_deleted is NULL") or db_die();
                 $row2 = db_fetch_row($result2);
                 // if he has an email/fax, add him/her to the list
                 if ($row2[0] <> "") { $adr[] = $row2[0];  }
@@ -75,14 +78,16 @@ if ($action) {
     // choose profile contacts
     if (count($con) == 0 and $profil2) {
         // fetch record
-        $result = db_query("select contact_ID
-                          from ".DB_PREFIX."contacts_prof_rel
-                         where contacts_profiles_ID = ".(int)$profil2) or db_die();
+        $result = db_query("SELECT contact_ID
+                              FROM ".DB_PREFIX."contacts_prof_rel
+                             WHERE contacts_profiles_ID = ".(int)$profil2."
+                               AND is_deleted is NULL") or db_die();
         while ($row = db_fetch_row($result)) {
             // fetch email or fax from user
-            $result2 = db_query("select ".qss($action)."
-                             from ".DB_PREFIX."contacts
-                            where ID = ".(int)$row[0]) or db_die();
+            $result2 = db_query("SELECT ".qss($action)."
+                                   FROM ".DB_PREFIX."contacts
+                                  WHERE ID = ".(int)$row[0]."
+                                    AND is_deleted is NULL") or db_die();
             $row2 = db_fetch_row($result2);
             // if he has an email/fax, add him/her to the list
             if ($row2[0] <> "") { $adr[] = $row2[0];  }
@@ -92,9 +97,10 @@ if ($action) {
     if (PHPR_CONTACTS) {
         // manual selection of contacts
         for ($i=0; $i < count($con); $i++) {
-            $result = db_query("select nachname, ".qss($action)."
-                            from ".DB_PREFIX."contacts
-                           where ID = ".(int)$con[$i]) or db_die();
+            $result = db_query("SELECT nachname, ".qss($action)."
+                                  FROM ".DB_PREFIX."contacts
+                                 WHERE ID = ".(int)$con[$i]."
+                                   AND is_deleted is NULL") or db_die();
             $row = db_fetch_row($result);
             if ($row[1] <> "") {
                 if ($action == "fax") { $row[1] = preg_replace( "/\D/", "", $row[1] ); }
@@ -108,7 +114,7 @@ if ($action) {
     if ($additional_mail) { $adr[] = trim($additional_mail); }
     if ($additional_fax)  { $adr[] = trim($additional_fax); }
     // no adresses selected? -> exit
-    if (count($adr) == 0) { die(__('Please select at least one (valid) address.')."! <a href='mail.php?mode=send&subject=".strip_tags($subj)."&body=".strip_tags($body)."$sid&amp;csrftoken=".make_csrftoken()."'>&nbsp; ".__('back')."</a>");  }
+    if (count($adr) == 0) { die("</div><div id='global-content'>".__('Please select at least one (valid) address.')."! <a href='mail.php?mode=send&subject=".strip_tags($subj)."&body=".strip_tags($body)."$sid&amp;csrftoken=".make_csrftoken()."'>&nbsp; ".__('back')."</a></div>");  }
 } // end build recipient list
 
 
@@ -149,6 +155,7 @@ if ($action == "email") {
         list($sender_email, $signature) = db_fetch_row($result);
         $sender_email = strip_tags($sender_email);
         $signature = strip_tags($signature);
+
     }
     // add signature
     if ($signature) { 
@@ -235,7 +242,7 @@ if ($action == "email") {
         $to = implode(",",$adr);
 
         // additional headers (BUT NOT To, Cc, Bcc, From)
-        $headers = headers($html);
+        $headers = headers($html,$attachment_exist);
         // build the whole mime string with attachments
         $body2 = finish($body1);
 
@@ -250,7 +257,7 @@ if ($action == "email") {
     else {
         if($cc) $adr = array_merge($adr,explode(",",$cc));
         if($bcc) $adr = array_merge($adr,explode(",",$bcc));
-        $headers = headers();
+        $headers = headers($html,$attachment_exist);
         // personalized newsletters? -> fetch the values from db
         if (ereg("db-field:",$body1))  $body2 = insert_db_values($x, $body1);
         else $body2 = $body1;
@@ -289,7 +296,7 @@ if ($action == "email") {
         // If html is activated then the body needs to be saved on body_html instead of body
         if ($html == true || $html == "true") {
             $body_field = 'body_html';
-            $body       = xss($body);
+            $body       = xss_purifier($body);
         }
         else {
             $body_field = 'body';
@@ -318,9 +325,10 @@ if ($action == "email") {
                 (".(int)$user_ID.", '".strip_tags($subj)."', '".$body."', '".strip_tags($sender_email)."', '".strip_tags($adr2)."', '".strip_tags($cc)."', '-', 1, 's', ".(int)$parents[0].", '$dbTSnull', '$dbTSnull', 0, 0, '".strip_tags($user_group)."', ".(int)$account_ID.",".(int)$contact_ID.",".(int)$projekt_ID.")") or db_die();
 
         $result3 = db_query("SELECT ID
-                           FROM ".DB_PREFIX."mail_client
-                          WHERE date_sent = '$dbTSnull' AND
-                                von = ".(int)$user_ID) or db_die();
+                               FROM ".DB_PREFIX."mail_client
+                              WHERE date_sent = '$dbTSnull' AND
+                                    is_deleted is NULL AND
+                                    von = ".(int)$user_ID) or db_die();
         $row3 = db_fetch_row($result3);
         $mail_ID = $row3[0];
 
@@ -402,9 +410,10 @@ elseif ($action == "send_sms") {
     if ($adr[0] == "" and !$smsnumber) { die(__('Please select at least one (valid) address.')); }
     else {
         for ($i=0; $i < count($adr); $i++) {
-            $result = db_query("select mobil, nachname
-                            from ".DB_PREFIX."contacts
-                           where ID = ".(int)$adr[$i]) or db_die();
+            $result = db_query("SELECT mobil, nachname
+                                  FROM ".DB_PREFIX."contacts
+                                 WHERE ID = ".(int)$adr[$i]."
+                                   AND is_deleted is NULL") or db_die();
             $row = db_fetch_row($result);
             if ($row[0] <> "") {
                 $nr = $row[0]."@".$smspath;
@@ -469,7 +478,7 @@ function find_userfile_type($name) {
 function build_message($part) {
     $message = $part["message"];
     $message = chunk_split(base64_encode($message));
-    return "Content-Type: ".$part["ctype"].($part["name"]?"; name = \"".$part["name"]."\"" : "")."\nContent-Transfer-Encoding: base64\n\n$message\n";
+    return "Content-Type: ".$part["ctype"].($part["name"]?"; \nname = \"".$part["name"]."\"" : "")."\nContent-Transfer-Encoding: base64\n\n$message\n";
 }
 
 // search the body for special strings containing a db table name and replace it with the values from this contact
@@ -482,9 +491,10 @@ function insert_db_values($email,$body) {
         // .. now the rest of the body ...
         $parts2 = explode(")|",$parts1[1],2);
         $parts3 = explode("(",$parts2[0]);
-        $result = db_query("select ".$parts3[0]."
-                          from ".DB_PREFIX."contacts
-                         where email = '$email'") or db_die();
+        $result = db_query("SELECT ".$parts3[0]."
+                              FROM ".DB_PREFIX."contacts
+                             WHERE email = '$email'
+                               AND is_deleted is NULL") or db_die();
         $row = db_fetch_row($result);
         // rebuild the body string with the db field value
         $body = $parts1[0].$row[0].$parts2[1];
@@ -492,15 +502,17 @@ function insert_db_values($email,$body) {
     return $body;
 }
 
-function headers($html='false') {
+function headers($html='false', $attachment_exist=false) {
     global $sender_email, $receipt;
 
     // This is the right place to add more headers!
     if ($html == 'true' || $html == true) {
         $mime  = 'MIME-Version: 1.0' . "\r\n";
-        $mime .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+        if(!$attachment_exist){
+            $mime .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+        }
     }
-    else {
+    else if(!$attachment_exist){
         $mime .= 'Content-type: text/html; charset='.LANG_CODE. "\r\n";
     }
 
@@ -517,9 +529,11 @@ function headers($html='false') {
 function multipart($body,$html='false') {
     global $parts,$headers;
     $ctype="text/plain";
-    if($html=='true' || $html == true) "text/html";
+    if($html=='true' || $html == true) {
+        $ctype="text/html";
+    }
     // add the body to the string
-    if (!empty($body)) { $parts[] = array ( "ctype" => $ctype,"message" => xss($body),"name" => "" ); }
+    if (!empty($body)) { $parts[] = array ( "ctype" => $ctype,"message" => xss_purifier($body),"name" => "" ); }
     // end of buiding the array parts[] with several contents,
     // continue to build the string '$mime' by imploding the array parts ...
 

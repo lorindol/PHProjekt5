@@ -1,10 +1,14 @@
 <?php
-
-// projects_data.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: gustavo $
-// $Id: projects_data.php,v 1.71.2.1 2007/01/12 21:02:32 gustavo Exp $
+/**
+ * project db data handling script
+ *
+ * @package    projects
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: projects_data.php,v 1.82 2008-01-03 22:26:36 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -19,6 +23,7 @@ check_csrftoken();
 unset ($_SESSION['message_stack'][$module]);
 
 include_once(LIB_PATH."/permission.inc.php");
+include_once(LIB_PATH."/timeproj.inc.php");
 include_once("err_pro.php");
 
 if ($parent == '') $parent = 0;
@@ -27,7 +32,7 @@ $mode = "view";
 
 switch (true) {
     case ($copy<>''):
-        $fields = change_fields_for_copy($fields,'name');       
+        $fields = change_fields_for_copy($fields,'name');
         $mode = "forms";
         break;
     case ($delete_file <> '') :
@@ -90,7 +95,7 @@ switch (true) {
     case ($modify_b and $ID > 0):
     case ($modify_update_b and $ID > 0):
         // check permission
-        
+
         // **********
         // set status
         if ($status <> '') {
@@ -144,9 +149,26 @@ switch (true) {
                              parent      = ".(int)$parent.",
                              depend_mode = ".(int)$depend_mode.",
                              depend_proj = ".(int)$depend_proj.",
-                             probability = ".(int)$probability."
+                             probability = ".(int)$probability.",
+                             costcentre_id = ".(int) $costcentre_id.",
+                             contractor_id = ".(int) $contractor_id.", 
+                             template = '".$template."' 
                        WHERE ID = ".(int)$ID;
             $result = db_query($query) or db_die();
+
+            $query = "DELETE FROM ".DB_PREFIX."projekte_costunit WHERE projekte_id=".(int) $ID;
+           	db_query($query) or db_die();
+
+            if (is_array($costunit_id)) {
+               	foreach($costunit_id as $k=>$cid) {
+               		if ($cid > 0) {
+               			db_query("INSERT INTO ".DB_PREFIX."projekte_costunit
+           	    	          	    (projekte_id, costunit_id, fraction) VALUES
+           		               	   (".(int) $ID.", ".(int) $cid.", ".(float) $costunit_fraction[$k].")") or db_die();
+           		    }
+           	    
+                }
+            }
 
             // Participants
             if (is_array($personen)) {
@@ -159,7 +181,12 @@ switch (true) {
                 // update the contact_rel table
                 update_project_personen_table($ID, $contact_personen,'contact',xss_array($_POST));
             }
-
+            // modify project-related times
+            if (isset($timeproj_add) || isset($timeproj_delete)) {
+                timeproj_insert_record($user_ID, 0,$ID, '', $timeproj_add);
+                timeproj_delete_record($timeproj_delete);
+            }
+            //end customization
             message_stack_in("$project_name: ".__('The project has been modified'), "projects", "notice");
             if ($modify_update_b) {
                 $query_str = "projects.php?mode=forms&ID=".$ID."&justform=".$justform;
@@ -181,8 +208,9 @@ switch (true) {
         $accessstring = insert_access($module);
 
         $query = "INSERT INTO ".DB_PREFIX."projekte
-                         (        von      ,        gruppe      ,        parent  ,        probability  ,   acc             ,  acc_write       , ".$sql_fieldstring." )
-                  VALUES (".(int)$user_ID.",".(int)$user_group.",".(int)$parent.",".(int)$probability.", '$accessstring[0]','$accessstring[1]', ".$sql_valuestring." )";
+                             (        von      ,             gruppe ,        parent  ,        probability  ,   acc ,   acc_write , costcentre_id , contractor_id, ".$sql_fieldstring." )
+                      VALUES (".(int)$user_ID.",".(int)$user_group.",".(int)$parent.",".(int)$probability.", '$accessstring[0]','$accessstring[1]', ".(int) $costcentre_id.", ".(int) $contractor_id.",
+                      ".$sql_valuestring." )";
         $result = db_query($query) or db_die();
         // message: project inserted
         message_stack_in("$project_name: ".__('The project is now in the list'), "projects", "notice");
@@ -190,21 +218,41 @@ switch (true) {
         // find the ID of the last created user and assign it to ID
         $result = db_query("SELECT MAX(ID)
                               FROM ".DB_PREFIX."projekte
-                             WHERE von = ".(int)$user_ID) or db_die();
+                             WHERE von = ".(int)$user_ID."
+                               AND is_deleted is NULL") or db_die();
         $row = db_fetch_row($result);
         $ID = $row[0];
+
+        foreach($costunit_id as $k=>$cid) {
+       		if ($cid > 0) {
+       			db_query("INSERT INTO ".DB_PREFIX."projekte_costunit
+       		    	          (projekte_id, costunit_id, fraction) VALUES
+       		        	      (".(int) $ID.", ".(int) $cid.", ".(float) $costunit_fraction[$k].")") or db_die();
+       		}
+       	}
 
         // Participants
         if (is_array($personen)) {
             // update the user_rel table
             update_project_personen_table($ID, $personen,'user',xss_array($_POST));
         }
-
+        // Contacts Intern
+        if (is_array($contact_intern)) {
+            // update the user_rel table
+            update_project_personen_table($ID, $contact_intern,'user',xss_array($_POST),0,1);
+        }
+        // end customization
         // Contacts
         if (is_array($contact_personen)) {
             // update the contact_rel table
             update_project_personen_table($ID, $contact_personen,'contact',xss_array($_POST));
         }
+        // modify project-related times
+        if (isset($timeproj_add) || isset($timeproj_delete)) {
+            timeproj_insert_record($user_ID, 0,$ID, '', $timeproj_add);
+            timeproj_delete_record($timeproj_delete);
+        }
+        //end customization
 
         if ($create_update_b) {
             $query_str = "projects.php?mode=forms&ID=".$ID."&justform=".$justform;
@@ -213,18 +261,54 @@ switch (true) {
         break;
 }
 
-
+/**
+ * Check the form data
+ * display an error if exists
+ * use global vars
+ *
+ * @param void
+ * @return void
+ */
 function check_anlegen() {
     global $ende, $anfang, $sid, $ID, $wichtung, $project_name, $action, $error, $cat;
     global $depend_mode, $depend_proj, $project_name,$project_name, $chef, $note;
-    global $contact, $stundensatz, $budget,  $parent, $probability;
+    global $contact, $stundensatz, $budget,  $parent, $probability, $costunit_id;
+    global $module;
+
+    $tabs = array();
+    $output = '<div id="global-header">';
+    $output .= get_tabs_area($tabs);
+    $output .= breadcrumb($module);
+    $output .= '</div>';
+    $output .= '<div id="global-content">';
+    $output .="<div class='formbody_mailops'>";
+    $output .= "<ul>";
 
     // check if end time is bigger than start time
-    if ($ende < $anfang) die(__('The duration of the project is incorrect.')."!<br /><a href='projects.php?mode=forms&ID=$ID&name=$name&anfang=$anfang&ende=$ende&wichtung=$wichtung&chef=$chef&parent=$parent&note=$note&contact=$contact&stundensatz=$stundensatz&budget=$budget$sid'>".__('back')."</a> ");
+    if ($ende < $anfang) {
+        $output .= "<li>".__('The duration of the project is incorrect.')."!<br /><a href='projects.php?mode=forms&ID=$ID&name=$name&anfang=$anfang&ende=$ende&wichtung=$wichtung&chef=$chef&parent=$parent&note=$note&contact=$contact&stundensatz=$stundensatz&budget=$budget$sid'>".__('back')."</a></li></ul><br /></div>\n";
+        echo $output;
+        die();
+    }
 
     // if given, check whether budget and hourly rates are integer
-    if ($budget <> '' and !is_numeric($budget)) die(__('Calculated budget').": ".__('Please check your date and time format! ')."!<br /><a href='projects.php?mode=forms&action=$action&ID=$ID&project_name=$project_name&anfang=$anfang&ende=$ende&wichtung=$wichtung&chef=$chef&parent=$parent&note=$note&contact=$contact&stundensatz=$stundensatz&budget=$budget$sid'>".__('back')."</a> ");
-    if ($stundensatz <> '' and !is_numeric($stundensatz)) die(__('Calculated budget').": ".__('Please check your date and time format! ')."!<br /><a href='projects.php?mode=forms&action=$action&ID=$ID&project_name=$project_name&anfang=$anfang&ende=$ende&wichtung=$wichtung&chef=$chef&parent=$parent&note=$note&contact=$contact&stundensatz=$stundensatz&budget=$budget$sid'>".__('back')."</a> ");
+    if ($budget <> '' and !is_numeric((float)$budget)) {
+        $output .= "<li>".__('Calculated budget').": ".__('Please check your date and time format! ')."!<br /><a href='projects.php?mode=forms&action=$action&ID=$ID&project_name=$project_name&anfang=$anfang&ende=$ende&wichtung=$wichtung&chef=$chef&parent=$parent&note=$note&contact=$contact&stundensatz=$stundensatz&budget=$budget$sid'>".__('back')."</a></li></ul><br /></div>\n";
+        echo $output;
+        die();
+    }
+    
+    if ($stundensatz <> '' and !is_numeric($stundensatz)) {
+        $output .= "<li>".__('Calculated budget').": ".__('Please check your date and time format! ')."!<br /><a href='projects.php?mode=forms&action=$action&ID=$ID&project_name=$project_name&anfang=$anfang&ende=$ende&wichtung=$wichtung&chef=$chef&parent=$parent&note=$note&contact=$contact&stundensatz=$stundensatz&budget=$budget$sid'>".__('back')."</a></li></ul><br /></div>\n";
+        echo $output;
+        die();
+    }
+    
+    if (!is_array($costunit_id) && $parent) {
+        $output .= "<li>".__('Costunit / Parent').": ".__('Either costunit or parent project must be set')."!<br /><a href='projects.php?mode=forms&action=$action&ID=$ID&project_name=$project_name&anfang=$anfang&ende=$ende&wichtung=$wichtung&chef=$chef&parent=$parent&note=$note&contact=$contact&stundensatz=$stundensatz&budget=$budget$sid'>".__('back')."</a></li></ul><br /></div>\n";
+        echo $output;
+        die();
+    }
 
     if ($parent > 0) {
         oerror($parent);
@@ -232,7 +316,8 @@ function check_anlegen() {
     if ($ID > 0) {
         $resun = db_query("SELECT ID
                              FROM ".DB_PREFIX."projekte
-                            WHERE parent = ".(int)$ID);
+                            WHERE parent = ".(int)$ID."
+                              AND is_deleted is NULL");
         $uproj[] = $arr_empt;
         while ($rowun = db_fetch_row($resun)) {
             if (!empty($rowun[0])) $uproj[] = $rowun[0];
@@ -249,14 +334,27 @@ function check_anlegen() {
     if ($cat > 1) $probability = 100;
 }
 
-
+/**
+ * Check the dependencies
+ * display an error if exists
+ *
+ * @param int ID                - Project ID
+ * @param int depend_mode       - Depend mode
+ * @param int depend_proj       - Depend project ID
+ * @param int cat               - Categorie
+ * @param string project_name   - Project name
+ * @param date anfang           - Start date
+ * @param date ende             - End date
+ * @return int                  - 1 / 0 if error exists
+ */
 function check_dependencies($ID, $depend_mode, $depend_proj, $cat, $project_name, $anfang, $ende) {
     global $dependencies, $categories;
 
     // fetch start and end date of the target project
     $result = db_query("SELECT anfang, ende, kategorie, name
                           FROM ".DB_PREFIX."projekte
-                         WHERE ID = ".(int)$depend_proj) or db_die();
+                         WHERE ID = ".(int)$depend_proj."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
 
     switch ($depend_mode) {
@@ -318,7 +416,12 @@ function check_dependencies($ID, $depend_mode, $depend_proj, $cat, $project_name
     return $error;
 }
 
-
+/**
+ * Delete a project record and all the dependencies
+ *
+ * @param int ID - Project ID
+ * @return void
+ */
 function delete_record($ID) {
     global $fields, $user_ID;
 
@@ -328,7 +431,8 @@ function delete_record($ID) {
     // check whether there are subprojects below this record ..
     $result = db_query("SELECT ID
                           FROM ".DB_PREFIX."projekte
-                         WHERE parent = ".(int)$ID) or db_die();
+                         WHERE parent = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
 
     if ($row[0] > 0) {
@@ -341,22 +445,16 @@ function delete_record($ID) {
 
     // delete corresponding entry from db_record
     remove_link($ID, 'projects');
-    $result = db_query("DELETE
-                          FROM ".DB_PREFIX."projekte
-                         WHERE ID = ".(int)$ID) or db_die();
+    delete_record_id('projekte','WHERE ID = '.(int)$ID);
     message_stack_in($tmp." - ".__('The project is deleted'),"projects","notice");
     unset($tmp);
 
     // delete participants
-    $result = db_query("DELETE
-                          FROM ".DB_PREFIX."project_users_rel
-                         WHERE project_ID = ".(int)$ID) or db_die();
+    delete_record_id('project_users_rel','WHERE project_ID = '.(int)$ID);
     message_stack_in($tmp." - ".__('The project participants are deleted'),"projects","notice");
 
     // delete contacts
-    $result = db_query("DELETE
-                          FROM ".DB_PREFIX."project_contacts_rel
-                         WHERE project_ID = ".(int)$ID) or db_die();
+    delete_record_id('project_contacts_rel','WHERE project_ID = '.(int)$ID);
     message_stack_in($tmp." - ".__('The project contacts are deleted'),"projects","notice");
 
 

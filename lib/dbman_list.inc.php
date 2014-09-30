@@ -1,11 +1,14 @@
 <?php
-
-// dbman_list.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: nina $
-// $Id: dbman_list.inc.php,v 1.184.2.20 2007/06/18 09:49:58 nina Exp $
-
+/**
+ * Fucntions for make the list view
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: dbman_list.inc.php,v 1.208 2008-03-04 17:22:10 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined('lib_included')) die('Please use index.php!');
@@ -14,17 +17,34 @@ $element_mode = isset($element_mode) ? qss($element_mode) : '';
 $element_ID = isset($element_ID) ? (int) $element_ID : -1;
 diropen_mode($element_mode, $element_ID);
 
-
+/**
+ * Create and show the list view
+ *
+ * @param array 	$addfields          	- Some added fields
+ * @param string	$module            		- Module name
+ * @param string 	$where            		- WHERE clause
+ * @param int    		$page              		- Page to show
+ * @param int    		$perpage           		- Number of records per page
+ * @param string 	$link              			- Special link for no standar modules
+ * @param string 	$origin            		- Without use
+ * @param boolean 	$is_related_obj   	- Is a related object?
+ * @param string 	$caption           		- Caption value
+ * @param string 	$tfoot             		- Table foot value
+ * @return string                   				HTML output
+ */
 function build_table($addfields, $module, $where, $page=0, $perpage=30, $link=null, $origin='', $is_related_obj=false, $caption='', $tfoot='') {
     global $field_name, $field, $fields, $flist, $tablename, $nr_record, $children, $row;
     global $tdw, $tdw_store, $output1, $menu2, $contextmenu;
-    global $listentries_single, $listentries_selected, $fieldlist, $addcols, $build_table_records;
+    global $listentries_single, $listentries_selected, $fieldlist, $addcols, $build_table_records, $is_related_obj2;
     $output1 = '';
+
+    // Use in the filters for make or no the forms
+    $is_related_obj2 = $is_related_obj;
 
     if (!$tdw and $tdw_store) $tdw = $tdw_store;
     // fetch additional colums
-    $addcols = get_additional_columns($module, $fieldlist, $fields, '0', array());
-
+    $addcols = get_additional_columns($module, $fieldlist, $fields, '0', $records[$ID]);
+ if(!$is_related_obj){
     $output1 .= "
 <script type='text/javascript'>
 //<![CDATA[
@@ -46,13 +66,15 @@ function showsize() {
             $output1 .= "document.tdwfrm.ii".$field_name.".value = document.images['img".$field_name."'].width;\n";
         }
     }
+
     $output1 .= "
     return true;
 }//]]>
 </script>";
+    }
 
     // table header
-    $output1.= "<table id=\"$module\" summary=\"$module\" width=\"100%\">";
+    $output1.= "<table id=\"$module\" summary=\"$table for $module\" width=\"100%\">";
     if($caption){
         $output1 .= '<caption>'.$caption.'</caption>';
     }
@@ -77,17 +99,21 @@ function showsize() {
                 $cw = floor(97/(count($fieldlist)+1));
                 if (!isset($tdw[$module][$field_name])) $tdw[$module][$field_name] = $cw;
                 // um valides xhtml zu erhalten
-                if ($contextmenu > 0)$output1.= "<th id=\"".$field_name."_".$module."\" scope=\"col\" oncontextmenu=\"startMenu('".$menu2->menucolID."','".$field_name."',this);\">";
+                if ($contextmenu > 0 and !$is_related_obj)$output1.= "<th id=\"".$field_name."_".$module."\" scope=\"col\" oncontextmenu=\"startMenu('".$menu2->menucolID."','".$field_name."',this);\">";
                 else $output1.= "<th id=\"".$field_name."_".$module."\" scope=\"col\" style='width:".$cw."%;'>";
-                $output1.= col_filter($module, $field_name, $link, $cw);
+                if(!$is_related_obj){
+                    $output1.= col_filter($module, $field_name, $link, $cw);
+
                 $output1.= "<img src='".PATH_PRE."img/t.gif' name=\"img".$field_name."\" height='1' width='".$tdw[$module][$field_name]."' alt='alter direction' title='alter direction' />";
+                }
+                else $output1.=  enable_vars($field['form_name']);
                 $output1.= "</th>\n";
             }
         }
     }
     // additional custom column as first cell?
     if (is_array($addcols) and isset($addcols[1]) and $addcols[1] <> '') { $output1 .= '<th>&nbsp;</th>'; }
-if ($module == 'vacation')
+    if ($module == 'vacation')
     $output1 .= "</tr>\n</thead>\n";
 
     if($tfoot){
@@ -104,9 +130,7 @@ if ($module == 'vacation')
     $table = isset($tablename[$module]) ? $tablename[$module] : $module;
     // start rows
     // store the result in two arrays: one contains all records, the other one just the root records (just in case no filter is active)
-    /**
-     * add alt_list elements to row
-     */
+    // add alt_list elements to row
     if(isset($ID)){
         $fields2=build_array($module,$ID,"list_alt");
     }
@@ -117,7 +141,7 @@ if ($module == 'vacation')
     $fieldlist2=array();
     if (is_array($fields2)) {
         foreach ($fields2 as $field_name => $field) {
-            if ($field['list_alt'] =='on') {
+            if ($field['list_alt'] > 0) {
                 $fieldlist2[] = $field_name;
             }
         }
@@ -133,6 +157,7 @@ if ($module == 'vacation')
     }
 
     $row_data = get_row_data($fields_array, $select_array, $table, $module, $where);
+
     $id_row=array();
     for($i=0;$i<count($select_array);$i++){
         $id_row[$select_array[$i]]=$i;
@@ -151,10 +176,11 @@ if ($module == 'vacation')
         if (((!isset($flist[$module]) || (!$flist[$module] <> '') || (is_array($flist[$module]) && count($flist[$module]) == 0)) && !$row2[3]['value'])) {
             $mainrecords[] = $row2[0]['value'];
         }
-        else { 
-            $allrecords[] = $row2[0]['value']; 
+        else {
+            $allrecords[] = $row2[0]['value'];
         }
     }
+
     //strip foundrecords from children which are already listed with parentproject
     if (isset($allrecords) && is_array($allrecords)&&(!empty($allrecords))) {
         foreach($allrecords as $key=>$kid){
@@ -163,9 +189,8 @@ if ($module == 'vacation')
         }
     }
 
-
     // end of transfer from db, begin output
- // if ($module == 'vacation') { $page = 1;}
+    // if ($module == 'vacation') { $page = 1;}
 
     $maxnr     = (count($row) < ($page+1)*$perpage) ? count($row) : ($page+1)*$perpage;
     $nr_record = $page*$perpage;
@@ -199,7 +224,22 @@ if ($module == 'vacation')
     return $output1;
 }
 
-
+/**
+ * Display the line of one record and childrends
+ *
+ * @param int    		$ID              			- Record ID
+ * @param string  	$module          		- The module
+ * @param array   	$fieldslist      		- Array with fields to show
+ * @param array   	$fields          			- Array with all the fields data
+ * @param array   	$addfields       		- Array with fields to add on the first colum
+ * @param int    		$page            			- Page to show
+ * @param int    		$perpage         		- Number of records per page
+ * @param array   	$fields2         		- Array with all the fields data for altview
+ * @param array   	$fieldslist      		- Array with fields to show in altview
+ * @param int   		$id_row          		- Id of the row
+ * @param boolean	$is_related_obj  	- Is a related object?
+ * @return string                  				HTML output
+ */
 function list_records($ID, $module, $fieldlist, $fields, $addfields, $page, $perpage,$fields2,$fieldlist2,$id_row, $is_related_obj=false) {
     global $level, $diropen, $tree_mode,$sid;
     global $nr_record, $output1, $flist, $getstring, $children, $row, $menu2, $int;
@@ -257,13 +297,10 @@ function list_records($ID, $module, $fieldlist, $fields, $addfields, $page, $per
     // create different links for modules and addons
     $link = "";
     if ($_SESSION['common']['module'] == 'addons') { $link = "./addon.php"; }
-    else if(strstr($getstring, 'addon=')){
-        $link="../addons/addon.php";
-    }
     else { $link = "../$module/$module.php"; }
 
     if ($is_related_obj) {
-        $ref = "javascript:void(0);'\" title='".__('This link opens a popup window')."' onclick='window.open(\"$link?justform=1&amp;$getstring&amp;mode=forms&amp;ID=$ID$sid\", \"related_object\", \"width=760px,height=540px,scrollbars=yes\");";
+        $ref = "javascript:void(0);'\" title='".__('This link opens a popup window')."' onclick='window.open(\"$link?justform=1&amp;$getstring&amp;mode=forms&amp;ID=$ID$sid\", \"related_object\", \"width=1140px,height=540px,scrollbars=yes\");";
         tr_tag('', "", $ID, $records[$ID][$fieldlist[0]], '', $module, $bg_class); // draw <tr>
     }
     else {
@@ -343,7 +380,15 @@ function list_records($ID, $module, $fieldlist, $fields, $addfields, $page, $per
     }
 }
 
-
+/**
+ * Correct list values
+ *
+ * @param string 	$contenct       	- Correct value
+ * @param array  	$fields         		- Array with all the fields data
+ * @param array  	$content_fields	- Array with all the values data
+ * @param int    		$field_offset   	- Index of the content_field
+ * @return string            				Correct HTML output
+ */
 function show_string_list($content, $fields, $content_fields, $field_offset=0) {
     // paste the values of the fields into the array
     foreach ($fields as $field_name => $field) {
@@ -353,16 +398,23 @@ function show_string_list($content, $fields, $content_fields, $field_offset=0) {
     return preg_replace_callback("#\[(.*)\]#siU", 'f2_list', $content);
 }
 
+/**
+ * Correct formulavalues
+ *
+ * @param array  	$f  	- Array with all the fields data
+ * @return string    			Correct HTML output
+ */
 function f2_list($f) {
     eval('$y = '.$f[1].';');
     return $y;
 }
-// end list functions
-// ******************
 
-
-// *************
-// start functions for archive flag and read flag
+/**
+ * Set read flag
+ *
+ * @param string 	$module 	- Module name
+ * @return void
+ */
 function read_mode($module) {
     // no value in session?
     if (!isset($_SESSION['show_read_elements']["$module"])) {
@@ -382,7 +434,12 @@ function read_mode($module) {
     }
 }
 
-
+/**
+ * Set archive flag
+ *
+ * @param string 	$module 	- Module name
+ * @return void
+ */
 function archive_mode($module) {
     // no value in session?
     if (!isset($_SESSION['show_archive_elements']["$module"])) {
@@ -402,7 +459,12 @@ function archive_mode($module) {
     }
 }
 
-
+/**
+ * Set html flag
+ *
+ * @param string 	$module 	- Module name
+ * @return void
+ */
 function html_editor_mode($module) {
     // no value in session?
     if (!isset($_SESSION['show_html_editor']["$module"])) {
@@ -421,11 +483,12 @@ function html_editor_mode($module) {
         else $_SESSION['show_html_editor']["$module"] = 0;
     }
 }
+
 /**
  * Function to switch views: all groups current grouo
  *
- * @author Nina Schmitt
- * @param string $module current module
+ * @param string 	$module 	- Current module
+ * @return void
  */
 function group_mode($module) {
     // no value in session?
@@ -441,22 +504,20 @@ function group_mode($module) {
     }
     // now check whether the user has toggled the flag for show/hide
     if (isset($_REQUEST['toggle_show_all_groups']) && $_REQUEST['toggle_show_all_groups'] == 1) {
-        echo"1";
         if ($_SESSION['show_all_groups']["$module"] == 0) $_SESSION['show_all_groups']["$module"] = 1;
         else{
-           $_SESSION['show_all_groups']["$module"] = 0;
+            $_SESSION['show_all_groups']["$module"] = 0;
         }
     }
 }
 
-
 /**
-* return additional sql string to filter archived and/or read elements
-* @author Alex Haslberger
-* @param string $module module to which the entry belongs
-* @param arr    $flags flags to be checked
-* @return string $str additional query string
-*/
+ * return additional sql string to filter archived and/or read element
+ *
+ * @param string 	$module 	- Module to which the entry belongs
+ * @param array  	$flags  	- Flags to be checked
+ * @return string       			Additional query string
+ */
 function sql_filter_flags($module, $flags, $before_where = true) {
     global $user_ID;
 
@@ -499,19 +560,19 @@ function sql_filter_flags($module, $flags, $before_where = true) {
 }
 
 /**
-* return additional sql string to filter archived and/or read elements
-* @author Gustavo Solt
-* @param string $module module to which the entry belongs
-* @param arr    $flags flags to be checked
-* @return string $str additional query string
-*/
+ * return additional sql string to filter archived and/or read elements
+ *
+ * @param string 	$module 	- Module to which the entry belongs
+ * @param array  	$flags  	- Flags to be checked
+ * @return string       			Additional query string
+ */
 function special_sql_filter_flags($module, $flags, $before_where=true) {
     global $user_ID;
 
     $str = '';
     // perform the left join
     if ( (isset($flags['exclude_archived']) && $flags['exclude_archived'] == "on") ||
-         (isset($flags['exclude_read']) && $flags['exclude_read'] == "on") ) {
+    (isset($flags['exclude_read']) && $flags['exclude_read'] == "on") ) {
         $table = get_table_by_module($module);
         if ($before_where) {
             $str .= ' LEFT JOIN  '.DB_PREFIX.'db_records ON ('.$table.'.ID = '.DB_PREFIX.'db_records.t_record AND '.DB_PREFIX.'db_records.t_module = \''.DB_PREFIX.qss($module).'\' AND '.DB_PREFIX.'db_records.t_author = '.$user_ID.') ';
@@ -534,17 +595,24 @@ function special_sql_filter_flags($module, $flags, $before_where=true) {
     return $str;
 }
 
+/**
+ * Keep the sort mode
+ *
+ * @param string 	$module     			- Module name
+ * @param string	$default_colum     	- Default value for order
+ * @param string	$default_direction 	- Default value for direction
+ * @return void
+ */
 function sort_mode($module,$default_column, $default_direction='ASC') {
     global $f_sort, $f_sort_store;
 
     if (isset($_GET['sort']) && strlen($_GET['sort']) > 0) {
-        
         // the sort could be for a related object, it is necessary to check
         if (isset($_GET['sort_module']) && strlen($_GET['sort_module']) > 0) {
             $tmp_sort_module = xss($_GET['sort_module']);
-        } 
+        }
         else $tmp_sort_module = $module;
-        
+
         $f_sort[$tmp_sort_module]['sort'] = xss($_GET['sort']);
         $f_sort[$tmp_sort_module]['direction'] = isset($_GET['direction']) ? xss($_GET['direction']) : '';
     }
@@ -563,22 +631,32 @@ function sort_mode($module,$default_column, $default_direction='ASC') {
     $_SESSION['f_sort'] =& $f_sort;
 }
 
-
-// provides sql string to order result sets
+/**
+ * Provides sql string to order result sets
+ *
+ * @param string 	$sort_module        		- Module name
+ * @param boolean 	$hast_to_be_sorted 	-
+ * @return string                  					ORDER clause
+ */
 function sort_string($sort_module=null, $has_to_be_sorted = false) {
     global $direction_rel, $sort_col, $f_sort, $module;
 
     if ($has_to_be_sorted == true && isset($sort_col) && isset($direction_rel) && $sort_col != '' && $direction_rel != '') {
         return 'ORDER BY '.$sort_col.' '.$direction_rel;
     }
+
     if (!$sort_module) $sort_module = $module;
-    
     if ($f_sort[$sort_module]['sort'] <> '') {
         return 'ORDER BY '.$f_sort[$sort_module]['sort'].' '.$f_sort[$sort_module]['direction'];
     }
 }
 
-// stores the column width of a module
+/**
+ * Stores the column width of a module
+ *
+ * @param string 	$sort_module	- Module name
+ * @return void
+ */
 function store_column_width($module) {
     global $fields, $tdw;
 
@@ -588,7 +666,13 @@ function store_column_width($module) {
     $_SESSION['tdw'] =& $tdw;
 }
 
-
+/**
+ * Keep the open mode
+ *
+ * @param string 	$elemen_mode 	- Open/Close
+ * @param int    		$ID          		- Record ID
+ * @return void
+ */
 function diropen_mode($element_mode, $ID) {
     global $element_module, $diropen, $diropen_store;
 
@@ -605,10 +689,14 @@ function diropen_mode($element_mode, $ID) {
     }
     $_SESSION['diropen'] =& $diropen;
 }
-// end archive and read flag
-// *************************
 
-
+/**
+ * Show open/close buttons
+ *
+ * @param int    		$element_ID    		- Record ID
+ * @param string 	$elemen_module 	- Module name
+ * @return string              					HTML output
+ */
 function buttons($element_ID, $element_module) {
     global $diropen, $sid, $filter, $tree_mode;
     global $tablename, $children, $module, $mode, $ID, $getstring;
@@ -630,19 +718,36 @@ function buttons($element_ID, $element_module) {
     return $str;
 }
 
-
-function save_filter($module, $name, $ID=NULL, $dat=NULL) {
-    global $user_ID;
+/**
+ * Save the filters into the DB
+ *
+ * @param string 	$module 			- Module name
+ * @param string 	$name   			- Name of the filter
+ * @param int    		$ID     			- Id of an exists saved filter
+ * @param array  	$dat    			- Values of the filters
+ * @param string 	$expert_filter 	-
+ * @return void
+ */
+function save_filter($module, $name, $ID=NULL, $dat=NULL, $expert_filter = '') {
+    global $user_ID, $user_group;
 
     $filter     = '';
     $sort       = '';
     $direction  = '';
     $operator   = 'AND'; // default value for filter operator
 
-    // Assign filter
-    if (isset($dat)) $filter = serialize($dat);
-    else $filter = serialize(xss_array($_SESSION['flist'][$module]));
+    $accessstring = insert_access('filter');
 
+
+    if (strlen($expert_filter) > 0 && PHPR_EXPERT_FILTERS == 1) {
+        $filter = $expert_filter;
+    }
+    else {
+
+        // Assign filter
+        if (isset($dat)) $filter = serialize($dat);
+        else $filter = serialize(xss_array($_SESSION['flist'][$module]));
+    }
     // Assign sort and direction
     if (is_array($_SESSION['f_sort'][$module])) {
         $sort = qss($_SESSION['f_sort'][$module]['sort']);
@@ -653,8 +758,8 @@ function save_filter($module, $name, $ID=NULL, $dat=NULL) {
             $operator = qss($_SESSION['flist']['operators'][$module]);
         }
     }
-
-
+    
+    
 
     // Update a filter
     if ($ID) {
@@ -666,34 +771,64 @@ function save_filter($module, $name, $ID=NULL, $dat=NULL) {
                                  WHERE ID = ".(int)$ID."
                                    AND von = ".(int)$user_ID."
                                    AND module = '".qss($module)."'") or db_die();
-    // Create a filter
+        // Create a filter
     } else {
+        
+        $accessstring = insert_access('filter');
+        
         $result = db_query("INSERT INTO ".DB_PREFIX."filter
-                                            (von, module, name, filter, filter_sort, filter_direction, filter_operator)
-                                     VALUES (".(int)$user_ID.", '".qss($module)."', '".strip_tags($name)."', '".strip_tags($filter)."', '".strip_tags($sort)."', '".strip_tags($direction)."', '".strip_tags($operator)."')") or db_die();
+                                            (von, module, name, filter, filter_sort, filter_direction, filter_operator, acc, acc_write, gruppe)
+                                     VALUES (".(int)$user_ID.", '".qss($module)."', '".strip_tags($name)."', '".strip_tags($filter)."', '".strip_tags($sort)."', '".strip_tags($direction)."', '".strip_tags($operator)."','".strip_tags($accessstring[0])."','".strip_tags($accessstring[1])."',".(int)$user_group.")") or db_die();
     }
 }
 
+/**
+ * Load an exists saved filter
+ *
+ * @param int    		$ID     	- Id of an exists saved filter
+ * @param string 	$module 	- Module name
+ * @return array        			The filter data
+ */
 function load_filter($ID, $module) {
-    global $user_ID;
+    global $user_ID, $user_kurz;
 
     $result = db_query("SELECT filter, filter_sort, filter_direction, filter_operator
-                            FROM ".DB_PREFIX."filter
-                           WHERE ID = ".(int)$ID."
-                             AND von = ".(int)$user_ID."
-                             AND module = '$module'") or db_die();
+               		             	  FROM ".DB_PREFIX."filter
+                          		     WHERE ID = ".(int)$ID."
+                             		    AND module = '$module'
+                             		    AND (acc LIKE 'system' OR von = ".(int)$user_ID."
+                                			 OR ((acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')
+                                    			 ".group_string()."))") or db_die();
     $row = db_fetch_row($result);
-    return array(unserialize($row[0]),$row[1],$row[2], $row[3]);
+
+    if (is_array(unserialize($row[0]))) {
+        $row[0] = unserialize($row[0]);
+    }
+    return array($row[0],$row[1],$row[2], $row[3]);
 }
 
+/**
+ * Get all the saved filters
+ *
+ * @param string 	$module    	- Module name
+ * @param strint 	$acc_write 	- Value of the acc_write field
+ * @return array           				All the saved filters
+ */
+function get_filters($module, $write_permission = '') {
+    global $user_ID, $user_kurz, $user_group;
 
-function get_filters($module) {
-    global $user_ID;
-
-    $result = db_query("SELECT ID, name
+    if ($write_permission <> '') {
+        $write_query = " AND acc_write = '$write_permission' ";
+    }
+    else {
+        $write_query = '';
+    }
+    $result = db_query("SELECT ID, name, von
                           FROM ".DB_PREFIX."filter
                          WHERE module = '$module'
-                           AND von = ".(int)$user_ID) or db_die();
+                           AND (acc LIKE 'system' OR von = ".(int)$user_ID."
+                                OR ((acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') $write_query
+                                    ".group_string()."))") or db_die();
 
     $retval = array();
     while ($row = db_fetch_row($result)) {
@@ -702,25 +837,32 @@ function get_filters($module) {
     return $retval;
 }
 
-
+/**
+ * Delete a saved filters
+ *
+ * @param int    		$ID     	- Id of an exists saved filter
+ * @param string 	$module 	- Module name
+ * @return void
+ */
 function delete_filter($ID, $module) {
     global $user_ID;
 
     $result = db_query("DELETE FROM ".DB_PREFIX."filter
                               WHERE ID = ".(int)$ID."
-                                AND von = ".(int)$user_ID) or db_die();
+                                AND (acc LIKE 'system' OR von = ".(int)$user_ID."
+                                OR ((acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') AND acc_write = 'w'
+                                    ".group_string()."))") or db_die();
 }
 
-
 /**
-* Set background-color of a listitem
-* This function can be used to highlight important entries for a module
-*
-* @param  $module string Modulename
-* @param  $data   array This is the data for the current dataset (row) with fieldname as array key
-* @param  $ID     integer This is the ID of the row to be displayed
-* @return string  Either a css class or an empty string
-*/
+ * Set background-color of a listitem
+ * This function can be used to highlight important entries for a module
+ *
+ * @param string 	$module 	- Module name
+ * @param array  	$data   	- This is the data for the current dataset (row) with fieldname as array key
+ * @param int    		$ID     	- This is the ID of the row to be displayed
+ * @return string       	 		Either a css class or an empty string
+ */
 function get_background_class($module, $data, $ID = 0) {
     switch ($module) {
         case 'todo':
@@ -755,8 +897,9 @@ function get_background_class($module, $data, $ID = 0) {
 
             // check if it is a sent, received or folder element
             $result = db_query("SELECT ID, typ, date_sent, date_received, touched
-                                FROM ".DB_PREFIX."mail_client
-                               WHERE ID = ".(int)$ID);
+                                  FROM ".DB_PREFIX."mail_client
+                                 WHERE ID = ".(int)$ID."
+                                   AND is_deleted is NULL");
 
             if ($row = db_fetch_row($result)) {
                 if ($row[1] <> 'd') {
@@ -774,14 +917,13 @@ function get_background_class($module, $data, $ID = 0) {
     return '';
 }
 
-
 /**
-* Converts special list entries
-*
-* @param  $module string Modulename
-* @param  $data   array This is the data for the current dataset (row) with fieldname as array key
-* @return void    works on a reference
-*/
+ * Converts special list entries
+ *
+ * @param string 	$module 	- Module name
+ * @param array  	$data   	- This is the data for the current dataset (row) with fieldname as array key
+ * @return void
+ */
 function convert_special_entries($module, &$data) {
     global $date_format_object;
 
@@ -794,25 +936,27 @@ function convert_special_entries($module, &$data) {
     }
 }
 
-
 /**
-* Create first/last column defined by module
-* The returned value needs to include the <td>-Tags
-* @param $module string Modulename
-* @param $fieldlist array A numeric array with the activated fields
-* @param $fields array Holds the definition of the fields
-* @param $ID int ID
-* @param $data array This is the data for the current dataset (row) with fieldname as array key
-* @return array(0 => fisrt column, 1 => last column)
-*/
+ * Create first/last column defined by module
+ * The returned value needs to include the <td>-Tags
+ *
+ * @param string 	$module  	- Module name
+ * @param array 	$fieldlist 	- A numeric array with the activated fields
+ * @param array 	$fields    	- Holds the definition of the fields
+ * @param int   		$ID        	- Record ID
+ * @param array 	$data      	- This is the data for the current dataset (row) with fieldname as array key
+ * @return array          			array(0 => fisrt column, 1 => last column)
+ */
 function get_additional_columns($elementmodule, $fieldlist, $fields, $element_ID, $data) {
-    global $user_ID, $tree_mode, $children, $diropen, $module, $file_ID, $mode, $ID;
+    global $user_ID, $tree_mode, $children, $diropen, $module, $file_ID, $mode, $ID,
+    $progress_ratio_array;  // for project stoplights
 
     switch ($elementmodule) {
         case 'todo_alt':
             $result = db_query("SELECT progress, status
                                   FROM ".DB_PREFIX."todo
-                                 WHERE ID = ".(int)$element_ID);
+                                 WHERE ID = ".(int)$element_ID."
+                                   AND is_deleted is NULL");
             list($progress, $status) = db_fetch_row($result);
             if ($data['von'] == $user_ID and ($status > 1 and $status < 5)) {
                 $lastcol = "
@@ -836,19 +980,13 @@ function get_additional_columns($elementmodule, $fieldlist, $fields, $element_ID
             break;
 
         case 'test' :
-
             if (!isset($_GET['submode']) || (isset($_GET['submode']) && $_GET['submode'] == 'round')) {
-
                 if ($element_ID > 0) {
-
                     $assessment = 0;
                     $fertig = 0;
                     $count = 0;
-
                     $sql = "SELECT test_itemID, fertig,  assessment FROM ".DB_PREFIX."test_round_item WHERE test_roundID = ".$element_ID;
-
                     $result = db_query($sql);
-
                     while ($row = db_fetch_row($result)) {
                         if ($row[1] <> '') {
                             $fertig++;
@@ -858,18 +996,15 @@ function get_additional_columns($elementmodule, $fieldlist, $fields, $element_ID
                         }
                         $count ++;
                     }
-		      $failed = $fertig - $assessment;
+                    $failed = $fertig - $assessment;
                     if ($failed > 0) $failed = "<font color=red>$failed</font>";
-
-                   $lastcol = "<td>".$count." - Performed: ".$fertig." - Failed: ".$failed."</td>";
-
-                   return array(1 => $lastcol);
+                    $lastcol = "<td>".$count." - Performed: ".$fertig." - Failed: ".$failed."</td>";
+                    return array(1 => $lastcol);
                 } else {
                     return array(1 => __('Test items'));
                 }
             }
-        break;
-
+            break;
         case 'filemanager':
         case 'dateien':
             //$firstcol = "<td class='column2' style='width:20px !important;'>&nbsp;$mime_img</td>\n";
@@ -889,36 +1024,26 @@ function get_additional_columns($elementmodule, $fieldlist, $fields, $element_ID
                     if (!$diropen[$elementmodule][$element_ID]) { $mime_img= "<a name='A".$row[0]."' href='".$module.".php?mode=$mode&amp;element_mode=open&amp;element_ID=$element_ID&amp;element_module=$elementmodule&amp;ID=$ID".$sid."#A$row[0]'><img src='../img/folder_yellow.png' alt='close Element' title='close Element' border='0' />&nbsp;</a>"; }
                     // show button 'close'
                     else { $mime_img = "<a name='A".$row[0]."' href='".$module.".php?mode=$mode&amp;element_mode=close&amp;element_ID=$element_ID&amp;element_module=$elementmodule&amp;ID=$ID".$sid."#A$row[0]'><img src='../img/folder_yellow_open.png' alt='open Element' title='open Element' border='0' /></a>&nbsp;"; }
-                }
-                else { $mime_img = "<img src='../img/folder_yellow.png' alt='open Element' title='open Element' border='0' />&nbsp;"; }
-            }
-            else if (($file_lock > '0') and ($file_lock != $user_ID )) {
+                } else { $mime_img = "<img src='../img/folder_yellow.png' alt='open Element' title='open Element' border='0' />&nbsp;"; }
+            } else if (($file_lock > '0') and ($file_lock != $user_ID )) {
                 if ($file_type == 'l') {
                     $mime_img ="<a href='".$url."' target='_blank'><img src='../img/encrypted.png' alt='encrypted' title='encrypted' border='0' /></a>";
-                }
-                else {
+                } else {
                     $mime_img ="<a href='".$url."'><img src='../img/encrypted.png' alt='encrypted' title='encrypted' border='0' /></a>";
                 }
-            }
-
-            else {
+            } else {
                 // get the icon name and alt description
                 $image_data = get_file_icon($file_mime, true);
-
                 if ($file_type == 'l') {
                     $mime_img ="<a href='".$url."' target='_blank'><img src='../img/{$image_data['icon']}' alt='{$image_data['alt']}' title='{$image_data['alt']}' border='0' /></a>";
-                }
-                else {
+                } else {
                     $mime_img ="<a href='".$url."'><img src='../img/{$image_data['icon']}' alt='{$image_data['alt']}' title='{$image_data['alt']}' border='0' /></a>";
                 }
             }
 
             $firstcol = "<td class='column2' style='width:20px !important;'>&nbsp;$mime_img</td>\n";
-
             return array(0 => $firstcol);
-
             break;
-
         case 'links':
             $url_parts = explode(',', slookup('db_records', 't_module,t_record', 't_ID', $element_ID,'1'));
             $url_parts[0] = str_replace(DB_PREFIX,'',$url_parts[0]);
@@ -928,56 +1053,45 @@ function get_additional_columns($elementmodule, $fieldlist, $fields, $element_ID
             return array(0 => $firstcol);
             break;
         case 'mail':
-
             $result = db_query("SELECT ID, filename, tempname, filesize
                                 FROM ".DB_PREFIX."mail_attach
                                WHERE parent = ".(int)$element_ID);
-
             $lastcol = "<td align='center'>";
-
             while ($row = db_fetch_row($result)) {
-
                 if ($row[3] > 1000000)  {$fsize = floor($row[3]/1000000)." M";}
                 elseif ($row[3] > 1000) {$fsize = floor($row[3]/1000)." k";}
                 else {$fsize = $row[3];}
                 // write data to the array for downloading
                 $rnd = rnd_string();
                 $file_ID[$rnd] = "$row[1]|$row[2]|$row[0]";
-
                 $file_icon = get_file_icon($row[1]);
-
                 $lastcol .= "<a href='mail_down.php?rnd=".$rnd.$sid."' target='_blank'><img src='../img/{$file_icon['icon']}' alt='${row[1]} ($fsize)' title='{$row[1]} ($fsize)' border='0' /></a>&nbsp;";
             }
             $lastcol .= "</td>\n";
 
             // check if it is a sent, received or folder element
             $result = db_query("SELECT ID, typ, date_sent, date_received, trash_can, touched, replied, forwarded
-                                FROM ".DB_PREFIX."mail_client
-                               WHERE ID = ".(int)$element_ID);
+                                  FROM ".DB_PREFIX."mail_client
+                                 WHERE ID = ".(int)$element_ID."
+                                   AND is_deleted is NULL");
             $symbol = '';
             if ($row = db_fetch_row($result)) {
                 if ($row[1] == 'd') {
                     if ($row[4] == 'Y') {
                         $symbol = "<img src='../img/trash_can.png' alt='".__('Trash Can')."' title='".__('Trash Can')."' border='0' />";
-                    }
-                    else {
+                    } else {
                         $symbol = "<img src='../img/folder_yellow.png' alt='".__('Directory')."' title='".__('Directory')."' border='0' />";
                     }
-                }
-                else {
+                } else {
                     if ($row[7] > 0 && $row[6] > 0) {
                         $symbol = "<img src='../img/mail_replied_forwarded.gif' alt='".__('Replied and Forwarded')."' title='".__('Replied and Forwarded')."' border='0' />";
-                    }
-                    elseif ($row[7] > 0) {
+                    } elseif ($row[7] > 0) {
                         $symbol = "<img src='../img/mail_forwarded.gif' alt='".__('Forwarded')."' title='".__('Forwarded')."' border='0' />";
-                    }
-                    elseif ($row[6] > 0) {
+                    } elseif ($row[6] > 0) {
                         $symbol = "<img src='../img/mail_replied.gif' alt='".__('Replied')."' title='".__('Replied')."' border='0' />";
-                    }
-                    elseif ($row[5] == 0) {
+                    } elseif ($row[5] == 0) {
                         $symbol = "<img src='../img/mail_unread.gif' alt='".__('Unread')."' title='".__('Unread')."' border='0' />";
-                    }
-                    else {
+                    } else {
                         $symbol = "<img src='../img/mail_open.gif' alt='".__('Read')."' title='".__('Read')."' border='0' />";
                     }
                 }
@@ -986,24 +1100,49 @@ function get_additional_columns($elementmodule, $fieldlist, $fields, $element_ID
 
             return array(0 => $firstcol , 1 => $lastcol);
             break;
+            /* stoplight information */
+        case 'projects':
+            if (PHPR_PROJECT_PROGRESS == 1) {
+                $firstcol = "<td width='1%' valign='middle'>";
+
+                // if a project is defined
+                if ($element_ID <> 0) {
+                    if (isset($progress_ratio_array[$element_ID])) {
+                        $temp_info = $progress_ratio_array[$element_ID];
+                        $stoplight_time = get_project_stoplight($element_ID,'time_ratio', $temp_info);
+                        $stoplight_cost = get_project_stoplight($element_ID,'project_progress', $temp_info);
+                    }
+                    else {
+                        $stoplight_time = get_project_stoplight($element_ID,'time_ratio');
+                        $stoplight_cost = get_project_stoplight($element_ID,'project_progress');
+                    }
+
+                    // getting time ratio
+                    $firstcol .= "<img src='../img/".$stoplight_time['color'].".gif' alt='".$stoplight_time['name'].": ".$stoplight_time['value']."' title='".$stoplight_time['name'].": ".$stoplight_time['formula']."' border='0' width='7' heigh='7' />&nbsp;";
+                    // getting budget ration
+                    $firstcol .= "<img src='../img/".$stoplight_cost['color'].".gif' alt='".$stoplight_cost['name'].": ".$stoplight_cost['value']."' title='".$stoplight_cost['name'].": ".$stoplight_cost['formula']."' border='0' border='0' width='7' heigh='7' />";
+                }
+                $firstcol .= "</td>\n";
+                return array(0 => $firstcol);
+            }
+            break;
+            /* end stoplight information */
     }
 }
 
 /**
  * Returns the file icon according with file extension
  *
- * @param varchar $fileName name of the file
- * @param bool $extension if the provided name is only the file extension then it needs to be
- *                        set as true
- * @return varchar name of the icon file on img directory
+ * @param string	$fileName		- Name of the file
+ * @param boolean 	$extension 		- If the provided name is only the file extension then it needs to be set as true
+ * @return string         					Name of the icon file on img directory
  */
 function get_file_icon($fileName = '', $extension = false) {
 
     // getting the file extension
     if (!$extension) {
         $file_extension = strtolower(substr($fileName,strrpos($fileName,'.') + 1));
-    }
-    else {
+    } else {
         $file_extension = $fileName;
     }
 
@@ -1027,7 +1166,7 @@ function get_file_icon($fileName = '', $extension = false) {
     $temp_array = array('sxw','sxc','ods');
     if (in_array($file_extension,$temp_array)) {
         $file_icon = 'ooo_calc.png';
-        $file_alt  = __('calc');
+        $file_alt  = __('spreadsheet');
     }
     // ooo impress format
     $temp_array = array('sxi','odp');
@@ -1072,7 +1211,7 @@ function get_file_icon($fileName = '', $extension = false) {
         $file_alt  = __('web file');
     }
     // zip format
-    $temp_array = array('zip','rar','tar','ace','gz');
+    $temp_array = array('zip','rar','tar','ace','gz','tgz','bz2','rpm');
     if (in_array($file_extension,$temp_array)) {
         $file_icon = 'ico_zip.gif';
         $file_alt  = __('compressed');
@@ -1098,5 +1237,4 @@ function get_file_icon($fileName = '', $extension = false) {
 
     return array ('icon' => $file_icon, 'alt' => $file_alt);
 }
-
 ?>

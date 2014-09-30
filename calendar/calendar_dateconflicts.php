@@ -1,14 +1,15 @@
 <?php
 /**
-* checks for conflicts for several parallel events
-*
-* @package    calendar
-* @module     main
-* @author     Franz Graf, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_dateconflicts.php,v 1.26.2.2 2007/02/28 03:57:08 polidor Exp $
-*/
+ * checks for conflicts for several parallel events
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Franz Graf, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_dateconflicts.php,v 1.31 2007-05-31 08:10:10 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once('./calendar.inc.php');
 
@@ -85,6 +86,8 @@ function search_time_slot ($contacts, $date, $date_from, $date_to, $ignore_id=-1
                  AND t.ID     <> ".(int)$ignore_id." 
                  AND t.parent <> ".(int)$ignore_id." 
                  AND t.status <> 1 
+                 AND t.is_deleted is NULL
+                 AND u.is_deleted is NULL
             ORDER BY t.datum ASC, t.anfang ASC, t.ende ASC";
     unset($start, $end);
     // echo nl2br($query);
@@ -252,7 +255,9 @@ function check_concrete_date ($contacts, $date, $date_from, $date_to, $ignore_id
                  AND t.ID       <> ".(int)$ignore_id." 
                  AND t.parent   <> ".(int)$ignore_id." 
                  AND t.serie_id <> ".(int)$ignore_id." 
-                 AND t.status   <> 1 ";
+                 AND t.status   <> 1
+                 AND u.is_deleted is NULL
+                 AND t.is_deleted is NULL";
     $result = db_query($query) or db_die();
 
     // store all conflicting members of this date here

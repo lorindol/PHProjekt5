@@ -1,18 +1,19 @@
 <?php
 /**
-* single chat script
-*
-* @package    chat
-* @module     main
-* @author     Albrecht Guenther, Uwe Pries $Author: thorsten $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: chat.php,v 1.75.2.3 2007/02/26 14:14:34 thorsten Exp $
-*/
+ * single chat script
+ *
+ * @package    chat
+ * @subpackage main
+ * @author     Albrecht Guenther, Uwe Pries $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: chat.php,v 1.80 2007-05-31 08:10:55 gustavo Exp $
+ */
 
 define('PATH_PRE','../');
 $module = 'chat';
 require_once(PATH_PRE.'lib/lib.inc.php');
+
 $_SESSION['common']['module'] = 'chat';
 
 
@@ -667,8 +668,9 @@ function chat_get_user_id($loginname) {
     }
     $result = db_query("SELECT ID
                           FROM ".DB_PREFIX."users
-                         WHERE LCASE(loginname) = '".strtolower($loginname)."'") or db_die();
-
+                         WHERE LCASE(loginname) = '".strtolower($loginname)."'
+                           AND is_deleted is NULL") or db_die();
+    
     $row = db_fetch_row($result);
     if ($row[0]) {
         $ret = $row[0];

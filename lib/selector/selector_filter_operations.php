@@ -1,16 +1,16 @@
 <?php
 /**
-* filters for the selector
-*
-* @package    selector
-* @module     main
-* @author     Franz Graf, Gustavo Solt, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: selector_filter_operations.php,v 1.17 2006/08/22 08:05:49 albrecht Exp $
-*/
-if (!defined('lib_included')) die('Please use index.php!');
+ * Filters for the selector
+ *
+ * @package    	selector
+ * @subpackage 	main
+ * @author     	Franz Graf, Gustavo Solt, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: selector_filter_operations.php,v 1.21 2007-05-31 08:12:00 gustavo Exp $
+ */
 
+if (!defined('lib_included')) die('Please use index.php!');
 
 $sd = array();
 if (is_array($part_personen)) {
@@ -74,8 +74,8 @@ if (isset($filterform) && $filterform == "done") {
         }
     }
 }
-// actualize after submit
 
+// actualize after submit
 if (!isset($_SESSION[$selector_name])) {
     $_SESSION[$selector_name]['data'] = $stuff['preselect'];
     $_SESSION[$selector_name]['javascript'] = true;
@@ -86,8 +86,8 @@ if (!isset($_SESSION[$selector_name])) {
     }
 }
 
-// if the values of the move buttons are submitted, javascript was not 
-// active. 
+// if the values of the move buttons are submitted, javascript was not
+// active.
 if (isset($_POST['movsrcdst']) or isset($_POST['movdstsrc']) or !$_SESSION[$selector_name]['javascript']) {
     $_SESSION[$selector_name]['javascript'] = false;
 
@@ -98,7 +98,7 @@ if (isset($_POST['movsrcdst']) or isset($_POST['movdstsrc']) or !$_SESSION[$sele
         }
     }
     unset($tmp_val);
-    // Remove: Entries from the right box should be removed 
+    // Remove: Entries from the right box should be removed
     if (isset($_POST['movdstsrc']) && isset($_POST[$selector_name.'dsts'])) {
         foreach ($_POST[$selector_name.'dsts'] as $tmp_val) {
             unset($_SESSION[$selector_name]['data'][$tmp_val]);

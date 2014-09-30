@@ -1,10 +1,12 @@
 <?php
-
-// votum_forms.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: albrecht $
-// $Id: votum_forms.php,v 1.36.2.1 2007/04/11 16:52:43 albrecht Exp $
+/**
+ * @package    votum
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: votum_forms.php,v 1.41 2007-06-15 01:49:01 polidor Exp $
+ */
 
 // check whether lib.inc.php has been included
 if (!defined("lib_included")) die("Please use index.php!");
@@ -20,7 +22,7 @@ $tabs = array();
 $buttons = array();
 $hidden  = array('action' => 'new', 'mode' => 'data');
 if (SID) $hidden[session_name()] = session_id();
-$buttons[] = array('type' => 'form_start', 'hidden' => $hidden, 'onsubmit' => 'return chkForm(\'frm\',\'thema\',\''.__('Please specify a description!').'!\')', 'name' => 'frm');
+$buttons[] = array('type' => 'form_start', 'hidden' => $hidden, 'onsubmit' => 'return chkForm(\'frm\',\'thema\',\''.__('Please specify a description!').'!\') && chkForm(\'frm\',\'text1\',\''.__('You should give at least one answer!').'!\')', 'name' => 'frm');
 
 $output = '<div id="global-header">';
 $output .= get_tabs_area($tabs);
@@ -78,18 +80,24 @@ $html = '';
                  AND user_ID = u.ID
                  AND u.status = 0
                  AND u.usertype <> 1
+                 AND u.is_deleted is NULL
             ORDER BY nachname";
 
 $result2 = db_query($query) or db_die();
 while ($row2 = db_fetch_row($result2)) {
     // only show these users which are allowed to take part in a vote
-    $result = db_query("SELECT ".DB_PREFIX."roles.ID, votum
-                          FROM ".DB_PREFIX."roles, ".DB_PREFIX."users
-                         WHERE role=".DB_PREFIX."roles.ID") or db_die();
+
+    $result = db_query("SELECT access 
+                        FROM ".DB_PREFIX."modules as m, 
+                             ".DB_PREFIX."module_role_rel as r 
+                        WHERE r.module_ID = m.ID 
+                              AND m.index_name = 'votum' 
+                              AND r.role_ID = ".(int)$row2[3]) or db_die();
     $row = db_fetch_row($result);
-    if (!$row[0] or $row[1] > 0) {
+    if ($row[0] > 0) {
         $html .= "<input type='checkbox' name='s[]' value='$row2[0]' /> $row2[1], $row2[2]\n";
     }
+    
 }
 
 // profiles

@@ -1,16 +1,16 @@
 <?php
 /**
-* resource script with library function for the calendar
-*
-* @package    calendar
-* @module     main
-* @author     Paolo Panto, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar.inc.php,v 1.129.2.3 2007/02/22 04:31:50 polidor Exp $
-*/
-if (!defined('lib_included')) die('Please use index.php!');
+ * resource script with library function for the calendar
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Paolo Panto, $Author: albrecht $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar.inc.php,v 1.145 2008-03-04 10:51:59 albrecht Exp $
+ */
 
+if (!defined('lib_included')) die('Please use index.php!');
 
 /**********************************************************
 BEGIN functions for event access modes
@@ -110,8 +110,7 @@ function calendar_can_read_events($uID, $visi) {
     switch ($visi) {
         case '0':
         case 'normal':
-            if ( calendar_can_act_for($uID) ||
-            in_array($uID, calendar_get_represented_users('reader')) ) {
+            if ( calendar_can_act_for($uID) || in_array($uID, calendar_get_represented_users('reader')) ) {
                 $ret = true;
             }
             break;
@@ -119,7 +118,7 @@ function calendar_can_read_events($uID, $visi) {
         case 'private':
             switch (PHPR_CALENDAR_ACCESS_MODE) {
                 case 'standard':
-                    if (calendar_can_act_for($uID)) {
+                    if (calendar_can_act_for($uID) || in_array($uID, calendar_get_represented_users('viewer'))) {
                         $ret = true;
                     }
                     break;
@@ -336,20 +335,21 @@ function calendar_get_represented_users($type, $force=false) {
                          ".DB_PREFIX."users.vorname, ".DB_PREFIX."users.gruppe,
                          ".DB_PREFIX."gruppen.name
                     FROM ".DB_PREFIX."users, ".DB_PREFIX."users_".$type.", ".DB_PREFIX."gruppen
-                   WHERE ".DB_PREFIX."users_".$type.".".$type."_ID = ".(int)$user_ID." 
+                   WHERE ".DB_PREFIX."users_".$type.".".$type."_ID = ".(int)$user_ID."
                      AND ".DB_PREFIX."users_".$type.".user_ID = ".DB_PREFIX."users.ID
                      AND ".DB_PREFIX."users.gruppe = ".DB_PREFIX."gruppen.ID
+                     AND ".DB_PREFIX."users.is_deleted is NULL
                 ORDER BY ".DB_PREFIX."users.nachname, ".DB_PREFIX."users.vorname";
 
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {
             $represented_user[] = array(
-                 'ID'       => $row[0]
-                ,'nachname' => $row[1]
-                ,'vorname'  => $row[2]
-                ,'gruppe'   => $row[3]
-                ,'grpname'  => $row[4]
-                );
+            'ID'       => $row[0]
+            ,'nachname' => $row[1]
+            ,'vorname'  => $row[2]
+            ,'gruppe'   => $row[3]
+            ,'grpname'  => $row[4]
+            );
         }
         $_SESSION['calendardata']['represented_user'][$type] = $represented_user;
         // set the date of session expiration (current time + 6 h)
@@ -397,7 +397,7 @@ function calendar_set_related_users(&$data, $type) {
     settype($data, 'array');
     if (count($data) > 0) {
         $values = array();
-        
+
         foreach ($data as $k => $v) {
             // skip zero/empty ids, the own id and double entries
             if ($v == 0 || $v == $user_ID || in_array($v, $values)) {
@@ -508,9 +508,10 @@ function calendar_get_event($id, $session=true) {
 
     $query = "SELECT ID, parent, von, an, event, remark, projekt, datum, anfang, ende,
                      ort, contact, remind, visi, partstat, sync1, sync2, upload, priority,
-                     serie_id, serie_typ, serie_bis, status
+                     serie_id, serie_typ, serie_bis, status, is_deleted, mailnotify
                 FROM ".DB_PREFIX."termine
-               WHERE ID = ".(int)$id;
+               WHERE ID = ".(int)$id."
+                 AND is_deleted is NULL";
     $res = db_query($query) or db_die();
     $row = db_fetch_row($res);
 
@@ -542,6 +543,7 @@ function calendar_get_event($id, $session=true) {
     ,'serie_bis'      => $row[21]
     ,'status'         => $row[22]
     ,'invitees'       => array()
+    ,'mailnotify'     => unserialize($row[24])
     );
     // convert serial stuff if needed
     if ($ret['serie_typ'] != '') {
@@ -605,8 +607,8 @@ function calendar_get_event_invitees($id, $serie_id) {
         $query = "SELECT ID, parent, von, an, partstat, sync2
                     FROM ".DB_PREFIX."termine
                    WHERE $where
+                     AND is_deleted is NULL
                 ORDER BY partstat";
-        #echo $query."<br />\n";
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {
             $ret[$row[0]] = array(  'ID'       => $row[0]
@@ -621,11 +623,10 @@ function calendar_get_event_invitees($id, $serie_id) {
     /*
     $query = "SELECT ID, parent, von, an, partstat, sync2
     FROM ".DB_PREFIX."termine
-    WHERE ID = ".(int)$id." 
-    OR parent = ".(int)$id." 
+    WHERE ID = ".(int)$id."
+    OR parent = ".(int)$id."
     $serie_id
     ORDER BY partstat";
-    echo $query."<br />\n";
     $res = db_query($query) or db_die();
     while ($row = db_fetch_row($res)) {
     $ret[$row[0]] = array(  'ID'       => $row[0]
@@ -658,9 +659,10 @@ function calendar_get_serial_events($uID, $id, $datum='') {
     if ($datum == '') $datum = calendar_get_ymd();
     $query = "SELECT ID, datum
                 FROM ".DB_PREFIX."termine
-               WHERE an = ".(int)$uID." 
+               WHERE an = ".(int)$uID."
                  AND (ID = ".(int)$id." OR serie_id = ".(int)$id.")
                  AND datum >= '$datum'
+                 AND is_deleted is NULL
             ORDER BY datum";
     $res = db_query($query) or db_die();
     while ($row = db_fetch_row($res)) {
@@ -689,6 +691,7 @@ function calendar_view_prevnext_header($type, $user_params, $date_only=false) {
     $next_dat = calendar_get_next_date($type);
     $next_url = './calendar.php?mode='.$mode.'&amp;view='.$view.'&amp;year='.$next_dat['y'].
     '&amp;month='.$next_dat['m'].'&amp;day='.$next_dat['d'].$user_params['act_param'].$sid;
+    $today_url = './calendar.php?mode='.$mode.'&amp;view='.$view.$user_params['act_param'].$sid;
 
     // get week day
     $wo_tag = date('w', mktime(0,0,0, $month, $day, $year));
@@ -704,8 +707,9 @@ function calendar_view_prevnext_header($type, $user_params, $date_only=false) {
             $query = "SELECT ".DB_PREFIX."users.nachname, ".DB_PREFIX."users.vorname,
                              ".DB_PREFIX."users.gruppe, ".DB_PREFIX."gruppen.name
                         FROM ".DB_PREFIX."users, ".DB_PREFIX."gruppen
-                       WHERE ".DB_PREFIX."users.ID = ".(int)$user_params['user_id']." 
-                         AND ".DB_PREFIX."users.gruppe = ".DB_PREFIX."gruppen.ID";
+                       WHERE ".DB_PREFIX."users.ID = ".(int)$user_params['user_id']."
+                         AND ".DB_PREFIX."users.gruppe = ".DB_PREFIX."gruppen.ID
+                         AND ".DB_PREFIX."users.is_deleted is NULL";
             $res = db_query($query) or db_die();
             $row = db_fetch_row($res);
             if (!$row[0]) $which_user = '&middot;?&middot;';
@@ -734,6 +738,7 @@ function calendar_view_prevnext_header($type, $user_params, $date_only=false) {
     // output
     $ret = '
         <a href="'.$prev_url.'" title="&lt;&lt;">&lt;&lt;</a>&nbsp;
+        <a href="'.$today_url.'" title="'.__('Today').'">'.__('Today').'</a>&nbsp;
         <a href="'.$next_url.'" title="&gt;&gt;">&gt;&gt;</a>
         '.$ret.'
     ';
@@ -786,6 +791,7 @@ function calendar_check_privilege($arr_ID) {
     $query = "SELECT ID
                 FROM ".DB_PREFIX."termine
                WHERE (an = ".(int)$user_ID." $act_for_user)
+                 AND is_deleted is NULL
                      $arr_ID";
     $res = db_query($query) or db_die();
     while ($row = db_fetch_row($res)) {
@@ -970,28 +976,52 @@ function calendar_calculate_serial_events(&$data) {
     $last  = '';
     $count = 1;
     $datum = $serie_von;
+    $currentWeek = date('W', $datum);
     while ($datum <= $serie_bis && $count < $max_serial_events) {
         if (count($data['serie_weekday']) > 0 && $d > 1) {
             // weekday handling
             foreach ($data['serie_weekday'] as $k=>$v) {
-                $time_string = '+'.($data['serie_typ']{1} * ($count-1)).' week '.$weekday[$k];
-                $datum = strtotime($time_string, $serie_von);
-                $last  = date('Y-m-d', $datum);
-                $ret[] = $last;
+                
+                $time_string = $weekday[$k];
+                $tmpDate = strtotime($time_string, $serie_von);
+                $we = date('W',$tmpDate);
+                if (date('W',$tmpDate) > $currentWeek) {
+                    $time_string = 'last ' .$weekday[$k];
+                    $tmpDate = strtotime($time_string, $serie_von);
+                }
+
+                if ($count != 1) {
+                    $times =  $data['serie_typ']{1} * 7 * ($count - 1);
+                    $time_string = '+'.$times.' days';
+                    $tmpDate = strtotime($time_string, $tmpDate);
+                }
+                $datum = $tmpDate;
+                // Skip the first for prevent duplicate event
+                if($datum <= $serie_bis && $datum > $serie_von ){
+                    $last  = date('Y-m-d', $datum);
+                    $ret[] = $last;
+                }
             }
         }
         else {
-            // rest handling (d, w, m or y)
-            $last  = date('Y-m-d', $datum);
-            $ret[] = $last;
+            // Skip the first for prevent duplicate event
+            if ($datum != $serie_von) {
+                // rest handling (d, w, m or y)
+                $last  = date('Y-m-d', $datum);
+                $ret[] = $last;
+            }
             $datum = mktime(0,0,0, date('m',$datum)+$m, date('d',$datum)+$d, date('Y',$datum)+$y);
         }
         $count++;
     }
     // define here the real last date according to $max_serial_events
     if ($last != '') $data['serie_bis'] = $last;
-    // remove the first element from stack if this is $data['datum']
-    if ($ret[0] == $data['datum']) array_shift($ret);
+
+    // remove the element $data['datum'] from stack if this is in $ret
+    $fdate = array_search($data['datum'], $ret);
+    if($fdate != FALSE){
+        unset($ret[$fdate]);
+    }
 
     return $ret;
 }
@@ -1035,7 +1065,7 @@ function calendar_calculate_endtime(&$data) {
  */
 function calendar_select_users_from_profile($id) {
     global $user_ID, $user_kurz, $sql_user_group;
-    
+
     $query = "SELECT personen
                 FROM ".DB_PREFIX."profile
                WHERE (acc LIKE 'system'
@@ -1049,19 +1079,53 @@ function calendar_select_users_from_profile($id) {
     $personen = unserialize($row[0]);
     if (empty($personen)) return;
     $personen = "'".implode("','", $personen)."'";
-    
+
     $ret = array();
     $query = "SELECT ID
                 FROM ".DB_PREFIX."users
-               WHERE kurz IN ($personen)";
+               WHERE kurz IN ($personen)
+                 AND is_deleted is NULL";
     $res = db_query($query) or db_die();
     while ($row = db_fetch_row($res)) {
         $ret[] = $row[0];
     }
-    
+
     if (!empty($ret)) {
         $_SESSION['calendardata']['combisel'] = $ret;
     }
+}
+
+
+/**
+ * get the SQL senetence to filter by user permission
+ *
+ * @param integer $user_ID user ID to filter
+ * @return string where clause
+ */
+function calendar_get_permission_where($user_ID, $view = 0) {
+    
+    $viewer = array(0);
+    $reader = array(0);
+    $proxy  = array(0);
+
+    switch ($view) {
+        case 1:
+        case 2:
+        case 3:
+            $viewer = array_merge($viewer,calendar_get_represented_users('viewer'));
+            $reader = array_merge($reader,calendar_get_represented_users('reader'));
+            break;
+        case 4:
+            $proxy  = array_merge($proxy, calendar_get_represented_users('proxy'));
+            break;
+    }
+    
+    $toReturn = " AND ( (an IN (".(int)$user_ID.") AND visi IN (0,1,2))
+                         OR (an IN (".implode($viewer,",").") AND visi IN (1))
+                         OR (an IN (".implode($reader,",").") AND visi IN (0,2))
+                         OR (an IN (".implode($proxy,",").") AND visi IN (0,1,2)) ) ";
+    
+    return $toReturn;
 }
 
 ?>

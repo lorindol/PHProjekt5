@@ -1,14 +1,14 @@
 <?php
 /**
-* calendar controller script
-*
-* @package    calendar
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar.php,v 1.106.2.5 2007/09/04 21:25:40 polidor Exp $
-*/
+ * calendar controller script
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar.php,v 1.117 2008-01-16 03:18:41 polidor Exp $
+ */
 
 define('PATH_PRE','../');
 $module = 'calendar';
@@ -103,13 +103,15 @@ if ($view == 3) {
     else if ( isset($_REQUEST['action_selector_to_combi_ok']) ||
     isset($_REQUEST['action_selector_to_combi_cancel']) ) {
         if (isset($_REQUEST['action_selector_to_combi_ok'])) {
-            $selector = xss_array($_POST[$_SESSION['calendardata']['formdata']['_selector_name']."dsts"]);
+            $selector = xss_array($_REQUEST[$_SESSION['calendardata']['formdata']['_selector_name']."dsts"]);
             $_SESSION['calendardata']['combisel'] = $selector;
         }
-        $mode = $_SESSION['calendardata']['formdata']['_mode'];
-        $axis = $_SESSION['calendardata']['formdata']['_axis'];
-        $dist = $_SESSION['calendardata']['formdata']['_dist'];
-        unset($_SESSION['calendardata']['formdata']);
+        if (isset($_SESSION['calendardata']['formdata'])) {
+            $mode = $_SESSION['calendardata']['formdata']['_mode'];
+            $axis = $_SESSION['calendardata']['formdata']['_axis'];
+            $dist = $_SESSION['calendardata']['formdata']['_dist'];
+            unset($_SESSION['calendardata']['formdata']);
+        } 
         unset($_REQUEST['filterform']);
     }
     else if (isset($_REQUEST['action_selector_to_selector']) ||
@@ -131,7 +133,7 @@ if ($view == 3) {
                 // are not available in the combi view
                 $mode = 1;
             }
-            if ($mode != 'forms' && $mode != 'data' &&
+            if ($mode != 'forms' && $mode != 'gantt' && $mode != 'data' &&
             $mode <= 4 && $do_the_main_switch) {
                 $mode += 4;
             }
@@ -168,12 +170,15 @@ if ($view == 4 && empty($act_for)) {
             echo calendar_forms_get_view();
 
         } else if (isset($_REQUEST['action_cancel_event'])) {
-            if (!empty($_SESSION['calendardata']['refback'])) {
-                header('Location: '.str_replace("&amp;","&",$_SESSION['calendardata']['refback']));
-                exit();
+            if ($justform) {
+                echo '<script type="text/javascript">ReloadParentAndClose();</script>';
+            } else {
+                if (!empty($_SESSION['calendardata']['refback'])) {
+                    header('Location: '.str_replace("&amp;","&",$_SESSION['calendardata']['refback']));
+                    exit();
+                }
+                $mode = (!empty($settings['cal_mode'])) ? $settings['cal_mode'] : 1;
             }
-            $mode = (!empty($cal_mode)) ? $cal_mode : 1;
-
         } else if (isset($_REQUEST['action_delete_file'])) {
             if (calendar_can_delete_file()) {
                 calendar_delete_file($_REQUEST['ID']);
@@ -278,6 +283,7 @@ if ($view == 4 && empty($act_for)) {
         isset($_REQUEST['filterdel'])) {
             require_once('./calendar_selector.php');
         } else {
+
             require_once('./calendar_data.php');
             if (!calendar_action_data()) {
                 echo calendar_forms_get_view();
@@ -289,26 +295,37 @@ if ($view == 4 && empty($act_for)) {
                                         ") or db_die();
                     $row = db_fetch_row($result);
                     $new_id = $row[0];
-                    $query_str = "calendar.php?ID=".$new_id."&amp;mode=forms&amp;view=0";
-                    header('Location: '.$query_str);
-                    exit();
+                    if (!$justform) {
+                        $query_str = "calendar.php?ID=".$new_id."&amp;mode=forms&amp;view=0";
+                        header('Location: '.$query_str);
+                        exit();
+                    } else {
+                        echo '<script type="text/javascript">ReloadParentAndClose();</script>';
+                    }
                 }
                 else if (isset($_REQUEST['action_apply_event'])) {
-                    if ($_SESSION['calendardata']['current_event']['serie_id']) {
-                        $update_id = $_SESSION['calendardata']['current_event']['serie_id'];
+                    if (!$justform) {
+                        if ($_SESSION['calendardata']['current_event']['serie_id']) {
+                            $update_id = $_SESSION['calendardata']['current_event']['serie_id'];
+                        } else {
+                            $update_id = $_SESSION['calendardata']['current_event']['ID'];
+                        }
+                        $query_str = "calendar.php?ID=".$update_id."&amp;mode=forms&amp;view=0";
+                        header('Location: '.$query_str);
+                        exit();
                     } else {
-                        $update_id = $_SESSION['calendardata']['current_event']['ID'];
+                        echo '<script type="text/javascript">ReloadParentAndClose();</script>';
                     }
-                    $query_str = "calendar.php?ID=".$update_id."&mode=forms&view=0";
-                    
-                    header('Location: '.$query_str);
-                    exit();
                 }
                 else if (!empty($_SESSION['calendardata']['refback'])) {
-                    header('Location: '.str_replace("&amp;","&",$_SESSION['calendardata']['refback'].$query_str));
-                    exit();
+                    if (!$justform) {
+                        header('Location: '.str_replace("&amp;","&",$_SESSION['calendardata']['refback'].$query_str));
+                        exit();
+                    } else {
+                        echo '<script type="text/javascript">ReloadParentAndClose();</script>';
+                    }
                 }
-                $mode = (!empty($cal_mode)) ? $cal_mode : 1;
+                $mode = (!empty($settings['cal_mode'])) ? $settings['cal_mode'] : 1;
             }
         }
     }
@@ -343,6 +360,7 @@ if ($view == 4 && empty($act_for)) {
         case 6:
         case 7:
         case 8:
+        case 'gantt':
             // combi view
             require_once('./calendar_view_combi.php');
             break;
@@ -358,6 +376,9 @@ if ($view == 4 && empty($act_for)) {
         case 'forms':
             // new/edit/show single event view
             echo calendar_forms_get_view();
+            break;
+        case 'uploadform':
+            require_once('./calendar_uploadforms.php');
             break;
     }
     // reset $mode if the combi stuff has changed that..
@@ -382,11 +403,6 @@ if ($mode != 'forms' && $mode != 'data') {
 //$js_inc[] = ' src="calendar.js">';
 echo set_page_header();
 
-if ($justform <= 0) {
-    require_once(PATH_PRE.'lib/navigation.inc.php');
-}
-
-
 echo '
 <!-- begin calendar control content -->
 ';
@@ -403,10 +419,12 @@ echo '
 '.$calendar_view.'
 <!-- end calendar view content -->
 
-</div>
+';
+if ($justform > 0) echo "\n</div>\n";
+
+echo '
 <!-- end calendar content -->
 
-</div>
 </body>
 </html>
 ';
@@ -420,7 +438,7 @@ echo '
 function calendar_init() {
     global $ID, $mode, $view, $year, $month, $day, $act_for, $formdata, $invitees, $selector;
     global $axis, $dist, $cal_mode, $justform, $output, $serie_weekday;
-    global $date_format_object;
+    global $date_format_object, $settings;
 
     $output = '';
 
@@ -480,7 +498,7 @@ function calendar_init() {
         $formdata['projekt'] = $_REQUEST['projekt_ID'] = (int) $_REQUEST['projekt_ID'];
     }
 
-    if (!isset($_REQUEST['mode'])) $_REQUEST['mode'] = (!empty($cal_mode)) ? $cal_mode : 1;
+    if (!isset($_REQUEST['mode'])) $_REQUEST['mode'] = (!empty($settings['cal_mode'])) ? $settings['cal_mode'] : 1;
     $mode = $_REQUEST['mode'] = xss($_REQUEST['mode']);
     if (!isset($_REQUEST['view'])) $_REQUEST['view'] = 0;
     $view = $_REQUEST['view'] = xss($_REQUEST['view']);

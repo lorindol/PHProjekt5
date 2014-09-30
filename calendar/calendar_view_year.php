@@ -1,14 +1,15 @@
 <?php
 /**
-* calendar year view as a table
-*
-* @package    calendar
-* @module     view
-* @author     Albrecht Guenther, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_view_year.php,v 1.46.2.2 2007/01/23 12:28:54 alexander Exp $
-*/
+ * calendar year view as a table
+ *
+ * @package    calendar
+ * @subpackage view
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_view_year.php,v 1.54 2008-02-28 04:47:30 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 /**
@@ -75,22 +76,15 @@ function calendar_view_year_get_view() {
  * @return array  the collected events
  */
 function calendar_view_year_get_events(&$user_params) {
+    global $view;
     $ret = array();
-    $viewer = array(0);
-    $reader = array(0);
-    $proxy  = array(0);
-    $viewer = array_merge($viewer,calendar_get_represented_users('viewer'));
-    $reader = array_merge($reader,calendar_get_represented_users('reader'));
-    $proxy  = array_merge($proxy, calendar_get_represented_users('proxy'));
+
     $query = "SELECT ID, von, an, event, anfang, ende, visi, partstat, datum, status
                 FROM ".DB_PREFIX."termine
-               WHERE datum LIKE '".$user_params['_year']."-%'
-                 AND (    (an IN (".(int)$user_params['user_id'].") AND visi IN (0,1,2))
-                        OR (an IN (".implode($viewer,",").") AND visi IN (1))
-                        OR (an IN (".implode($reader,",").") AND visi IN (0,2))
-                        OR (an IN (".implode($proxy,",").") AND visi IN (0,1,2))  
-                      )
-            ORDER BY datum, anfang, event";
+               WHERE datum LIKE '".$user_params['_year']."-%' 
+                 ".calendar_get_permission_where($user_params['user_id'],$view)." 
+                 AND is_deleted is NULL
+               ORDER BY datum, anfang, event";
     $res = db_query($query) or db_die();
     while ($row = db_fetch_row($res)) {
         $event = array( 'ID'       => $row[0]

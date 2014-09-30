@@ -1,10 +1,12 @@
 <?php
-
-// db_var.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: gustavo $
-// $Id: db_var.inc.php,v 1.19 2006/11/07 00:28:32 gustavo Exp $
+/**
+ * @package    setup
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: db_var.inc.php,v 1.20 2007-05-31 08:13:47 gustavo Exp $
+ */
 
 // check whether setup.php calls this script - authentication!
 if (!defined('setup_included')) die('Please use setup.php!');

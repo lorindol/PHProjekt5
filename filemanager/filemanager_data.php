@@ -1,14 +1,15 @@
 <?php
 /**
-* filemanager db data script
-*
-* @package    filemanager
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: filemanager_data.php,v 1.84.2.3 2007/04/28 16:01:51 polidor Exp $
-*/
+ * filemanager db data script
+ *
+ * @package    filemanager
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: filemanager_data.php,v 1.93 2008-01-14 02:45:04 polidor Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/permission.inc.php');
@@ -31,7 +32,7 @@ if ($delete_b <> '' || $action == 'delete') {
     if (isset($ID_s)) $ID = $ID_s;
     manage_delete_records($ID, $module);
 }
-else if ($copy){
+else if ($copy) {
     $fields = change_fields_for_copy($fields,'filename'); 
 }
 else if (($modify_b <> '' and $ID > 0) || $modify_update_b <> '') {
@@ -39,17 +40,31 @@ else if (($modify_b <> '' and $ID > 0) || $modify_update_b <> '') {
     if ($modify_update_b) {
         $query_str = "filemanager.php?mode=forms&ID=".$ID."&justform=".$justform;
         header('Location: '.$query_str);
+        die();
     }
 }
 else if ($create_b <> '' || $create_update_b) {
-    create();
-    if ($create_update_b) {
-        $result = db_query("SELECT MAX(ID)
-                              FROM ".DB_PREFIX."dateien") or db_die();
-        $row = db_fetch_row($result);
-        $ID = $row[0];
-        $query_str = "filemanager.php?mode=forms&ID=".$ID."&justform=".$justform;
-        header('Location: '.$query_str);
+    
+    if (strtolower($typ) == 'f' && ($userfile == '' || $userfile_size == '')) {
+        message_stack_in(__('Please, select a file to be uploaded'),'filemanager','error');
+    }
+    elseif (strtolower($typ) == 'd' && ($filename == '')) {
+        message_stack_in(__('Please, select a name for the directory'),'filemanager','error');
+    }
+    elseif (strtolower($typ) == 'l' && (empty($filepath))) {
+        message_stack_in(__('Please, select a path for the link'),'filemanager','error');
+    }
+    else {
+        create();
+        if ($create_update_b) {
+            $result = db_query("SELECT MAX(ID)
+                                  FROM ".DB_PREFIX."dateien") or db_die();
+            $row = db_fetch_row($result);
+            $ID = $row[0];
+            $query_str = "filemanager.php?mode=forms&ID=".$ID."&justform=".$justform;
+            header('Location: '.$query_str);
+            die();
+        }
     }
 }
 else if ($action == 'lockfile') {
@@ -71,21 +86,22 @@ function update_record() {
     global $ID, $acc, $kat, $typ, $parent, $div2,
            $user_ID, $remark, $dbTSnull,$filename, $filepath,
            $userfile, $userfile_size, $userfile_name, $cryptstring, $cryptstring2,
-           $locked, $contact, $versioning, $user_ID, $new_sub_dir, $new_category;
+           $locked, $contact, $versioning, $user_ID, $new_sub_dir;
 
     assign_cat();
     // fetch missing values from old record
     $result = db_query("SELECT ID,von,filename,remark,kat,acc,datum,filesize,gruppe,tempname,
                                typ,parent,div2,pw,acc_write,version,lock_user,contact,userfile
                           FROM ".DB_PREFIX."dateien
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     
     $accessstring = update_access($module,$row[1]);
     
     // this field is only for uploads displayed
 	if ($new_sub_dir <> '') $parent = set_new_subdir($parent, $new_sub_dir);
-	$parent_string    = "parent=".(int)$parent.",";
+    $parent_string    = "parent=".(int)$parent.",";
 
 
     // *******************
@@ -101,8 +117,8 @@ function update_record() {
                 if ($oldfilename != '') {
                     //copy old file to history
                     $copy_query="INSERT INTO ".DB_PREFIX."datei_history 
-                                              ( date    ,         remark    ,         author   ,         parent,   version ,   tempname,  userfile )
-                                       VALUES ($dbTSnull, '".xss($remark)."', ".(int)$user_ID.", ".(int)$ID."  , '$row[15]', '$row[9]' ,'$row[18]' )";
+                                        ( date    ,         remark    ,         author   ,         parent,   version ,   tempname,  userfile )
+                                 VALUES ($dbTSnull, '".xss_purifier($remark)."', ".(int)$user_ID.", ".(int)$ID."  , '$row[15]', '$row[9]' ,'$row[18]' )";
                     $copy_result=db_query($copy_query) or db_die(); 
                     $oldfilename = rnd_string();
                 }
@@ -146,12 +162,12 @@ function update_record() {
 
         // next case: move or update existing file -> carry password
         if (ereg("f", $typ) and ($userfile == "none" or !$userfile)) {
-            $stringfilename = "filename='".addslashes($filename)."',";
+            $stringfilename = "";
             $cryptstring    = $row[13];
         }
         // for dir and link: assign new filename
         else if (!ereg("f", $typ)) {
-            $stringfilename = "filename='$filename',tempname='$filepath',";
+            $stringfilename = "tempname='$filepath',";
         }
         // define the locking status
         $locked = define_locking_status($ID);
@@ -164,20 +180,17 @@ function update_record() {
         }
         $versioning = ($versioning == 'on') ? 1 : 0;
         // finally: the db action :)
-        
-        $result = db_query("UPDATE ".DB_PREFIX."dateien
-                               SET $stringfilename
+        $sql_string = sqlstrings_modify();
+        // finally: the db action :)
+        $result = db_query("update ".DB_PREFIX."dateien
+                               SET $sql_string
+                               	   $stringfilename
                                    $stringfilesize
-                                   remark = '".xss($remark)."',
-                                   kat = '$kat',
                                    $accessstring
                                    $parent_string
-                                   div2 = '$div2',
-                                   datum = '$dbTSnull',
                                    pw = '$cryptstring',
                                    versioning = ".(int)$versioning.",
-                                   lock_user = ".(int)$locked.",
-                                   contact = ".(int)$contact."
+                                   lock_user = ".(int)$locked."
                              WHERE ID = ".(int)$ID) or db_die("");
     
 }
@@ -220,6 +233,7 @@ function insert_file() {
                           FROM ".DB_PREFIX."dateien
                          WHERE filesize > 0
                            AND parent =".(int)$parent."
+                           AND is_deleted is NULL
                            AND $sql_user_group") or db_die();
     while ($row = db_fetch_row($result)) {
         // same name? -> delete file
@@ -227,9 +241,7 @@ function insert_file() {
             // check if overwriting is o.k.
             check_overwrite();
             // first delete old record ...
-            $result = db_query("DELETE
-                                  FROM ".DB_PREFIX."dateien
-                                 WHERE ID = ".(int)$row[0]) or db_die();
+            delete_record_id("dateien","where ID = ".(int)$row[0]);
             // ... then the file itself
             delete_file($row[2]);
         }
@@ -339,16 +351,15 @@ function delete_record($ID) {
     // fetch file name etc.
     $result = db_query("SELECT ID, filename, tempname, typ, filesize
                           FROM ".DB_PREFIX."dateien
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
 
     // unlink file
     if ($row[4] > 0) @unlink(PHPR_FILE_PATH."/$row[2]");
 
     // delete record in db
-    $result2 = db_query("DELETE
-                           FROM ".DB_PREFIX."dateien
-                          WHERE ID = ".(int)$ID) or db_die();
+    delete_record_id("dateien","where ID = ".(int)$ID);
                                
     // delete corresponding entry from db_record
 	remove_link($ID, 'filemanager');
@@ -367,14 +378,13 @@ function delete_record($ID) {
 function del($ID) {
     $result = db_query("SELECT ID, filename, tempname, typ, filesize
                           FROM ".DB_PREFIX."dateien
-                         WHERE parent = ".(int)$ID) or db_die();
+                         WHERE parent = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     while ($row = db_fetch_row($result)) {
         // only delete file when it is not a link
         if ($row[4] > 0) unlink(PHPR_FILE_PATH."/$row[2]");
         // delete record as such
-        $result2 = db_query("DELETE
-                               FROM ".DB_PREFIX."dateien
-                              WHERE ID = ".(int)$row[0]) or db_die();
+        delete_record_id("dateien","where ID = ".(int)$row[0]);
         remove_link($ID, 'filemanager');
         if ($row[3] == "d") del($row[0]); // look for files/links etc. in the subdirectory
     }
@@ -385,7 +395,8 @@ function del($ID) {
 function check_name() {
     global $sql_user_group, $ID, $filename, $typ, $sid;
     $result = db_query("SELECT ID, filename, typ
-                          FROM ".DB_PREFIX."dateien") or db_die();
+                          FROM ".DB_PREFIX."dateien
+                           AND is_deleted is NULL") or db_die();
     while ($row = db_fetch_row($result)) {
         if ($row[0] <> $ID and $row[1] == $filename and ereg("f", $row[2])) {
             die(__('This name already exists')."! <br /><a href='filemanager.php?mode=forms$sid'>".__('back')."</a>");
@@ -398,7 +409,7 @@ function check_name() {
 function assign_cat() {
     global $kat, $new_category;
     // if no manual category is given, use the one from the select box
-    if (isset($new_category) && strlen($new_category) > 0) $kat = $new_category;
+    if (!$kat) $kat = $new_category;
 }
 
 
@@ -409,7 +420,7 @@ function check_upload($userfile) {
 
 
 // this routine sends out an email notification to all users of the group which have access to the file
-function notify_members($user_ID, $user_group) {
+function notify_members($user_ID, $user_group,$ID) {
     global $acc, $filename, $userfile_name;
 
     // if the object is a file, assign the value to $filename. For links and directories the value is already in $filename
@@ -424,9 +435,8 @@ function notify_members($user_ID, $user_group) {
     include_once(LIB_PATH."/notification.inc.php");
     // call routine to send mails with notification about the new record
     // email_notification(__('Files'), $acc, $filename);
-    $notify = new Notification($user_ID, $user_group, "Filemanager", $acc,
-                               "&mode=forms&ID=",
-                               $userfile_name);
+    $notify = new Notification($user_ID, $user_group, "Filemanager", $acc,$ID,
+                               "&mode=forms&ID=$ID",$userfile_name);
     // set a specific title (Different from default)
     $notify->notify();
 }
@@ -438,8 +448,9 @@ function define_locking_status($ID) {
 
     // fetch value from db
     $result = db_query("SELECT von, lock_user, typ, acc, acc_write
-                          FROM ".DB_PREFIX."dateien
-                         WHERE ID = ".(int)$ID) or db_die();
+                          FROM  ".DB_PREFIX."dateien
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     // checkbox 'lock this field' has been selected by the user
     if ($lock == 'true') {
@@ -469,12 +480,13 @@ function set_new_subdir($parent, $new_sub_dir) {
     $accessstring=insert_access($module);
 
     $result = db_query("INSERT INTO ".DB_PREFIX."dateien
-                               (        von      ,        filename       ,  acc             ,  datum    ,        gruppe      ,typ,        parent  , acc_write        ,         remark              )
-                        VALUES (".(int)$user_ID.",'".xss($new_sub_dir)."','$accessstring[0]','$dbTSnull',".(int)$user_group.",'d',".(int)$parent.",'$accessstring[1]', '".xss($new_sub_dir)."'     )") or db_die();
+                               (        von      ,        filename       ,  acc             ,  datum    ,        gruppe      ,typ,        parent  ,  acc_write       ,         remark         )
+                        VALUES (".(int)$user_ID.",'".xss($new_sub_dir)."','$accessstring[0]','$dbTSnull',".(int)$user_group.",'d',".(int)$parent.",'$accessstring[1]', '".xss($new_sub_dir)."')") or db_die();
     // fetch ID from new record
     $result = db_query("SELECT ID
                           FROM ".DB_PREFIX."dateien
                          WHERE filename='".xss($new_sub_dir)."'
+                           AND is_deleted is NULL
                            AND datum = '$dbTSnull'") or db_die();
     $row = db_fetch_row($result);
     return $row[0];
@@ -482,7 +494,8 @@ function set_new_subdir($parent, $new_sub_dir) {
  function prepare_userfile_for_copy($ID){
     $result = db_query("SELECT tempname,userfile,filesize
                           FROM ".DB_PREFIX."dateien
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     $_FILES['userfile']['tmp_name']=PHPR_FILE_PATH.'/'.$row[0];
     $_FILES['userfile']['name']==__('copy')." ".$row[1];
@@ -491,7 +504,7 @@ function set_new_subdir($parent, $new_sub_dir) {
  }
 // extra routine: notify colleagues about the new record
 // FIXME is $notify set anywhere?
-if (PHPR_FILEMANAGER_NOTIFY and $notify) notify_members($user_ID, $user_group);
+if (PHPR_FILEMANAGER_NOTIFY and $notify) notify_members($user_ID, $user_group,$ID);
 if ($copy){
    include_once("./filemanager_forms.php");
 }

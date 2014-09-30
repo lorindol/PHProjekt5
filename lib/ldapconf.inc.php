@@ -1,69 +1,75 @@
 <?php
-
-/*
+/**
+ * LDAP configuration
  * Modified  March 15, 2003 James Bourne <jbourne@mtroyal.ab.ca>
  *   - Added more comments as required
  *   - Brought ldap data (bottom) in line with db
  *
  * Modified March 16, 2003 James Bourne <jbourne@mtroyal.ab.ca>
  *   - Changed short name to use uid as this should always be set
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: ldapconf.inc.php,v 1.7 2007-05-31 08:11:53 gustavo Exp $
  */
-
-// $Id: ldapconf.inc.php,v 1.3 2006/08/22 08:05:47 albrecht Exp $
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
-/* LDAP stuff. Please modify the lines below according to your needs. */
+// LDAP stuff. Please modify the lines below according to your needs
 $ldap_conf[1]['conf_name'] = 'default';
-$ldap_conf[1]['srv']       = 'localhost'; // LDAP server name. 'localhost' for localhost.
-$ldap_conf[1]['srch_dn']   = 'uid=readonly,ou=People,dc=yourdomain,dc=com'; // This LDAP user will be used for searching the LDAP Tree and getting the data for the addressbook
 
-/*
- * Password for the given account. If not needed leave empty.
- * Note, if you leave this empty you must give access to read all person
- * entries and (if needed) the ldap_group_dn below.  If you do not do this
- * you will have problems accessing the LDAP data store
-*/
+// LDAP server name. 'localhost' for localhost
+$ldap_conf[1]['srv']       = 'localhost';
+
+// This LDAP user will be used for searching the LDAP Tree and getting the data for the addressbook
+$ldap_conf[1]['srch_dn']   = 'uid=readonly,ou=People,dc=yourdomain,dc=com';
+
+// Password for the given account. If not needed leave empty.
+// Note, if you leave this empty you must give access to read all person
+// entries and (if needed) the ldap_group_dn below.  If you do not do this
+// you will have problems accessing the LDAP data store
 $ldap_conf[1]['srch_dn_pw'] = 'secret';
 
-/* ldap_sync:
-'1' : Just authenticate users via LDAP --- no user data will be read from the LDAP server
-'2' : Get some user-information via LDAP (contacts will retrieve its data from the LDAP tree as well)
-*/
+// ldap_sync:
+// '1' : Just authenticate users via LDAP --- no user data will be read from the LDAP server
+// '2' : Get some user-information via LDAP (contacts will retrieve its data from the LDAP tree as well)
 $ldap_conf[1]['ldap_sync'] = '2';
-$ldap_conf[1]['nt_domain'] = ''; // this is the name of the NT-Domain, the Exchange server will use for authentication. (This is only important for MS-Exchange-users, of course), otherwise leave ''
+
+// this is the name of the NT-Domain, the Exchange server will use for authentication. (This is only important for MS-Exchange-users, of course), otherwise leave ''
+$ldap_conf[1]['nt_domain'] = '';
 $ldap_conf[1]['base_dn']   = 'dc=yourdomain,dc=com';
 
-/*
- * groupauth: 0 or 1, do not do or to do group based ACL
- *
- * ldap_lang: default language to use when creating users
- *
- * ldap_group_dn: if left '' all who exist in the tree can login, otherwise
- *    only members of this group.  Can be groupOfNames or groupOfUniqueNames
- *
- * memberattr: the member attribute of the group.  Either member or uniqueMember
- *
- * autocreate: automatically create new users or fail them until created (1/0)
- *   Do not use with nt_domain above
- *
- * newusergrp: the numeric ID of the group you wish new users added to
- *
- * company: default company name you want new logins to be created under
- */
+//
+// groupauth: 0 or 1, do not do or to do group based ACL
+//
+// ldap_lang: default language to use when creating users
+//
+// ldap_group_dn: if left '' all who exist in the tree can login, otherwise
+//    only members of this group.  Can be groupOfNames or groupOfUniqueNames
+//
+// memberattr: the member attribute of the group.  Either member or uniqueMember
+//
+// autocreate: automatically create new users or fail them until created (1/0)
+//   Do not use with nt_domain above
+//
+// newusergrp: the numeric ID of the group you wish new users added to
+//
+// company: default company name you want new logins to be created under
 $ldap_conf[1]['groupauth']     = 1;
 $ldap_conf[1]['ldap_lang']     = 'en';
 $ldap_conf[1]['ldap_group_dn'] = 'cn=phprojekt,ou=group,dc=yourdomain,dc=com';
 $ldap_conf[1]['memberattr']    = 'uniqueMember';
-$ldap_conf[1]['autocreate']    = 1; /* 1 for yes, 0 for no */
-$ldap_conf[1]['newusergrp']    = 1;    /* default */
+
+$ldap_conf[1]['autocreate']    = 1; // 1 for yes, 0 for no
+$ldap_conf[1]['newusergrp']    = 1; // default
 $ldap_conf[1]['company']       = 'Your Company';
 
-/*
- * The value of the fields below has to be the name of the
- * corresponding LDAP field as it relates to the users table.
-*/
+// The value of the fields below has to be the name of the
+// corresponding LDAP field as it relates to the users table.
 
 $ldap_conf[1][0]  = ''; // phprojekt ID
 $ldap_conf[1][1]  = 'givenname'; // firstname
@@ -90,5 +96,4 @@ $ldap_conf[1][21] = ''; // sms
 $ldap_conf[1][22] = ''; // role
 $ldap_conf[1][23] = ''; // proxy
 $ldap_conf[1][24] = ''; // settings
-
 ?>

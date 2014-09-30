@@ -23,7 +23,6 @@ $modules = array(
     array(12, 'links', 'links', 'Links', 3),
     array(13, 'bookmarks', 'bookmarks', 'Bookmarks', 3),
     array(14, 'votum', 'votum', 'Voting system', 3),
-    array(15, 'costs', 'costs', 'Costs', 3),
 );
 
 $controls = array(

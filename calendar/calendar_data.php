@@ -1,20 +1,21 @@
 <?php
 /**
-* calendar db data script
-*
-* @package    calendar
-* @module     main
-* @author     Albrecht Guenther, $Author: nina $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_data.php,v 1.119.2.3 2007/05/03 14:41:44 nina Exp $
-*/
+ * calendar db data script
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_data.php,v 1.129 2008-02-18 11:50:50 nina Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(LIB_PATH.'/notification.inc.php');
 require_once(PATH_PRE.'/calendar/calendar.inc.php');
 
 // check form token
-check_csrftoken();
+//check_csrftoken();
 
 
 /**
@@ -37,7 +38,7 @@ function calendar_action_data() {
             $ID = calendar_add_event($data);
             $data['ID'] = $ID;
             $event_invitees = calendar_get_event_invitees($data['ID'], 0);
-            
+
             $ret = true;
             message_stack_in(__('Event successfully created.'), 'calendar', 'notice');
             $mail_title  = __('New Date').': '.$data['event'].' ';
@@ -68,13 +69,13 @@ function calendar_action_data() {
                 calendar_update_event($data);
             }
             $event_invitees = calendar_get_event_invitees($data['ID'], 0);
-            
+
             $ret = true;
             message_stack_in(__('Event successfully updated.'), 'calendar', 'notice');
             $mail_title  = __('Date changed').': '.$data['event'].' ';
             $mail_title .= '('.$data['datum'].', ';
             $mail_title .= $data['anfang'].'-'.$data['ende'].')';
-            if (isset($_REQUEST['action_update_event'])) { 
+            if (isset($_REQUEST['action_update_event'])) {
                 unset($_SESSION['calendardata']['current_event']);
             }
         }
@@ -93,7 +94,7 @@ function calendar_action_data() {
         $data['ID'] = $ID;
         $data['send_emailnotification'] = empty($GLOBALS['send_emailnotification']) ? 0 : 1;
         $ID = 0;
-        
+
         $ret = true;
         message_stack_in(__('Event successfully removed.'), 'calendar', 'notice');
         $mail_title  = __('Date deleted').': '.$_SESSION['calendardata']['current_event']['event'].' ';
@@ -105,18 +106,41 @@ function calendar_action_data() {
     // do this stuff only if the checks and actions above didn't went wrong!
     if ($ret) {
         if (!$data) $data = calendar_prepare_data(false);
-        
+
         // send mail if wanted AND if there are invitees
-        if (!empty($data['send_emailnotification']) && count($event_invitees)) {
-            foreach ($event_invitees as $val) {
+        if (!empty($data['send_emailnotification']) && (count($event_invitees) || count($data['mailnotify'] || $data['contact']))) {
+            require_once(PATH_PRE.'misc/export_ical.php');
+            global $user_ID, $user_group;
+            $notify = $event_invitees;
+            foreach ($data['mailnotify'] as $val) {
+            	if ($val) {
+	            	$notify[] = array(
+	            	   'ID' => -1,
+	            	   'an' => $val
+	                );
+            	}
+            }
+            if ($data['contact']) {
+            	$result = db_query('SELECT `email` FROM '.DB_PREFIX.'contacts WHERE `ID` = '.(int)$data['contact']) or db_die();
+            	$result = db_fetch_row($result);
+            	if ($result[0]) {
+	            	$notify[] = array(
+	            	   'ID' => -1,
+	            	   'an' => $result[0] 
+	            	);
+            	}
+            }
+            foreach ($notify as $val) {
                 if (empty($cal_mail_notify) && $val['ID'] == $data['ID']) {
                     // skip sending an email to the owner of the event, if set
                     continue;
                 }
                 $backlink = empty($ID) ? '' : '&mode=forms&ID='.(int) $val['ID'];
-                $notify = new Notification( $GLOBALS['user_ID'], $GLOBALS['user_group'],
-                                            'calendar', array($val['an']), '&view=0'.$backlink, '' );
-                $notify->text_title = html_entity_decode($mail_title);
+
+                $export_array[0] = array($val['ID'],$data['event'],$data['datum'],$data['anfang'],$data['ende'],$data['remark'],'','','','',2);
+                $vcal = export_user_cal($export_array, 'ical');
+                $notify = new Notification($user_ID, $user_group, "calendar", array($val['an']),$val['ID'],
+                                           "&view=0".$backlink,'',html_entity_decode($mail_title),'new','',0,'',$vcal);
                 $notify->notify();
             }
         }
@@ -146,6 +170,7 @@ function calendar_prepare_data($check=true, $formdata=null) {
     $formdata['event']  = trim($formdata['event']);
     $formdata['ort']    = trim($formdata['ort']);
     $formdata['remark'] = substr(trim($formdata['remark']), 0, 10000);
+    $formdata['mailnotify'] = preg_split('/(\r|\n)+/', $formdata['mailnotify']);
 
     if ( !isset($formdata['status']) ||
          ($formdata['status'] != '0' && $formdata['status'] != '1') ) {
@@ -167,6 +192,11 @@ function calendar_prepare_data($check=true, $formdata=null) {
         $formdata['anfang'] = '----';
         $formdata['ende']   = '----';
     }
+    elseif ($formdata['allday'] == 'yes') {
+        $formdata['anfang'] = '----';
+        $formdata['ende']   = '----';
+        $formdata['duration'] = '0';
+    }    
     else {
         $formdata['anfang'] = calendar_format_incomingtime($formdata['anfang']);
         $formdata['anfang'] = substr('0000'.$formdata['anfang'], -4);
@@ -341,11 +371,16 @@ function calendar_add_event_db(&$event, $multiple = false) {
     for ($ii = 0; $ii < count($data); $ii++) {
         if (!empty($data[$ii]['serie_typ'])) {
             $data[$ii]['serie_typ'] = qss($data[$ii]['serie_typ']);
-            
+
             if ($data[$ii]['serie_typ']{0} != 'w') $data[$ii]['serie_weekday'] = array();
-            
+
             $data[$ii]['serie_typ'] = serialize(array('typ'     => $data[$ii]['serie_typ'],
                                                       'weekday' => $data[$ii]['serie_weekday']));
+        }
+        if (!empty($data[$ii]['mailnotify'])) {
+            $data[$ii]['mailnotify'] = serialize(xss_array($data[$ii]['mailnotify']));
+        } else {
+        	$data[$ii]['mailnotify'] = '';
         }
         $values = "(".(int)$data[$ii]['parent'].",   ".(int)$data[$ii]['von'].",
                     ".(int)$data[$ii]['an'].",        '".$data[$ii]['event']."',    '".xss($data[$ii]['remark'])."',
@@ -354,11 +389,11 @@ function calendar_add_event_db(&$event, $multiple = false) {
                     '".$data[$ii]['serie_bis']."', '".$data[$ii]['ort']."',      ".(int)$data[$ii]['contact'].",
                     ".(int)$data[$ii]['remind'].",    ".(int)$data[$ii]['visi'].",  ".(int)$data[$ii]['partstat'].",
                     ".(int)$data[$ii]['priority'].",  '".$data[$ii]['sync1']."',    '".$data[$ii]['sync2']."',
-                    '".$data[$ii]['upload']."',    ".(int)$data[$ii]['status'].")";
+                    '".$data[$ii]['upload']."',    ".(int)$data[$ii]['status'].",    '".$data[$ii]['mailnotify']."')";
         $query = "INSERT INTO ".DB_PREFIX."termine
                               (parent, von, an, event, remark, projekt, datum, anfang, ende,
                                serie_id, serie_typ, serie_bis, ort, contact, remind, visi, partstat,
-                               priority, sync1, sync2, upload, status)
+                               priority, sync1, sync2, upload, status, mailnotify)
                        VALUES ".$values;
         $result = db_query($query) or db_die();
     }
@@ -373,22 +408,23 @@ function calendar_add_event_db(&$event, $multiple = false) {
 function calendar_get_last_added_id(&$data) {
     $ret = false;
     $query = "SELECT ID
-                FROM ".DB_PREFIX."termine 
-               WHERE parent   = ".(int)$data['parent']." 
-                 AND von      = ".(int)$data['von']." 
-                 AND an       = ".(int)$data['an']." 
-                 AND projekt  = ".(int)$data['projekt']." 
-                 AND datum    = '".$data['datum']."' 
-                 AND anfang   = '".$data['anfang']."' 
-                 AND ende     = '".$data['ende']."' 
-                 AND contact  = ".(int)$data['contact']." 
-                 AND priority = ".(int)$data['priority']." 
-                 AND visi     = ".(int)$data['visi']." 
-                 AND sync1    = '".$data['sync1']."' 
-                 AND sync2    = '".$data['sync2']."'";
+                FROM ".DB_PREFIX."termine
+               WHERE parent   = ".(int)$data['parent']."
+                 AND von      = ".(int)$data['von']."
+                 AND an       = ".(int)$data['an']."
+                 AND projekt  = ".(int)$data['projekt']."
+                 AND datum    = '".$data['datum']."'
+                 AND anfang   = '".$data['anfang']."'
+                 AND ende     = '".$data['ende']."'
+                 AND contact  = ".(int)$data['contact']."
+                 AND priority = ".(int)$data['priority']."
+                 AND visi     = ".(int)$data['visi']."
+                 AND sync1    = '".$data['sync1']."'
+                 AND sync2    = '".$data['sync2']."'
+                 AND is_deleted is NULL";
     
     $res = db_query($query) or db_die();
-    
+
     if ($row = db_fetch_row($res)) {
         $ret = $row[0];
     }
@@ -419,7 +455,7 @@ function calendar_update_event_invitee($data) {
     $query = "UPDATE ".DB_PREFIX."termine
                  SET partstat = ".(int)$data['partstat'].",
                      sync2    = '".$data['sync2']."'
-               WHERE ID = ".(int)$data['ID']." 
+               WHERE ID = ".(int)$data['ID']."
                  AND (an = ".(int)$user_ID." $act_for_user)";
     $res = db_query($query) or db_die();
 }
@@ -566,6 +602,11 @@ function calendar_update_event_db(&$data, &$special) {
                                      'weekday'=>$serie_weekday));
     }
     else $serie_typ = '';
+    if (!empty($data['mailnotify'])) {
+    	$mailnotify = serialize(xss_array($data['mailnotify'])); 
+    } else {
+    	$mailnotify = '';
+    }
 
     $query = "UPDATE ".DB_PREFIX."termine
                  SET von       = ".(int)$data['von'].",
@@ -584,7 +625,8 @@ function calendar_update_event_db(&$data, &$special) {
                      serie_bis = '".$data['serie_bis']."',
                      visi      = '".$data['visi']."',
                      sync2     = '".$data['sync2']."',
-                     status    = ".(int)$data['status']."
+                     status    = ".(int)$data['status'].",
+                     mailnotify = '".$mailnotify."'
                WHERE ".$special['where'];
     $res = db_query($query) or db_die();
 }
@@ -622,11 +664,10 @@ function calendar_remove_event($id, $force_single=false) {
         // if this is not a serial event or only one of the serial
         $where = "(ID = ".(int)$id." AND (an = ".(int)$user_ID." $act_for_user)) OR parent = ".(int)$id;
     }
-
-    $query = "DELETE FROM ".DB_PREFIX."termine
-                    WHERE $where";
-    $res = db_query($query) or db_die();
-    remove_link($id, 'calendar');
+ 	if((int)$id > 0){ 
+        delete_record_id('termine','WHERE '.$where);
+        remove_link($id, 'calendar');
+    }
 }
 
 /**
@@ -642,11 +683,12 @@ function calendar_remove_event_invitees($data) {
     if ($serie_id = calendar_get_current_serie_id()) {
         $where = " OR parent = ".(int)$serie_id." OR (parent > 0 AND serie_id = ".(int)$serie_id.")";
     }
-    $query = "DELETE FROM ".DB_PREFIX."termine
-                    WHERE (parent = ".(int)$data['ID']." $where)
+    $where = "WHERE (parent = ".(int)$data['ID']." $where)
                       AND an NOT IN (".implode(",", $data['invitees']).")";
-    $res = db_query($query) or db_die();
-    remove_link($data['ID'], 'calendar');
+    if((int)$data['ID'] > 0){                     
+    	delete_record_id('termine',$where);
+    	remove_link($data['ID'], 'calendar');
+    }
 }
 
 /**

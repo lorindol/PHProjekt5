@@ -2,12 +2,12 @@
 /**
  * Sortbox for sort subprojects
  *
- * @package    sortbox
- * @module     main
- * @author     Gustavo Solt
- * @licence    GPL, see www.gnu.org/copyleft/gpl.html
- * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
- * @version    $Id: 
+ * @package    	sortbox
+ * @subpackage 	main
+ * @author     	Gustavo Solt
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version   	$Id:
  */
 
 if (!defined('lib_included')) die('Please use index.php!');
@@ -18,12 +18,12 @@ if (!defined('lib_included')) die('Please use index.php!');
  *
  * @author Gustavo solt
  * @copyright (c) 2004 Mayflower GmbH
- * @package PHProjekt
+ * @package lib
  * @access public
  */
 class Sortbox_project {
 
-    /** 
+    /**
      * Name: Formular identifier
      *
      * @access private
@@ -37,7 +37,7 @@ class Sortbox_project {
      */
     var $options = array ();
 
-    /** 
+    /**
      * Constructor
      *
      * @param $options    options for this class
@@ -46,10 +46,12 @@ class Sortbox_project {
     function Sortbox_project ($options) {
         $this->options = $options;
     }
-                                
-    /** 
-     * fetch_fields() - Query the data source 
+
+    /**
+     * Query the data source
      *
+     * @param array	$preselect 	- Selected items
+     * @return array					- Array with the found hits
      * @access public
      */
     function fetch_fields($preselect) {
@@ -59,7 +61,8 @@ class Sortbox_project {
         $query = "SELECT ID, name, ".$this->options['field_to_sort']."
                     FROM ".DB_PREFIX."projekte
                     WHERE ".$sql_user_group."
-                      AND parent = ".(int)$this->options['extra_value']." 
+                      AND is_deleted is NULL
+                      AND parent = ".(int)$this->options['extra_value']."
                     ORDER BY ".$this->options['field_to_sort']." ASC";
 
         $result = db_query($query) or db_die();
@@ -86,10 +89,11 @@ class Sortbox_project {
         return array($hits,$preselect);
     }
 
-    /** 
-     * save_fields() - Update the data source 
+    /**
+     * save_fields() - Update the data source
      *
-     * @param selected - Array containing selected options
+     * @param array $selected - Array containing selected options
+     * @return void
      * @access public
      */
     function save_fields($selected) {
@@ -109,7 +113,7 @@ class Sortbox_project {
                 $query = "UPDATE ".DB_PREFIX."projekte
                              SET ".$this->options['field_to_sort']." = ".$pos."
                            WHERE ".$sql_user_group."
-                             AND parent = ".(int)$this->options['extra_value']." 
+                             AND parent = ".(int)$this->options['extra_value']."
                              AND ID = ".(int)intval($id)." ";
                 $result = db_query($query) or db_die();
                 $pos++;

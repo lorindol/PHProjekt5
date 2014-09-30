@@ -2,7 +2,8 @@
 // copyright © 2000-2005 Albrecht Guenther ag@phprojekt.com
 // www.phprojekt.com
 // Authors: Albrecht Guenther, Uwe Pries
-// $Id: chat.js,v 1.4 2006/10/14 01:48:19 gustavo Exp $
+// licence    GPL, see www.gnu.org/copyleft/gpl.html
+// $Id: chat.js,v 1.5 2007-05-31 08:10:55 gustavo Exp $
 
 function CHAT(input, output, dir) {
     this.text = '';

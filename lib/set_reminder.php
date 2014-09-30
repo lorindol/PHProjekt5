@@ -1,13 +1,27 @@
 <?php
-
-// $Id: set_reminder.php,v 1.19 2006/10/05 09:12:15 nina Exp $
+/**
+ * Reminder popup
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: nina $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: set_reminder.php,v 1.24 2007-11-09 10:28:54 nina Exp $
+ */
 
 // include lib to fetch the sessiond data and to perform check
 define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');
 include_once(LIB_PATH.'/dbman_lib.inc.php');
 
-
+/**
+ * Make HTML output for the reminder
+ *
+ * @param int 		$ID         	- Element ID
+ * @param string 	$module  	- Module name
+ * @return               				HTML output
+ */
 function set_reminder($ID, $module) {
 
     $str .= set_page_header();
@@ -51,28 +65,26 @@ function set_reminder($ID, $module) {
     return $str;
 }
 
-
 /**
-* sets the reminder flag to all entries given by post
-* @author Albrecht Günther / Alex Haslberger
-* @return void
-*/
+ * Sets the reminder flag to all entries given by post
+ *
+ * @param void
+ * @return void
+ */
 function store_reminder() {
     global $user_group, $onload;
     foreach ($_POST['record_ID'] as $ID) {
-        set_reminder_flag($ID, xss($_POST['module']), xss($_POST['date'][$ID]), xss($_POST['priority'][$ID]), xss($_POST['remark'][$ID]), 'private', $user_group, 0, 0);
+        set_reminder_flag($ID, xss($_POST['module']), xss($_POST['date'][$ID]), xss($_POST['priority'][$ID]), xss_purifier($_POST['remark'][$ID]), 'private', $user_group, 0, 0);
     }
     $onload[] = 'window.close();';
     $str = set_page_header();
     return $str;
 }
 
-
 if ($action == 'store') echo store_reminder();
 else                    echo set_reminder($ID_s, $module);
 
 ?>
-
 </div>
 </body>
 </html>

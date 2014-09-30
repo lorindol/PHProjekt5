@@ -1,14 +1,14 @@
 <?php
 /**
-* exort a single contact to vcard
-*
-* @package    contacts
-* @module     export
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: vcard_ex.php,v 1.16.2.1 2007/01/08 16:36:20 polidor Exp $
-**/
+ * exort a single contact to vcard
+ *
+ * @package    contacts
+ * @subpackage export
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: vcard_ex.php,v 1.20 2007-05-31 08:10:56 gustavo Exp $
+ */
 
 define('PATH_PRE','../');
 include_once(PATH_PRE."lib/lib.inc.php");

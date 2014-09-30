@@ -1,10 +1,12 @@
 <?php
-
-// votum.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: nina $
-// $Id: votum.php,v 1.19 2006/10/04 09:32:49 nina Exp $
+/**
+ * @package    votum
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: votum.php,v 1.20 2007-05-31 08:13:12 gustavo Exp $
+ */
 
 $options_module = 1;
 $module = 'votum';

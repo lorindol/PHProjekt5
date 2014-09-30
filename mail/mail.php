@@ -1,9 +1,12 @@
 <?php
-// mail.php - PHProjekt Version 5.2
-// copyright  ©  2000-2004 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $auth$
-// $Id: mail.php,v 1.51.2.5 2007/08/30 04:09:01 polidor Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $auth$
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail.php,v 1.57 2008-01-14 02:45:05 polidor Exp $
+ */
 
 $module = 'mail';
 $contextmenu = 1;
@@ -32,7 +35,10 @@ if ($mode == 'send_form' && isset($action2) && is_mail_folder($ID)) {
 if ($mode == 'send_form' && isset($action2) && $action2 == 'addContact' && $ID > 0) {
 
     // We will get the sender information
-    $querySender = "SELECT sender FROM ".DB_PREFIX."mail_client WHERE ID = ".(int)$ID;
+    $querySender = "SELECT sender
+                      FROM ".DB_PREFIX."mail_client
+                     WHERE ID = ".(int)$ID."
+                       AND is_deleted is NULL";
     $resultSender = db_query($querySender) or db_die();
 
     if ($rowSender = db_fetch_row($resultSender)) {
@@ -64,7 +70,10 @@ if ($mode == 'send_form' && isset($action2) && $action2 == 'addContact' && $ID >
         if ($email <> '') {
 
             // checking if contact exists on contact table
-            $querySender = "SELECT ID FROM ".DB_PREFIX."contacts WHERE email = '$email'";
+            $querySender = "SELECT ID
+                              FROM ".DB_PREFIX."contacts
+                             WHERE email = '$email'
+                               AND is_deleted is NULL";
             $resultSender = db_query($querySender) or db_die();
             if ($rowSender = db_fetch_row($resultSender)) {
                 message_stack_in(__('There is a contact with the email')." $email",$module,"error");
@@ -201,7 +210,8 @@ function check_trash_can($user_ID) {
     // first we will check if trash can exists
     $query = "SELECT ID FROM ".DB_PREFIX."mail_client
                WHERE trash_can = 'Y' 
-               AND von = ".(int)$user_ID;
+                 AND von = ".(int)$user_ID."
+                 AND is_deleted is NULL";
     $result = db_query($query) or db_die();
 
     if ($row = db_fetch_row($result)) {
@@ -215,8 +225,9 @@ function check_trash_can($user_ID) {
         $result = db_query($query) or db_die();
 
         $query = "SELECT ID FROM ".DB_PREFIX."mail_client
-               WHERE trash_can = 'Y' 
-               AND von = ".(int)$user_ID;
+                   WHERE trash_can = 'Y' 
+                     AND von = ".(int)$user_ID."
+                     AND is_deleted is NULL";
 
         $result = db_query($query);
         if ($row = db_fetch_row($result)) {
@@ -242,8 +253,10 @@ function in_tash_can($mail_ID, $trash_can_ID) {
 
     while (($mail_ID <> $trash_can_ID) && ($mail_ID <> 0) && ($mail_ID <> '')) {
 
-        $query = "SELECT parent from ".DB_PREFIX."mail_client
-                            where ID = ".(int)$mail_ID;
+        $query = "SELECT parent
+                    FROM ".DB_PREFIX."mail_client 
+                   WHERE ID = ".(int)$mail_ID."
+                     AND is_deleted is NULL";
 
         $result = db_query($query);
 
@@ -306,5 +319,33 @@ function clean_email($text) {
     $text = preg_replace("/<([^>]+@[^>]+)>/", ' $1 ', $text);
 
     return $text;
+}
+
+function copy_attachments($ID) {
+  global $user_ID, $row, $dbTSnull;
+
+  // 1. fetch the ID of the new record
+  $result2 = db_query("SELECT ID
+                         FROM ".DB_PREFIX."mail_client
+                        WHERE is_deleted is NULL and
+                              date_received = '$dbTSnull' and
+                              von = ".(int)$user_ID." and
+                              subject = '".__('copy')." $row[2]'") or db_die(); // fetch missing values from old record
+  $row2 = db_fetch_row($result2);
+  // now fetch all attachments from the previous mail
+  $result3 = db_query("select filename, filesize, tempname
+                         from ".DB_PREFIX."mail_attach
+                        where parent = ".(int)$ID) or db_die();
+  while ($row3 = db_fetch_row($result3)) {
+    // add extension to random name
+    $att_tempname = rnd_string().substr($row3[0],-4,4);
+    // copy file
+    copy(PATH_PRE.PHPR_ATT_PATH."/".$row3[2],PATH_PRE.PHPR_ATT_PATH."/".$att_tempname);
+    // write record to db
+    $result4 = db_query("insert into ".DB_PREFIX."mail_attach
+                                (parent,   filename,        tempname,  filesize )
+                         values (".(int)$row2[0].",'$row3[0]','$att_tempname',".(int)$row3[1].")") or db_die();
+  }
+  return $row2[0];
 }
 ?>

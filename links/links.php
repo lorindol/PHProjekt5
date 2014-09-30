@@ -1,10 +1,12 @@
 <?php
-
-// links.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: nina $
-// $Id: links.php,v 1.19 2006/10/19 09:40:55 nina Exp $
+/**
+ * @package    links
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: links.php,v 1.20 2007-05-31 08:12:06 gustavo Exp $
+ */
 
 $module = 'links';
 $tablename['links'] = 'db_records';

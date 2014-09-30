@@ -2,10 +2,10 @@
 /**
  * @package    soap
  * @subpackage main
- * @author     Albrecht Guenther, $Author: albrecht $
+ * @author     Albrecht Guenther, $Author: nina $
  * @licence    GPL, see www.gnu.org/copyleft/gpl.html
  * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
- * @version    $Id: soap_lib.php,v 1.26.2.4 2007/08/02 10:09:00 albrecht Exp $
+ * @version    $Id: soap_lib.php,v 1.32 2007-11-09 10:28:54 nina Exp $
  */
 
 // catch all suspicious output
@@ -351,12 +351,12 @@ function SetTimeCard($exchangeset, $loginstring, $user_pw, $syncdate, $delete) {
         $end        = $entry[7];
         $query = "INSERT INTO ".DB_PREFIX."timeproj 
                               (        users    ,        projekt  ,        datum    ,        h,             m,               note ) 
-                       VALUES (".(int)$user_ID.",".(int)$project.",'".xss($datum)."',".(int)$hour.",".(int)$minute.", '".xss($note)."') ";
+                       VALUES (".(int)$user_ID.",".(int)$project.",'".xss($datum)."',".(int)$hour.",".(int)$minute.", '".xss_purifier($note)."') ";
 
         db_query($query) or db_die();
-        $sqlstring = xss("insert into ".DB_PREFIX."timecard
+        $sqlstring = "insert into ".DB_PREFIX."timecard
                                  (users,              datum,  anfang)
-                          values (".(int)$user_ID.",'$datum', ".(int)$time.")");
+                          values (".(int)$user_ID.",'$datum', ".(int)$time.")";
 
         $result = db_query($sqlstring) or db_die();
     }
@@ -1156,34 +1156,3 @@ function deleteData(&$pimIDs, $sync_date) {
     }
 
 }
-
-/**
- * Returns all the new events that a user got in a system that have not been marked as 
- * read. 
- */
-function getNotifications($loginstring, $user_pw) {
-    // we have to global all this stuff to figure out what rights the user has
-    global $user_ID, $user_group, $user_acc, $dbIDnull, $dbTSnull, $version;
-    global $user_kurz, $sql_user_group, $sync_data, $module, $format, $user_email;
-    global $user_ID;
-
-    $module = 'summary';
-    $user_acc = getPhprojektAccess();
-
-    include_once(PATH_PRE.'lib/dbman_lib.inc.php');
-    
-    $res = db_query("select ".DB_PREFIX."notifications.ID, 
-                            ".DB_PREFIX."notifications.date, 
-                            ".DB_PREFIX."notifications.title, 
-                            ".DB_PREFIX."notifications.content 
-                      from  ".DB_PREFIX."notifications 
-                     where  ".DB_PREFIX."notifications.user_ID='$user_ID'");
-    $result = array();
-    while ($row = db_fetch_row()) {
-        $res[$row[0]] = array($row[1], $row[2], $row[3]);
-    }
-    
-}
-
-
-?>

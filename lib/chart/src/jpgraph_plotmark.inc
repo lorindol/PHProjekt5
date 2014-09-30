@@ -4,7 +4,7 @@
 // Description:	Class file. Handles plotmarks
 // Created: 	2003-03-21
 // Author:	Johan Persson (johanp@aditus.nu)
-// Ver:		$Id: jpgraph_plotmark.inc,v 1.6 2005/09/07 14:06:01 fgraf Exp $
+// Ver:		$Id: jpgraph_plotmark.inc,v 1.6 2005-09-07 14:06:01 fgraf Exp $
 //
 // License:	This code is released under QPL 1.0 
 // Copyright (C) 2003 Johan Persson 

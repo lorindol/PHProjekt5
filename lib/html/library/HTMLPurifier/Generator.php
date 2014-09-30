@@ -41,19 +41,19 @@ HTMLPurifier_ConfigSchema::define(
  */
 class HTMLPurifier_Generator
 {
-    
+
     /**
      * Bool cache of %Core.CleanUTF8DuringGeneration
      * @private
      */
     var $_clean_utf8 = false;
-    
+
     /**
      * Bool cache of %Core.XHTML
      * @private
      */
     var $_xhtml = true;
-    
+
     /**
      * Generates HTML from an array of tokens.
      * @param $tokens Array of HTMLPurifier_Token
@@ -70,7 +70,7 @@ class HTMLPurifier_Generator
             $html .= $this->generateFromToken($token);
         }
         if ($config->get('Core', 'TidyFormat') && extension_loaded('tidy')) {
-            
+
             $tidy_options = array(
                'indent'=> true,
                'output-xhtml' => $this->_xhtml,
@@ -95,7 +95,7 @@ class HTMLPurifier_Generator
         }
         return $html;
     }
-    
+
     /**
      * Generates HTML from a single token.
      * @param $token HTMLPurifier_Token object.
@@ -106,25 +106,25 @@ class HTMLPurifier_Generator
         if ($token->type == 'start') {
             $attr = $this->generateAttributes($token->attr);
             return '<' . $token->name . ($attr ? ' ' : '') . $attr . '>';
-            
+
         } elseif ($token->type == 'end') {
             return '</' . $token->name . '>';
-            
+
         } elseif ($token->type == 'empty') {
             $attr = $this->generateAttributes($token->attr);
              return '<' . $token->name . ($attr ? ' ' : '') . $attr .
                 ( $this->_xhtml ? ' /': '' )
                 . '>';
-            
+
         } elseif ($token->type == 'text') {
             return $this->escape($token->data);
-            
+
         } else {
             return '';
-            
+
         }
     }
-    
+
     /**
      * Generates attribute declarations from attribute array.
      * @param $assoc_array_of_attributes Attribute array
@@ -142,7 +142,7 @@ class HTMLPurifier_Generator
         }
         return rtrim($html);
     }
-    
+
     /**
      * Escapes raw text data.
      * @param $string String data to escape for HTML.
@@ -152,7 +152,5 @@ class HTMLPurifier_Generator
         if ($this->_clean_utf8) $string = HTMLPurifier_Lexer::cleanUTF8($string);
         return htmlspecialchars($string, ENT_COMPAT, 'UTF-8');
     }
-    
 }
-
 ?>

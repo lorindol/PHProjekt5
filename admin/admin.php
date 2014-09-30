@@ -1,16 +1,17 @@
 <?php
 /**
-* main script for administration of users, groups etc.
-*
-* @package    admin
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: admin.php,v 1.116.2.11 2007/08/02 16:42:59 polidor Exp $
-*/
+ * main script for administration of users, groups etc.
+ *
+ * @package    admin
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    	GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: admin.php,v 1.136 2008-04-25 05:09:15 gustavo Exp $
+ */
+
 //this is very important for right authentication!
-$file = 'admin';
+define('FILE','admin');
 define('PATH_PRE','../');
 $module = 'admin';
 require_once(PATH_PRE.'lib/lib.inc.php');
@@ -32,11 +33,6 @@ $titlenames['mail']        = 'subject';
 $titlenames['links']       = 't_name';
 $titlenames['forum']       = 'titel';
 $titlenames['filemanager'] = 'filename';
-
-if (defined('PHPR_COSTS') && PHPR_COSTS == 1) {
-    $titlenames['costs'] = 'costs';
-}
-
 
 // include the ldap library
 if (PHPR_LDAP) {
@@ -125,7 +121,105 @@ $output .= get_buttons_area($buttons);
 // output messages of actions
 $output .= "<br />\n";
 
+/**
+ *  Costunit management
+ */
+if ($action1 == "costunits") {
+	check_csrftoken();
+	$result = db_query("SELECT COUNT(id) FROM ".DB_PREFIX."controlling_costunits WHERE id = ".(int)$costunit_id)
+					or db_die();
 
+	$row = db_fetch_row($result);
+	$costunit_exists = ($row[0] > 0);
+
+	if ($neu) {
+
+		if ($costunit_exists) {
+			$output .= __('This costunit already exists!');
+            $error = 1;
+		} else {
+			db_query("INSERT INTO ".DB_PREFIX."controlling_costunits(id,name)
+		      	          VALUES (".(int) $costunit_id.", '".xss($costunit_name)."')")
+						or db_die();
+            $output .= __('Costunit created').".<br class='clear' />\n";
+		}
+	}
+
+	if ($aendern) {
+		if ($costunit_exists) {
+			db_query("UPDATE ".DB_PREFIX."controlling_costunits
+							 SET name = '".xss($costunit_name)."'
+				     	   WHERE id = ".(int) $costunit_id)
+						 or db_die();
+            $output .= __('Costunit updated').".<br class='clear' />\n";
+		} else {
+			$output .= __('This costunit doesnot exists!');
+            $error = 1;
+		}
+	}
+
+	if ($loeschen) {
+		if ($costunit_exists) {
+			db_query("DELETE FROM ".DB_PREFIX."controlling_costcentres
+			                WHERE id=".(int) $costunit_id)
+					or db_die();
+            $output .= __('Costunit deleted').".<br class='clear' />\n";
+		} else {
+			$output .= __('This costunit doesnot exists!');
+            $error = 1;
+		}
+	}
+}
+
+/**
+ *  Costcentre management
+ */
+if ($action1 == "costcentres") {
+	check_csrftoken();
+	$result = db_query("SELECT COUNT(id) FROM ".DB_PREFIX."controlling_costcentres WHERE id = ".(int)$costcentre_id)
+					or db_die();
+
+	$row = db_fetch_row($result);
+	$costcentre_exists = ($row[0] > 0);
+
+	if ($neu) {
+
+		if ($costcentre_exists) {
+			$output .= __('This costcentre already exists!');
+            $error = 1;
+		} else {
+			db_query("INSERT INTO ".DB_PREFIX."controlling_costcentres(id,name)
+		      	          VALUES (".(int) $costcentre_id.", '".xss($costcentre_name)."')")
+						or db_die();
+            $output .= __('Costcentre created').".<br class='clear' />\n";
+		}
+	}
+
+	if ($aendern) {
+		if ($costcentre_exists) {
+			db_query("UPDATE ".DB_PREFIX."controlling_costcentres
+							 SET name = '".xss($costcentre_name)."'
+				     	   WHERE id = ".(int) $costcentre_id)
+						 or db_die();
+            $output .= __('Costcentre updated').".<br class='clear' />\n";
+		} else {
+			$output .= __('This costcentre doesnot exists!');
+            $error = 1;
+		}
+	}
+
+	if ($loeschen) {
+		if ($costcentre_exists) {
+			db_query("DELETE FROM ".DB_PREFIX."controlling_costcentres
+			                WHERE id=".(int) $costcentre_id)
+					or db_die();
+            $output .= __('Costcentre deleted').".<br class='clear' />\n";
+		} else {
+			$output .= __('This costcentre doesnot exists!');
+            $error = 1;
+		}
+	}
+}
 /**
 *
 *   group management
@@ -144,7 +238,7 @@ if ($action1 == "groups") {
         else {
             $result = db_query("SELECT name, kurz
                                   FROM ".DB_PREFIX."gruppen
-                                 WHERE ID <> ".(int)$group_nr."
+                                 WHERE ID <> ".(int)$group_nr." 
                               ORDER BY name") or db_die();
             while ($row = db_fetch_row($result)) {
                 if ($row[0] == $name) {
@@ -247,7 +341,8 @@ if ($action1 == "groups") {
             // look whether the old group is the primary group of this user and change it
             $result2 = db_query("SELECT gruppe
                                    FROM ".DB_PREFIX."users
-                                  WHERE ID = ".(int)$row[0]) or db_die();
+                                  WHERE ID = ".(int)$row[0]."
+                                    AND is_deleted is NULL") or db_die();
             $row2 = db_fetch_row($result2);
             if ($row2[0] == $group_nr) {
                 $result3 = db_query("UPDATE ".DB_PREFIX."users
@@ -256,7 +351,7 @@ if ($action1 == "groups") {
             }
         }
         // last action: delete record in table gruppen and grup_user
-        $result4 = db_query("DELETE
+        $result4 = db_query("DELETE 
                                FROM ".DB_PREFIX."gruppen
                               WHERE ID = ".(int)$group_nr) or db_die();
         $result5 = db_query("DELETE
@@ -293,7 +388,8 @@ if ($action1 == "user") {
         }
         $result = db_query("SELECT ldap_name
                               FROM ".DB_PREFIX."users
-                             WHERE ID = ".(int)$pers_ID);
+                             WHERE ID = ".(int)$pers_ID."
+                               AND is_deleted is NULL");
         $row = db_fetch_row($result);
         if (PHPR_LDAP == 0) {
             $user_ldap_conf = 0;
@@ -325,15 +421,16 @@ if ($action1 == "user") {
         // if admin is limited to his group, no group is specified and the new user must be in his group
         if (!$gruppe) $gruppe = $group_ID;
         // check whether default group is in group list
+        /*
         $found = 0;
         for ($i = 0; $i < count($grup_user); $i++) {
             if ($gruppe == $grup_user[$i]) $found = 1;
         }
         // not selected? -> add it
         if (!$found) $grup_user[] = $gruppe;
-
+        */
         //$where = "WHERE gruppe = ".(int)$gruppe;
-        $where = '';
+        $where = ' WHERE is_deleted is NULL ';
 
         // check for double entries
         if (!PHPR_LDAP or ($ldap_conf[$user_ldap_conf]["ldap_sync"] == "1")) {
@@ -346,10 +443,11 @@ if ($action1 == "user") {
                 }
                 $where .= "ID <> ".(int)$pers_ID;
             }
+            
 
             $result = db_query("SELECT ID, vorname, nachname, kurz, gruppe, pw, loginname
                                   FROM ".DB_PREFIX."users
-                                  $where") or db_die();
+                                  $where ") or db_die();
             while ($row = db_fetch_row($result)) {
                 // same group can't have 2 users with same first AND last name (for the same group)
                 if ($nachname == $row[2] && $vorname == $row[1] && $gruppe == $row[4]) {
@@ -397,13 +495,14 @@ if ($action1 == "user") {
                 // fetch user ID from just created record
                 $result = db_query("SELECT ID
                                       FROM ".DB_PREFIX."users
+                                      WHERE is_deleted is NULL
                                   ORDER BY ID DESC") or db_die();
                 $row = db_fetch_row($result);
                 // insert into grup_user
                 for ($i = 0; $i < count($grup_user); $i++) {
                     $result = db_query("INSERT INTO ".DB_PREFIX."grup_user
-                                                    (        grup_ID        ,        user_ID )
-                                             VALUES (".(int)$grup_user[$i].",".(int)$row[0].")") or db_die();
+                                                    (        grup_ID        ,        user_ID, role_ID  )
+                                             VALUES (".(int)$grup_user[$i].",".(int)$row[0].", ".(int)$role.")") or db_die();
                 }
 
                 //creating default sent folder (for emails)
@@ -476,21 +575,22 @@ if ($action1 == "user") {
                 }
 
                 // update db record in users table
-                $result = db_query(xss($query)) or db_die();
+                $result = db_query($query) or db_die();
 
                 // update group status, but only if admin = root
-                if ($user_ID == 1) {
+                // or the user have admin status
+                if ($user_ID == 1 || $user_type==3) {
                     $result = db_query("DELETE
                                           FROM ".DB_PREFIX."grup_user
                                          WHERE user_ID = ".(int)$pers_ID) or db_die();
                     if (!$grup_user[0]) $grup_user[0] = $group_ID;
                     for ($i = 0; $i < count($grup_user); $i++) {
                         $result = db_query("INSERT INTO ".DB_PREFIX."grup_user
-                                                        (        grup_ID        ,        user_ID  )
-                                                 VALUES (".(int)$grup_user[$i].",".(int)$pers_ID.")") or db_die();
+                                                        (        grup_ID,                user_ID, role_ID )
+                                                 VALUES (".(int)$grup_user[$i].",".(int)$pers_ID.", ".(int)$role.")") or db_die();
                     }
                 }
-                $output .= strip_tags($nachname).', '.strip_tags($vorname)-': '.__('the data set is now modified.').".<br class='clear' />\n";
+                $output .= strip_tags($nachname).', '.strip_tags($vorname).': '.__('the data set is now modified.').".<br class='clear' />\n";
             }
         }
     }
@@ -516,7 +616,8 @@ if ($action1 == "user") {
             // fetch his name ..
             $result = db_query("SELECT nachname, kurz
                                   FROM ".DB_PREFIX."users
-                                 WHERE ID = ".(int)$pers_ID) or db_die();
+                                 WHERE ID = ".(int)$pers_ID."
+                                   AND is_deleted is NULL") or db_die();
             while ($row = db_fetch_row($result)) {
                 $name = $row[0];
                 $kurz = $row[1];
@@ -528,9 +629,11 @@ if ($action1 == "user") {
                 // get the project listing
                 $project_names = array();
 
-                $result = db_query("SELECT name
-                                      FROM ".DB_PREFIX."projekte as p, ".DB_PREFIX."project_users_rel pur
-                                     WHERE p.ID = pur.project_ID
+                $result = db_query("SELECT name 
+                                      FROM ".DB_PREFIX."projekte as p, ".DB_PREFIX."project_users_rel pur 
+                                     WHERE p.ID = pur.project_ID 
+                                       AND p.is_deleted is NULL
+                                       AND pur.is_deleted is NULL
                                        AND pur.user_ID = ".(int)$pers_ID) or db_die();
                 while ($row = db_fetch_row($result)) {
                     $project_names[] = $row[0];
@@ -538,10 +641,7 @@ if ($action1 == "user") {
 
                 if (count($project_names) > 0) {
                     // delete user
-                    $result = db_query("DELETE
-                                          FROM ".DB_PREFIX."project_users_rel
-                                         WHERE user_ID = ".(int)$pers_ID) or db_die();
-
+                    delete_record_id("project_users_rel","WHERE user_ID = ".(int)$pers_ID);
 
                     $output .= "<b>".strip_tags($name)." ".__('The user was removed from the following projects').": ".implode(', ',$project_names)."</b><br class='clear' />\n";
                 }
@@ -589,7 +689,8 @@ if ($action1 == "user") {
             if (PHPR_FILEMANAGER) {
                 $result = db_query("SELECT ID, filename, tempname, typ, filesize, acc, remark
                                       FROM ".DB_PREFIX."dateien
-                                     WHERE von = ".(int)$pers_ID) or db_die();
+                                     WHERE von = ".(int)$pers_ID."
+                                       AND is_deleted is NULL") or db_die();
                 while ($row = db_fetch_row($result)) {
                     // delete files if they are set top private
                     if ($row[5] =="private") {
@@ -598,9 +699,7 @@ if ($action1 == "user") {
                             $path = PHPR_FILE_PATH."/$row[2]";
                             unlink($path);
                         }
-                        $result2 = db_query("DELETE
-                                               FROM ".DB_PREFIX."dateien
-                                              WHERE ID = ".(int)$row[0]) or db_die();
+                        delete_record_id("dateien","WHERE ID = ".(int)$row[0]);
                         // look for files in the subdirectory or if it si a file with versioning
                         if ($row[3] == "d" or $row[3] == "fv") del($row[0]);
                     }
@@ -616,19 +715,17 @@ if ($action1 == "user") {
 
             // delete notes set to private
             if (PHPR_NOTES) {
-                $result = db_query("DELETE
-                                      FROM ".DB_PREFIX."notes
-                                     WHERE von = ".(int)$pers_ID."
-                                       AND (ext IS NULL OR ext = 0)") or db_die();
+                delete_record_id('notes',"WHERE von = ".(int)$pers_ID." AND (ext IS NULL OR ext = 0)");
             }
 
             // update polls
             if (PHPR_VOTUM) {
                 $kurz = strip_tags($kurz);
                 $result = db_query("SELECT ID, an
-                                          FROM ".DB_PREFIX."votum
-                                         WHERE an LIKE '%$kurz%'
-                                           AND fertig NOT LIKE '%$kurz%'") or db_die();
+                                        FROM ".DB_PREFIX."votum
+                                    WHERE an LIKE '%$kurz%' AND
+                                          is_deleted is NULL AND
+                                          fertig NOT LIKE '%$kurz%'") or db_die();
                 while ($row = db_fetch_row($result)) {
                     $ID = $row[0];
                     $an = unserialize($row[1]);
@@ -640,21 +737,17 @@ if ($action1 == "user") {
                     unset($an[$a]);
                     $an2 = serialize($an);
                     $return2 = db_query("UPDATE ".DB_PREFIX."votum
-                                            SET an = '$an2'
+                                            SET an = '$an2' 
                                           WHERE ID = ".(int)$row[0]) or db_die();
                 }
                 $output .= strip_tags($name)." ".__('is taken out of these votes where he/she has not yet participated').".<br class='clear' />\n";
             }
 
             // delete schedule
-            $result = db_query("DELETE
-                                  FROM ".DB_PREFIX."termine
-                                 WHERE an = ".(int)$pers_ID) or db_die();
+            delete_record_id("termine","WHERE an = ".(int)$pers_ID);
             $output .= strip_tags($name).": ".__('All events are deleted').". <br class='clear' />\n";
             // delte user itself
-            $result = db_query("DELETE
-                                  FROM ".DB_PREFIX."users
-                                 WHERE ID = ".(int)$pers_ID) or db_die();
+            delete_record_id('users',"WHERE ID = ".(int)$pers_ID);
             $output .= strip_tags($name).": ".__('user file deleted').". <br class='clear' />\n";
             $output .= "<i>".strip_tags($name).": ".__('bank account deleted')." ;-))</i><br class='clear' /><br class='clear' />\n";
             $output .= __('finished').".\n";
@@ -707,118 +800,31 @@ if ($action1 == "roles" && PHPR_ROLES) {
             if ($anlegen == "neu_anlegen") {
                 if (!$title) die(__('Please insert a name')."!");
 
-                $db_cols = array('von', 'title', 'remark');
-                $db_vals = array($user_ID, "'$title'", "'$remark'");
-                if (PHPR_TODO) {
-                    $db_cols[] = 'todo';
-                    $db_vals[] = (int)$todo_m;
-                }
-                if (PHPR_CALENDAR) {
-                    $db_cols[] = 'calendar';
-                    $db_vals[] = (int)$calendar_m;
-                }
-                if (PHPR_CONTACTS) {
-                    $db_cols[] = 'contacts';
-                    $db_vals[] = (int)$contacts_m;
-                }
-                if (PHPR_FORUM) {
-                    $db_cols[] = 'forum';
-                    $db_vals[] = (int)$forum_m;
-                }
-                if (PHPR_CHAT) {
-                    $db_cols[] = 'chat';
-                    $db_vals[] = (int)$chat_m;
-                }
-                if (PHPR_FILEMANAGER) {
-                    $db_cols[] = 'filemanager';
-                    $db_vals[] = (int)$filemanager_m;
-                }
-                if (PHPR_BOOKMARKS) {
-                    $db_cols[] = 'bookmarks';
-                    $db_vals[] = (int)$bookmarks_m;
-                }
-                if (PHPR_VOTUM) {
-                    $db_cols[] = 'votum';
-                    $db_vals[] = (int)$votum_m;
-                }
-                if (PHPR_QUICKMAIL) {
-                    $db_cols[] = 'mail';
-                    $db_vals[] = (int)$mail_m;
-                }
-                if (PHPR_NOTES) {
-                    $db_cols[] = 'notes';
-                    $db_vals[] = (int)$notes_m;
-                }
-                if (PHPR_RTS) {
-                    $db_cols[] = 'helpdesk';
-                    $db_vals[] = (int)$helpdesk_m;
-                }
-                if (PHPR_PROJECTS) {
-                    $db_cols[] = 'projects';
-                    $db_vals[] = (int)$projects_m;
-                }
-                if (PHPR_TIMECARD) {
-                    $db_cols[] = 'timecard';
-                    $db_vals[] = (int)$timecard_m;
-                }
                 $query = 'INSERT INTO '.DB_PREFIX.'roles
-                                      ('.implode(',', $db_cols).')
-                               VALUES ('.implode(',', $db_vals).')';
-                $query = strip_tags($query);
+                                     (von,title,remark)
+                              VALUES ('.(int)$user_ID.',"'.$title.'","'.$remark.'")';
                 $result = db_query($query) or db_die();
-                $output .= strip_tags($title).': '.__('The role has been created').".<br class='clear' />\n";
+                $query= 'SELECT MAX(ID) FROM '.DB_PREFIX.'roles
+                                WHERE von='.(int)$user_ID;
+                $result = db_query($query);
+                $row=db_fetch_row($result);
+                $role_ID = $row[0];
+                
+                insert_roles_rel($row[0],$module_acc);        
+                $output .= $title.": ".__('The role has been created').".<br class='clear' />\n";
             }
 
             // modify
             if ($anlegen == "aendern") {
                 if (!$title) die(__('Please insert a name')."!");
-
-                $update_cols = '';
-                if (PHPR_TODO) {
-                    $update_cols .= ", todo=".(int)$todo_m;
-                }
-                if (PHPR_CALENDAR) {
-                    $update_cols .= ", calendar=".(int)$calendar_m;
-                }
-                if (PHPR_CONTACTS) {
-                    $update_cols .= ", contacts=".(int)$contacts_m;
-                }
-                if (PHPR_FORUM) {
-                    $update_cols .= ", forum=".(int)$forum_m;
-                }
-                if (PHPR_CHAT) {
-                    $update_cols .= ", chat=".(int)$chat_m;
-                }
-                if (PHPR_FILEMANAGER) {
-                    $update_cols .= ", filemanager=".(int)$filemanager_m;
-                }
-                if (PHPR_BOOKMARKS) {
-                    $update_cols .= ", bookmarks=".(int)$bookmarks_m;
-                }
-                if (PHPR_VOTUM) {
-                    $update_cols .= ", votum=".(int)$votum_m;
-                }
-                if (PHPR_QUICKMAIL) {
-                    $update_cols .= ", mail=".(int)$mail_m;
-                }
-                if (PHPR_NOTES) {
-                    $update_cols .= ", notes=".(int)$notes_m;
-                }
-                if (PHPR_RTS) {
-                    $update_cols .= ", helpdesk=".(int)$helpdesk_m;
-                }
-                if (PHPR_PROJECTS) {
-                    $update_cols .= ", projects=".(int)$projects_m;
-                }
-                if (PHPR_TIMECARD) {
-                    $update_cols .= ", timecard=".(int)$timecard_m;
-                }
                 $query = "UPDATE ".DB_PREFIX."roles
                              SET title = '".xss($title)."',
-                                 remark = '".xss($remark)."' ".$update_cols."
+                                 remark = '".xss_purifier($remark)."' ".$update_cols."
                            WHERE ID = ".(int)$roles_ID;
                 $result = db_query($query) or db_die();
-                $output .= strip_tags($title).': '.__('The role has been modified').".<br class='clear' />\n";
+                delete_roles_rel($roles_ID);
+                insert_roles_rel($roles_ID,$module_acc);    
+                $output .= " $title: ".__('The role has been modified').".<br class='clear' />\n";
             }
         }
     }
@@ -946,13 +952,12 @@ if ($action == "lesezeichen") {
             for ($i=0; $i < count($lesezeichen_ID); $i++) {
                 $result = db_query("SELECT bezeichnung
                                       FROM ".DB_PREFIX."lesezeichen
-                                     WHERE ID = ".(int)$lesezeichen_ID[$i]) or db_die();
+                                     WHERE ID = ".(int)$lesezeichen_ID[$i]."
+                                       AND is_deleted is NULL") or db_die();
                 while ($row = db_fetch_row($result)) {
                     $output .= strip_tags($row[0]).": ".__('The bookmark is deleted').". <br class='clear' />\n";
                 }
-                $result = db_query("DELETE
-                                      FROM ".DB_PREFIX."lesezeichen
-                                     WHERE ID = ".(int)$lesezeichen_ID[$i]) or db_die();
+                delete_record_id("lesezeichen","WHERE ID = ".(int)$lesezeichen_ID[$i]);
             }
             $output .= __('finished').".<br class='clear' />\n";
         }
@@ -1020,7 +1025,8 @@ if ($action == "groups") {
             // fetch name from table users
             $result3 = db_query("SELECT vorname, nachname
                                    FROM ".DB_PREFIX."users
-                                  WHERE ID = ".(int)$row2[0]) or db_die();
+                                  WHERE ID = ".(int)$row2[0]."
+                                    AND is_deleted is NULL") or db_die();
             $row3 = db_fetch_row($result3);
             $context_output .= "<option value='$row2[0]'";
             if ($row2[0] == $row[5]) $context_output .= ' selected="selected"';
@@ -1103,7 +1109,7 @@ if ($action == "timecard") {
             if (!$row[0]) {
                 $result = db_query("INSERT INTO ".DB_PREFIX."timecard
                                                     (        users ,  datum )
-                                         VALUES (".(int)$pers_timecard.",'$datum')") or db_die();
+                                             VALUES (".(int)$pers_timecard.",'".strip_tags($datum)."')") or db_die();
             }
             $result = db_query("UPDATE ".DB_PREFIX."timecard
                                       SET ".qss($type)." = '".strip_tags($time)."'
@@ -1172,7 +1178,7 @@ if ($action == "timecard") {
     $result = db_query("SELECT ID, users, datum, projekt, anfang, ende
                               FROM ".DB_PREFIX."timecard
                              WHERE users = ".(int)$pers_timecard."
-                               AND datum LIKE '%-".(int)$month."-%'
+                               AND (datum LIKE '%-".(int)$month."-%' OR datum LIKE '%-0".(int)$month."-%')
                                AND datum LIKE '".(int)$year."-%'
                           ORDER BY datum DESC") or db_die();
        $datum_alt='';
@@ -1190,8 +1196,8 @@ if ($action == "timecard") {
 
         	$result2 = db_query("SELECT anfang, ende
                                    FROM ".DB_PREFIX."timecard
-                         WHERE users = ".(int)$pers_timecard." AND
-                               datum='$row[2]'
+                                  WHERE users = ".(int)$pers_timecard."
+                                    AND datum='$row[2]'
                                ORDER BY datum DESC") or db_die();
         	$bsum=0;
         	while ($row2 = db_fetch_row($result2)) {
@@ -1284,6 +1290,127 @@ if ($action == "logs") {
     $context_output .= "</tbody></table>\n<br />\n";
 }
 
+if ($action == "costunits") {
+	$sel_costunit_id = "";
+	$sel_costunit_name = "";
+
+	if ($aendern && isset($costunit_id)) {
+		$result = db_query("SELECT id, name FROM ".DB_PREFIX."controlling_costunits WHERE id = ".(int) $costunit_id)
+					or db_die();
+		$row    = db_fetch_row($result);
+
+		$sel_costunit_id   = (int) $row[0];
+		$sel_costunit_name = $row[1];
+	}
+
+	if ($neu || $aendern) {
+
+        $context_output .= "<form action='admin.php' method='post' name='frmt'
+		                    onsubmit='return chkNumbers(\"frmt\",\"costunit_id\",\"".__('Please enter a valid costunit id')."\");'>\n";
+        $context_output .= '<fieldset>';
+
+        if ($neu) {
+        	$hidden_fields = array( "neu"   => $neu,
+        						"action1" => "costunits");
+        	$context_output .= '<legend>'.__('Create').'</legend>';
+        }
+        if ($aendern) {
+        	$hidden_fields = array( "aendern"   => $aendern,
+        						"action1" => "costunits",
+        						"costunit_id" => $sel_costunit_id);
+        	$context_output .= '<legend>'.__('Modify').'</legend>';
+        }
+
+        $context_output .= hidden_fields($hidden_fields)."\n";
+        $context_output .= "<label class='label_block' for='costunit_id'>".__('ID').":</label>
+        					<input class='halfsize' type='text' maxlength='15' value='$sel_costunit_id' ";
+        if ($aendern) {
+        	$context_output.= "disabled='disabled' ";
+        	$context_output.= "name='sel_costunit_id'";
+        } else {
+        	$context_output.= "name='costunit_id'";
+        }
+
+        $context_output.= "/>\n<br />\n";
+        $context_output .= "<label class='label_block' for='costunit_name'>".__('Costunit').":</label>
+        					<input class='halfsize' type='text' name='costunit_name' value='$sel_costunit_name'/>\n<br />\n";
+        $context_output .= get_go_button('button','button','',__('OK'))."</fieldset></form>\n";
+        $context_output .= "</form>";
+	}
+
+	if ($loeschen) {
+        $context_output .= "<form action='admin.php' method='post'>
+        					<fieldset><legend>".__('delete')."</legend>\n";
+        $context_output .= "<h5>".__('Are you sure?')."</h5>\n";
+        $hidden_fields = array( "action1"   => "costunits",
+                                "costcentre_id"   => $costunit_id,
+                                "loeschen" => $loeschen);
+        $context_output .= hidden_fields($hidden_fields)."\n";
+        $context_output .= "<input type='submit' name='loeschen1' value='".__('OK')."' />\n";
+        $context_output .= "</fieldset></form>\n";
+    }
+}
+
+
+if ($action == "costcentres") {
+	$sel_costcentre_id = "";
+	$sel_costcentre_name = "";
+
+	if ($aendern && isset($costcentre_id)) {
+		$result = db_query("SELECT id, name FROM ".DB_PREFIX."controlling_costcentres WHERE id = ".(int) $costcentre_id)
+					or db_die();
+		$row    = db_fetch_row($result);
+
+		$sel_costcentre_id   = (int) $row[0];
+		$sel_costcentre_name = $row[1];
+	}
+
+	if ($neu || $aendern) {
+
+        $context_output .= "<form action='admin.php' method='post' name='frmt'
+		                    onsubmit='return chkNumbers(\"frmt\",\"costcentre_id\",\"".__('Please enter a valid costcentre id')."\");'>\n";
+        $context_output .= '<fieldset>';
+
+        if ($neu) {
+        	$hidden_fields = array( "neu"   => $neu,
+        						"action1" => "costcentres");
+        	$context_output .= '<legend>'.__('Create').'</legend>';
+        }
+        if ($aendern) {
+        	$hidden_fields = array( "aendern"   => $aendern,
+        						"action1" => "costcentres",
+        						"costcentre_id" => $sel_costcentre_id);
+        	$context_output .= '<legend>'.__('Modify').'</legend>';
+        }
+
+        $context_output .= hidden_fields($hidden_fields)."\n";
+        $context_output .= "<label class='label_block' for='costcentre_id'>".__('ID').":</label>
+        					<input class='halfsize' type='text' maxlength='15' value='$sel_costcentre_id' ";
+        if ($aendern) {
+        	$context_output.= "disabled='disabled' ";
+        	$context_output.= "name='sel_costcentre_id'";
+        } else {
+        	$context_output.= "name='costcentre_id'";
+        }
+        $context_output.= "/>\n<br />\n";
+        $context_output .= "<label class='label_block' for='costcentre_name'>".__('Costcentre').":</label>
+        					<input class='halfsize' type='text' name='costcentre_name' value='$sel_costcentre_name'/>\n<br />\n";
+        $context_output .= get_go_button('button','button','',__('OK'))."</fieldset></form>\n";
+        $context_output .= "</form>";
+	}
+
+	if ($loeschen) {
+        $context_output .= "<form action='admin.php' method='post'>
+        					<fieldset><legend>".__('delete')."</legend>\n";
+        $context_output .= "<h5>".__('Are you sure?')."</h5>\n";
+        $hidden_fields = array( "action1"   => "costcentres",
+                                "costcentre_id"   => $costcentre_id,
+                                "loeschen" => $loeschen);
+        $context_output .= hidden_fields($hidden_fields)."\n";
+        $context_output .= "<input type='submit' name='loeschen1' value='".__('OK')."' />\n";
+        $context_output .= "</fieldset></form>\n";
+    }
+}
 
 /**
 *
@@ -1474,7 +1601,8 @@ if ($action == "user") {
                                        strasse, stadt, plz, land, sprache, role, hrate, remark,
                                        status
                                   FROM ".DB_PREFIX."users
-                                 WHERE ID = ".(int)$pers_ID) or db_die();
+                                 WHERE ID = ".(int)$pers_ID."
+                                   AND is_deleted is NULL") or db_die();
             $row = db_fetch_row($result);
 
             // for LDAP we depend on row 19, if it is either "" or NULL we will set it to a default value of 1
@@ -1668,7 +1796,8 @@ if ($action == "user") {
                 $context_output .= "<label class='label_block' for='ldap_name'>".__('ldap name').": </label>\n";
                 $context_output .= "<select name='ldap_name'>\n";
                 $result2 = db_query("SELECT DISTINCT ldap_name
-                                       FROM ".DB_PREFIX."users") or db_die();
+                                       FROM ".DB_PREFIX."users
+                                      WHERE is_deleted is NULL") or db_die();
                 while ($row2 = db_fetch_row($result2)) {
                     if ((strcasecmp($row2[0], "off") != 0) && (strcmp($row2[0], "1") != 0)) {
                         $context_output .= "<option value='$row2[0]'";
@@ -1730,7 +1859,8 @@ else if ($action == "files") {
     // loop over all files in this group
     $result = db_query("SELECT ID, von, filename, tempname
                           FROM ".DB_PREFIX."dateien
-                         WHERE gruppe = ".(int)$group_ID) or db_die();
+                         WHERE gruppe = ".(int)$group_ID."
+                           AND is_deleted is NULL") or db_die();
     while ($row = db_fetch_row($result)) {
         // if 1. owner not listed in array or 2. array is empty (means: no member in group) -> orphan!
         if (($user_group_ID and !in_array($row[1],$user_group_ID)) or !$user_group_ID) {
@@ -1740,9 +1870,7 @@ else if ($action == "files") {
                 unlink(PHPR_FILE_PATH."/".$row[3]);
 
                 // remove the record from the database
-                $result2 = db_query("DELETE
-                                       FROM ".DB_PREFIX."dateien
-                                      WHERE ID = ".(int)$row[0]) or db_die();
+                delete_record_id("dateien","WHERE ID = ".(int)$row[0]);
             }
             else if ($move) {
                 $output .="<label class='admin_label'>". __('Move').":</label> $row[2]<br class='clear' />\n";
@@ -1763,79 +1891,20 @@ else if ($action == "roles" && PHPR_ROLES) {
 
     // new record
     if ($neu) {
-        $context_output .= "<form action='admin.php' method='post'><fieldset><legend>".__('Roles')."</legend>\n";
-        $hidden_fields = array( "action1"   => "roles");
-        $context_output .= hidden_fields($hidden_fields)."\n";
-        // title of the role
-        $context_output .= "<label class='label_block' for='title'>".__('Name').":</label><input type=text name=title maxlength=30 /><br />\n";
-        // remark
-        $context_output .= "<label class='label_block' for='remark'>".__('Comment').":</label><textarea name=remark></textarea><br />\n";
-
-        // loop over all modules
-        if ($summary)         $context_output .= "<label class='label_block' for='summary'>".__('Summary')."</label>".role1("summary")."<br />\n";
-        if (PHPR_CALENDAR)    $context_output .= "<label class='label_block' for='calendar'>".__('Calendar')."</label>".role1("calendar")."<br />\n";
-        if (PHPR_CONTACTS)    $context_output .= "<label class='label_block' for='contacts'>".__('Contacts')."</label>".role1("contacts")."<br />\n";
-        if (PHPR_CHAT)        $context_output .= "<label class='label_block' for='chat'>".__('Chat')."</label>".role1("chat")."<br />\n";
-        if (PHPR_FORUM)       $context_output .= "<label class='label_block' for='forum'>".__('Forum')."</label>".role1("forum")."<br />\n";
-        if (PHPR_FILEMANAGER) $context_output .= "<label class='label_block' for='filemanager'>".__('Files')."</label>".role1("filemanager")."<br />\n";
-        if (PHPR_PROJECTS)    $context_output .= "<label class='label_block' for='projects'>".__('Projects')."</label>".role1("projects")."<br />\n";
-        if (PHPR_TIMECARD)    $context_output .= "<label class='label_block' for='timecard'>".__('Timecard')."</label>".role1("timecard")."<br />\n";
-        if (PHPR_NOTES)       $context_output .= "<label class='label_block' for='notes'>".__('Notes')."</label>".role1("notes")."<br />\n";
-        if (PHPR_RTS)         $context_output .= "<label class='label_block' for='helpdesk'>".__('Helpdesk')."</label>".role1("helpdesk")."<br />\n";
-        if (PHPR_QUICKMAIL)   $context_output .= "<label class='label_block' for='mail'>".__('Mail')."</label>".role1("mail")."<br />\n";
-        if (PHPR_TODO)        $context_output .= "<label class='label_block' for='todo'>".__('Todo')."</label>".role1("todo")."<br />\n";
-        if ($news)            $context_output .= "<label class='label_block' for='news'>".__('News')."</label>".role1("news")."<br />\n";
-        if (PHPR_VOTUM)       $context_output .= "<label class='label_block' for='votum'>".__('Voting system')."</label>".role1("votum")."<br />\n";
-        if (PHPR_BOOKMARKS)   $context_output .= "<label class='label_block' for='bookmarks'>".__('Bookmarks')."</label>".role1("bookmarks")."<br />\n";
-        //if (PHPR_LINKS)       $context_output .= "<label class='label_block' for='links'>Links</label>".role1("links")."<br />\n";
-
-        $context_output .= "<input type='hidden' name='anlegen' value='neu_anlegen' />\n";
-        $context_output .= "<input type='submit' class='button' value='".__('OK')."' />\n";
-        $context_output .= "</fieldset></form>\n";
+        $context_output .= render_roles();
     }
     // modify
     if ($aendern) {
-        $result = db_query("SELECT ID, von, title, remark, summary, calendar, contacts,
-                                   forum, chat, filemanager, bookmarks, votum, mail,
-                                   notes, helpdesk, projects, timecard, todo, news
+        $result = db_query("SELECT ID, von, title, remark
                               FROM ".DB_PREFIX."roles
                              WHERE ID = ".(int)$roles_ID) or db_die();
         $row = db_fetch_row($result);
-        $context_output .= "<form action='admin.php' method='post'><fieldset style='width:400px'><legend>".__('Roles')."</legend>\n";
-        $hidden_fields = array( "action1"   => "roles",
-                                "anlegen"   => "aendern",
-                                "roles_ID"  => $roles_ID);
-        $context_output .= hidden_fields($hidden_fields)."\n";
-        $context_output .= "<label class='label_block' for='title'>".__('Name').":</label><input type=text name='title' value='".html_out($row[2])."' maxlength=40 /><br />\n";
-        // remark
-        $context_output .= "<label class='label_block' for='remark'>".__('Comment').":</label><textarea name=remark style='width:240px'>".html_out($row[3])."</textarea><br />\n";
-
-        // loop over all modules
-        if ($summary)         $context_output .= "<label class='label_block' for='summary'>".__('Summary')."</label>".role1("summary")."<br />\n";
-        if (PHPR_CALENDAR)    $context_output .= "<label class='label_block' for='calendar'>".__('Calendar')."</label>".role1("calendar")."<br />\n";
-        if (PHPR_CONTACTS)    $context_output .= "<label class='label_block' for='contacts'>".__('Contacts')."</label>".role1("contacts")."<br />\n";
-        if (PHPR_CHAT)        $context_output .= "<label class='label_block' for='chat'>".__('Chat')."</label>".role1("chat")."<br />\n";
-        if (PHPR_FORUM)       $context_output .= "<label class='label_block' for='forum'>".__('Forum')."</label>".role1("forum")."<br />\n";
-        if (PHPR_FILEMANAGER) $context_output .= "<label class='label_block' for=''>".__('Files')."</label>".role1("filemanager")."<br />\n";
-        if (PHPR_PROJECTS)    $context_output .= "<label class='label_block' for='projects'>".__('Projects')."</label>".role1("projects")."<br />\n";
-        if (PHPR_TIMECARD)    $context_output .= "<label class='label_block' for='timecard'>".__('Timecard')."</label>".role1("timecard")."<br />\n";
-        if (PHPR_NOTES)       $context_output .= "<label class='label_block' for='notes'>".__('Notes')."</label>".role1("notes")."<br />\n";
-        if (PHPR_RTS)         $context_output .= "<label class='label_block' for='helpdesk'>".__('Helpdesk')."</label>".role1("helpdesk")."<br />\n";
-        if (PHPR_QUICKMAIL)   $context_output .= "<label class='label_block' for='mail'>".__('Mail')."</label>".role1("mail")."<br />\n";
-        if (PHPR_TODO)        $context_output .= "<label class='label_block' for='todo'>".__('Todo')."</label>".role1("todo")."<br />\n";
-        if ($news)            $context_output .= "<label class='label_block' for='news'>".__('News')."</label>".role1("news")."<br />\n";
-        if (PHPR_VOTUM)       $context_output .= "<label class='label_block' for='votum'>".__('Voting system')."</label>".role1("votum")."<br />\n";
-        if (PHPR_BOOKMARKS)   $context_output .= "<label class='label_block' for='bookmarks'>".__('Bookmarks')."</label>".role1("bookmarks")."<br />\n";
-        //if (PHPR_LINKS)       $context_output .= "<label class='label_block' for='links'>Links</label>".role1("links")."<br />\n";
-
-        $context_output .= "</select>\n<br />\n";
-        $context_output .= "<input class='button' type='submit' value='".__('OK')."' />\n";
-        $context_output .= "</fieldset></form>\n";
+        $context_output .= render_roles($roles_ID, $row[2], $row[3]);
     }
     // confirm delete record
     else if ($loeschen) {
         $context_output .= "<form action='admin.php' method='post'><fieldset><legend>".__('Delete role')."</legend>\n";
-        $context_output .= "<h2>".__('Are you sure?')."</h2><br />\n";
+        $context_output .= "<h5>".__('Are you sure?')."</h5><br />\n";
         $hidden_fields = array( "action1"   => "roles",
                                 "roles_ID"  => $roles_ID);
         $context_output .= hidden_fields($hidden_fields)."\n";
@@ -1883,6 +1952,7 @@ else if ($action == "accounts") {
         $result = db_query("SELECT ".DB_PREFIX."users.ID, nachname, vorname
                               FROM ".DB_PREFIX."users, ".DB_PREFIX."grup_user
                              WHERE ".DB_PREFIX."users.ID = user_ID
+                               AND ".DB_PREFIX."users.is_deleted is NULL
                                AND grup_ID = ".(int)$group_ID) or db_die();
         while ($row = db_fetch_row($result)) {
             $context_output .= "<option value='$row[0]'>$row[1], $row[2]</option>\n";
@@ -1948,8 +2018,9 @@ else if ($action == "accounts") {
         $context_output .= "<select name='user'>\n<option value=''></option>\n";
         $result2 = db_query("SELECT ".DB_PREFIX."users.ID, nachname, vorname
                                FROM ".DB_PREFIX."users, ".DB_PREFIX."grup_user
-                              WHERE ".DB_PREFIX."users.ID = user_ID
-                                AND grup_ID = ".(int)$group_ID) or db_die();
+                              WHERE ".DB_PREFIX."users.ID = user_ID AND
+                                    ".DB_PREFIX."users.is_deleted is NULL AND
+                                    grup_ID = ".(int)$group_ID) or db_die();
         while ($row2 = db_fetch_row($result2)) {
             $context_output .= "<option value='$row2[0]'";
             if ($row2[0] == $row[2]) $context_output .= ' selected="selected"';
@@ -1997,7 +2068,8 @@ else if ($action == "lesezeichen") {
         $error = 0;
         $result = db_query("SELECT ID, datum, von, url, bezeichnung, bemerkung, gruppe
                               FROM ".DB_PREFIX."lesezeichen
-                             WHERE $sql_group") or db_die();
+                             WHERE $sql_group
+                               AND is_deleted is NULL") or db_die();
         while ($row = db_fetch_row($result)) {
             $msg = '';
             // $url = eregi_replace("http://","",$row[3]);
@@ -2041,21 +2113,20 @@ else if ($action == "forum") {
         $result = db_query("SELECT ID
                               FROM ".DB_PREFIX."forum
                              WHERE datum < '$zeit'
+                               AND is_deleted is NULL
                                AND $sql_group") or db_die();
         while ($row = db_fetch_row($result)) {
             $treffer++;
         }
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."forum
-                             WHERE datum < '$zeit'
-                               AND $sql_group") or db_die();
+        delete_record_id('forum',"WHERE datum < '$zeit' AND $sql_group");
         $output .= "$treffer ".__('threads older than x days are deleted.').". (x=$tage)<br />\n";
     }
     // second case - specific threads
     else {
         $result = db_query("SELECT ID, titel, gruppe
                               FROM ".DB_PREFIX."forum
-                             WHERE ID = ".(int)$ID) or db_die();
+                             WHERE ID = ".(int)$ID."
+                               AND is_deleted is NULL") or db_die();
         $row = db_fetch_row($result);
         // check permission (except the root who has access to all groups)
         if ($user_group > 0 and $row[2] <> $user_group) die("you are not allowed to do this");
@@ -2069,12 +2140,8 @@ else if ($action == "forum") {
         if (!$error) {
             delete_comments($ID);
             // now delete the posting itself
-            $result = db_query("DELETE
-                                  FROM ".DB_PREFIX."forum
-                                 WHERE parent = ".(int)$ID) or db_die();
-            $result = db_query("DELETE
-                                  FROM ".DB_PREFIX."forum
-                                 WHERE ID = ".(int)$ID) or db_die();
+            delete_record_id('forum',"WHERE parent = ".(int)$ID);
+            delete_record_id('forum',"WHERE ID = ".(int)$ID);
             $output .= strip_tags($row[1])." ".__(' is deleted.')." \n";
         }
     }
@@ -2170,7 +2237,7 @@ else if ($action == "access_rights") {
         $output .= show_group_users($user_group, '',$author_ser, true);
         $output .= "</select><br />\n";
 
-        $output .= access_form2($acc_read,0,$acc_write,0,1);
+        $output .= access_form($acc_read,0,$acc_write,0,1);
         $output .= "<br /><label class='admin_label' for='recursive'>".__('Set access rights as well for all subelements').": \n";
         $output .= "<input type='checkbox' name='recursive'> <br /><br />\n";
         //reset usergroup und sql_usergroup
@@ -2230,6 +2297,59 @@ if ($user_ID == 1) {
         </fieldset>
     ';
     $output .= "</form>\n\n";
+
+
+    // work on costcentres
+    $output .= '<form action="admin.php" method="post">';
+    $hidden_fields = array( "action"       => "costcentres");
+    $output .= hidden_fields($hidden_fields)."\n";
+    // group select
+    $costcentre_select = "<select name='costcentre_id'>\n";
+    $result = db_query("SELECT id, name
+                          FROM ".DB_PREFIX."controlling_costcentres
+                      ORDER BY name") or db_die();
+    while ($row = db_fetch_row($result)) {
+    	$selected = ($costcentre_id == $row[0]) ? 'selected':'';
+        $costcentre_select .= "<option value='$row[0]' $selected>$row[1] ($row[0])</option>\n";
+    }
+    $costcentre_select .= "</select>\n";
+
+    $output .= '
+        <fieldset>
+            <legend>'.__('Costcentre management').'</legend>
+        <input type="submit" class="button" name="neu" value="'.__('New').'" /> '.__('or').'
+        <input type="submit" class="button" name="aendern" value="'.__('Modify').'" />
+        '.$costcentre_select.'
+        <input type="submit" class="button" name="loeschen" value="'.__('Delete').'" />
+        </fieldset>
+    ';
+    $output .= "</form>\n\n";
+
+    // work on costunit
+    $output .= '<form action="admin.php" method="post">';
+    $hidden_fields = array( "action"       => "costunits");
+    $output .= hidden_fields($hidden_fields)."\n";
+    // group select
+    $costunit_select = "<select name='costunit_id'>\n";
+    $result = db_query("SELECT id, name
+                          FROM ".DB_PREFIX."controlling_costunits
+                      ORDER BY name") or db_die();
+    while ($row = db_fetch_row($result)) {
+    	$selected = ($costunit_id == $row[0]) ? 'selected':'';
+        $costunit_select .= "<option value='$row[0]' $selected>$row[1] ($row[0])</option>\n";
+    }
+    $costunit_select .= "</select>\n";
+
+    $output .= '
+        <fieldset>
+            <legend>'.__('Costunit management').'</legend>
+        <input type="submit" class="button" name="neu" value="'.__('New').'" /> '.__('or').'
+        <input type="submit" class="button" name="aendern" value="'.__('Modify').'" />
+        '.$costunit_select.'
+        <input type="submit" class="button" name="loeschen" value="'.__('Delete').'" />
+        </fieldset>
+    ';
+    $output .= "</form>\n\n";
 }
 
 
@@ -2255,8 +2375,9 @@ if ($group_ID) {
     $user_select = "<select name='pers_ID'><option value='0'></option>\n";
     $result2 = db_query("SELECT ".DB_PREFIX."users.ID, nachname, vorname
                            FROM ".DB_PREFIX."users, ".DB_PREFIX."grup_user
-                          WHERE ".DB_PREFIX."users.ID = user_ID
-                            AND grup_ID = ".(int)$group_ID."
+                          WHERE ".DB_PREFIX."users.ID = user_ID AND
+                                ".DB_PREFIX."users.is_deleted is NULL AND
+                                grup_ID = ".(int)$group_ID." 
                        ORDER BY nachname") or db_die();
     // loop over all entries
     while ($row2 = db_fetch_row($result2)) {
@@ -2392,8 +2513,9 @@ if ($group_ID) {
         ';
         $result = db_query("SELECT ".DB_PREFIX."users.ID, nachname, vorname
                               FROM ".DB_PREFIX."users, ".DB_PREFIX."grup_user
-                             WHERE ".DB_PREFIX."users.ID = user_ID
-                               AND grup_ID = ".(int)$group_ID."
+                             WHERE ".DB_PREFIX."users.ID = user_ID AND
+                                   grup_ID = ".(int)$group_ID." 
+                                   AND ".DB_PREFIX."users.is_deleted is NULL
                           ORDER BY nachname") or db_die();
         while ($row = db_fetch_row($result)) {
             $output .= "<option value='$row[0]'";
@@ -2444,8 +2566,9 @@ if ($group_ID) {
         ';
         $result = db_query("SELECT ".DB_PREFIX."users.ID, nachname, vorname
                               FROM ".DB_PREFIX."users, ".DB_PREFIX."grup_user
-                             WHERE ".DB_PREFIX."users.ID = user_ID
-                               AND grup_ID = ".(int)$group_ID."
+                             WHERE ".DB_PREFIX."users.ID = user_ID AND
+                                   grup_ID = ".(int)$group_ID." 
+                                   AND ".DB_PREFIX."users.is_deleted is NULL
                           ORDER BY nachname") or db_die();
         while ($row = db_fetch_row($result)) {
             $output .= "<option value='$row[0]'>$row[1], $row[2]</option>\n";
@@ -2470,6 +2593,7 @@ if ($group_ID) {
         $result = db_query("SELECT ID, bezeichnung
                               FROM ".DB_PREFIX."lesezeichen
                              WHERE $sql_group
+                               AND is_deleted is NULL
                           ORDER BY bezeichnung") or db_die();
         while ($row = db_fetch_row($result)) {
             $row[1] = html_out($row[1]);
@@ -2487,22 +2611,27 @@ if ($group_ID) {
 
     // Forum
     if (PHPR_FORUM) {
+        $output .= '
+            <fieldset>
+            <legend>'.__('Forum').'</legend>';
         $output .= '<form action="admin.php" method="post">';
         $hidden_fields = array( "action" => "forum");
         $output .= hidden_fields($hidden_fields)."\n";
         $output .= '
-            <fieldset>
-                <legend>'.__('Forum').'</legend>
                 <input type="submit" class="button" name="loeschen" value="'.__('Delete').'" onclick="return confirm(\''.__('Are you sure?').'\')"/>
                 <label>'.__('Threads older than').'</label>
                 <select name="tage">
                 <option value="15">15</option><option value="30">30</option><option value="45">45</option><option value="60">60</option>
                 </select>
-                <label>'.__(' days ').'</label>
-                <br /><input type="submit" class="button" name="loeschen" value="'.__('Delete').'" onclick="return confirm(\''.__('Are you sure?').'\')"/>
+                <label>'.__(' days ').'</label></form><br />';
+        $output .= '<form action="admin.php" method="post">';
+        $hidden_fields = array( "action" => "forum");
+        $output .= hidden_fields($hidden_fields)."\n";
+        $output .= '
+                <input type="submit" class="button" name="loeschen" value="'.__('Delete').'" onclick="return confirm(\''.__('Are you sure?').'\')"/>
                 <label>'.__('posting (and all comments) with an ID').':</label> <input type="text" name="ID" size="4"/>
+                </form>
             </fieldset>
-            </form>
         ';
     }
 
@@ -2561,5 +2690,4 @@ $output .= '
 ';
 
 echo $output;
-
 ?>

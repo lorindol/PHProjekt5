@@ -1,7 +1,7 @@
 <?php
 
 //
-// $Id: soap_lib.php,v 1.1.2.2 2007/09/25 11:19:34 nina Exp $
+// $Id: soap_lib.php,v 1.3 2007-09-25 11:30:18 nina Exp $
 //
 
 // catch all suspicious output

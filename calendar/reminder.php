@@ -1,14 +1,15 @@
 <?php
 /**
-* reminder for upcoming events and incoming mails
-*
-* @package    calendar
-* @module     reminder
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: reminder.php,v 1.32.2.2 2007/04/23 23:55:19 polidor Exp $
-*/
+ * reminder for upcoming events and incoming mails
+ *
+ * @package    calendar
+ * @subpackage reminder
+ * @author     Albrecht Guenther, $Author: paul_guhl $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: reminder.php,v 1.38 2008-06-10 09:01:21 paul_guhl Exp $
+ */
+
 // if (!defined('lib_included')) die('Please use index.php!');
 define('PATH_PRE','../');
 require_once(PATH_PRE.'lib/lib.inc.php');
@@ -56,11 +57,12 @@ $set_reminder_freq = isset($settings['remind_freq']) ? $settings['remind_freq'] 
 // define time and date
 $now = (date('H') + $set_timezone) * 60 + date('i', mktime());
 $str_now = substr('0'.(date('H') + $set_timezone).date('i', mktime()), -4);
-$query = "SELECT event, anfang, ende
+$query = "SELECT event, anfang, ende 
             FROM ".DB_PREFIX."termine 
            WHERE an = ".(int)$user_ID." 
              AND datum = '".date("Y-m-d")."' 
              AND anfang >= '$str_now' 
+             AND is_deleted is NULL
         ORDER BY anfang";
 $res = db_query($query) or db_die();
 $mess = '';
@@ -87,38 +89,38 @@ while ($row = db_fetch_row($res)) {
 $mail_list = '';
 if ($reminder_mail && PHPR_QUICKMAIL == 2) {
     require_once(PATH_PRE.'lib/fetchmail.php');
-
+    
     // reset mail counter
     $i = 0;
 
     // if no special account is given - loop over all mail accounts
-    $query = "SELECT ID, von, accountname, hostname, type, username, password, deletion
-                 FROM ".DB_PREFIX."mail_account 
-                 WHERE von = ".(int)$user_ID."  
-                   AND collect = 1";
-
+    $query = "SELECT ID, von, accountname, hostname, type, username, password, deletion 
+                FROM ".DB_PREFIX."mail_account 
+               WHERE von = ".(int)$user_ID."  
+                 AND collect = 1
+                 AND is_deleted is NULL";
+    
     $res = db_query($query) or db_die();
-
+    
     while ($row = db_fetch_row($res) and $i < 11) {
-
+        
         $conn = new fetchmail($row[3], $row[5], $row[6], $row[4]);
-
+        
         $mails_on_server = $conn->get_mail_list();
-
+                
         if (is_array($mails_on_server) && count($mails_on_server) > 0) {
-
+            
             foreach ($mails_on_server as $msgno => $one_message) {
                 $i++;
                 if ($i > 10) {
                     break;
                 }
                 $mail_list .= "{$one_message['subject']} ({$one_message['from']})\n";
-
+                
             }
         }
     }
     if ($i == 10) $mail_list .= '...';
-    
 }
 // end check mail
 // **************
@@ -132,7 +134,7 @@ if (($mess2 and $set_reminder == 2) or ($mail_list and $reminder_mail == 2)) {
     if ($mess2)     $message .= "$mess2\\n\\n";
     if ($mail_list) $message .= __('New mail arrived');
     $output .= '<body style="margin:0px;background-color:'.PHPR_BGCOLOR3.
-    ';" onload="self.focus();alert(\''.$message.'\');"><div id="global-main">'."\n";
+               ';" onload="self.focus();alert(\''.$message.'\');"><div id="global-main">'."\n";
 }
 // otherwise simply show the list in the window
 else {

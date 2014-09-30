@@ -1,16 +1,21 @@
 <?php
-
-// err_pro.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: err_pro.php,v 1.21 2006/10/25 05:31:19 polidor Exp $
+/**
+ * display erros of actions with the project
+ *
+ * @package    projects
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: err_pro.php,v 1.25 2007-10-10 22:56:43 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
 if ($cancel) {
     include_once("./projects_view.php");
+    die();
 }
 switch(true){
     case isset($upboth):
@@ -56,14 +61,21 @@ switch(true){
 }
 include_once("./projects_data.php");
 
-
+/**
+ * Display the error and a form with options for resolve the problem
+ * use global vars
+ *
+ * @param int parent - Project ID
+ * @return sring     - HTML output
+ */
 function oerror($parent) {
     global $anfang, $ende;
 
     // the project is subproject? check whether the start and end time is within the limits of the parent project
-    $result2 = db_query("select anfang, ende,ID
-                           from ".DB_PREFIX."projekte
-                          where ID = ".(int)$parent) or db_die();
+    $result2 = db_query("SELECT anfang, ende,ID
+                           FROM ".DB_PREFIX."projekte
+                          WHERE ID = ".(int)$parent."
+                            AND is_deleted is NULL") or db_die();
     $row2 = db_fetch_row($result2);
     // timespan exceeds timespan of parent -> die ...
     $anfang_time    = makeTime($anfang);
@@ -86,9 +98,16 @@ function oerror($parent) {
         </span></div>';
         $output .= "<form name='form' action='projects.php' method='POST'>";
         foreach ($_POST as $pk => $pval) {
-            $output .= "<input type='hidden' name='".xss($pk)."' value='".xss($pval)."' />\n";
+            if (is_array($pval)) {
+                foreach ($pval as $k => $V) {
+                    $output .= "<input type='hidden' name='".xss($pk)."[]' value='".xss($v)."' />\n";
+                }
+            } else {
+                $output .= "<input type='hidden' name='".xss($pk)."' value='".xss($pval)."' />\n";
+            }
         }
         $output .= "<input type='hidden' name='inclu' value='err_pro.php' />";
+        $output .= "<input type='hidden' name='csrftoken' value='".make_csrftoken()."' />\n";
         $output .="<div class='header'>".__('You can choose between the following options:')."</div>";
         $output .="<div class='formbody_mailops'>";
         $output .= "<ul><li>".__('Discard changes')." ".get_go_button_with_name("cancel")."</li>";
@@ -128,6 +147,13 @@ function oerror($parent) {
     }
 }
 
+/**
+ * Display the error and a form with options for resolve the problem
+ * use global vars
+ *
+ * @param int parent - Project ID
+ * @return sring     - HTML output
+ */
 function uerror($parent) {
     global $anfang, $ende;
 
@@ -135,9 +161,10 @@ function uerror($parent) {
     $ende_time      = makeTime($ende);
     foreach ($parent as $kidproj) {
         // the project is subproject? check whether the start and end time is within the limits of the parent project
-        $result2 = db_query("select anfang, ende,ID
-                               from ".DB_PREFIX."projekte
-                              where ID = ".(int)$kidproj) or db_die();
+        $result2 = db_query("SELECT anfang, ende,ID
+                               FROM ".DB_PREFIX."projekte
+                              WHERE ID = ".(int)$kidproj."
+                                AND is_deleted is NULL") or db_die();
         $row2 = db_fetch_row($result2);
         // timespan exceeds timespan of parent -> die ...
         $anfangalt = makeTime($row2[0]);
@@ -161,6 +188,7 @@ function uerror($parent) {
                 $output .= "<input type='hidden' name='".xss($pk)."' value='".xss($pval)."' />\n";
             }
             $output .= "<input type='hidden' name='inclu' value='err_pro.php' />";
+            $output .= "<input type='hidden' name='csrftoken' value='".make_csrftoken()."' />\n";
             $output .="<div class='header'>".__('You can choose between the following options:')."</div>";
             $output .="<div class='formbody_mailops'>";
             $output .= "<ul><li>".__('Discard changes')." ".get_go_button_with_name("cancel")."</li>";
@@ -201,11 +229,21 @@ function uerror($parent) {
     }
 }
 
+/**
+ * Moves the date of all subprojects and current project
+ * recurcive function
+ *
+ * @param int ID         - Project ID
+ * @param string field   - Field name of the date
+ * @param string newdate - New date value
+ * @return void
+ */
 function move_up($ID, $field, $newdate) {
     // get the value
     $query="SELECT ".qss($field).", parent
-                   FROM ".DB_PREFIX."projekte
-                   WHERE ID = ".(int)$ID;
+              FROM ".DB_PREFIX."projekte
+             WHERE ID = ".(int)$ID."
+               AND is_deleted is NULL";
     $result = db_query($query) or db_die();
     $row = db_fetch_row($result);
     $get_update=false;
@@ -220,8 +258,8 @@ function move_up($ID, $field, $newdate) {
     // update current project
     if($get_update){
         $query="UPDATE ".DB_PREFIX."projekte
-                       SET ".qss($field)." = '$newdate'
-                       WHERE ID = ".(int)$ID;
+                   SET ".qss($field)." = '$newdate'
+                 WHERE ID = ".(int)$ID;
         $result = db_query($query) or db_die();
     }
     // update parentds
@@ -229,18 +267,20 @@ function move_up($ID, $field, $newdate) {
 }
 
 /**
- * This function moves the date of all subprojects and current project!
+ * Moves the date of all subprojects and current project
+ * recurcive function
  *
- * @author Nina Schmitt
- * @param int $ID
- * @param string $field
- * @param string $newdar
+ * @param int ID         - Project ID
+ * @param string field   - Field name of the date
+ * @param string newdate - New date value
+ * @return void
  */
 function move_down($ID, $field, $newdate) {
     // get the value
     $query="SELECT ".qss($field)."
-                   FROM ".DB_PREFIX."projekte
-                   WHERE ID = ".(int)$ID;
+              FROM ".DB_PREFIX."projekte
+             WHERE ID = ".(int)$ID."
+               AND is_deleted is NULL";
     $result = db_query($query) or db_die();
     $get_update=false;
     switch($field){
@@ -252,25 +292,30 @@ function move_down($ID, $field, $newdate) {
     // update current project
     if($get_update){
         $query="UPDATE ".DB_PREFIX."projekte
-                       SET ".qss($field)." = '$newdate'
-                       WHERE ID = ".(int)$ID;
+                   SET ".qss($field)." = '$newdate'
+                 WHERE ID = ".(int)$ID;
         $result = db_query($query) or db_die();
     }
     // update subproject
     $query="SELECT ID
-                 FROM ".DB_PREFIX."projekte
-                 WHERE parent = ".(int)$ID;
+              FROM ".DB_PREFIX."projekte
+             WHERE parent = ".(int)$ID."
+               AND is_deleted is NULL";
     $result = db_query($query) or db_die();
     while ($row = db_fetch_row($result)) {
         move_down($row[0], $field, $newdate);
     }
 }
 
-
+/**
+ * Get a mktime
+ *
+ * @param date time   - Date value
+ * @return datetime   - Date converted to datetime
+ */
 function makeTime($time) {
     $temp  = explode('-', $time);
     $mtime = mktime(0, 0, 0, (int)$temp[1], (int)$temp[2], (int)$temp[0]);
     return $mtime;
 }
-
 ?>

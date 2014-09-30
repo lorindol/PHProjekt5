@@ -1,14 +1,14 @@
 <?php
 /**
-* Holiday calculation for Spain
-*
-* @package    calendar
-* @module     main
-* @author     Manuel J. Paredes <php@onagenda.com>, David Soria Parra, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: specialdays_spain.php,v 1.2 2006/08/22 08:05:49 albrecht Exp $
-*/
+ * Holiday calculation for Spain
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Manuel J. Paredes <php@onagenda.com>, David Soria Parra, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: specialdays_spain.php,v 1.5 2007-05-31 08:12:03 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
 
 class SpecialDays_Spain
@@ -183,16 +183,16 @@ class SpecialDays_Spain
 	 * @return array
 	 * @access private
 	 */
-	function prevent_sun($data) {
-	 for($i=0;$i<count($data);$i++)
-	 {
-	   $hday = getdate($data[$i]["date"]);
-	   if( $hday["wday"] == 0 ) {
-      	 	 $data[$i]["date"] +=86400; //Add a day 
-      	 }
-	 }
-	 return $data;	
+    function prevent_sun($data)
+    {
+        for($i=0;$i<count($data);$i++) {
+            $hday = getdate($data[$i]["date"]);
+           if( $hday["wday"] == 0 ) {
+      	        $data[$i]["date"] +=86400; //Add a day 
+      	    }
+	    }
+	
+        return $data;	
     }
-    
-   
 }
+?>

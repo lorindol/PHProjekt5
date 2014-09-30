@@ -1,14 +1,15 @@
 <?php
 /**
-* filemanager forms script
-*
-* @package    filemanager
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: filemanager_forms.php,v 1.78.2.1 2007/01/10 02:53:05 polidor Exp $
-*/
+ * filemanager forms script
+ *
+ * @package    filemanager
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: filemanager_forms.php,v 1.85 2008-01-10 03:10:55 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 include_once(LIB_PATH.'/access_form.inc.php');
 
@@ -23,10 +24,11 @@ else if ($justform > 0) $justform++;
 // check permission and fetch values for viewing or modifying a record
 if ($ID > 0) {
     // check permission
-    $result = db_query("select ID, von, acc_write, acc, parent, typ, lock_user, filename, tempname,version, versioning,gruppe
-                          from ".DB_PREFIX."dateien
-                         where ID = ".(int)$ID." and
-                               (acc like 'system' or ((von = ".(int)$user_ID." or acc like 'group' or acc like '%\"$user_kurz\"%')".group_string()."))") or db_die();
+    $result = db_query("SELECT ID, von, acc_write, acc, parent, typ, lock_user, filename, tempname,version, versioning,gruppe
+                          FROM ".DB_PREFIX."dateien
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL
+                           AND (acc like 'system' or ((von = ".(int)$user_ID." or acc like 'group' or acc like '%\"$user_kurz\"%')".group_string()."))") or db_die();
     $row = db_fetch_row($result);
     if (!$row[0]) die("You are not privileged to do this!");
     if ($row[1] <> $user_ID and $row[2] <> 'w') $read_o = 1;
@@ -43,7 +45,7 @@ if ($ID > 0) {
 //unset ID when copying project
 if ($copy <> '')$copy_output="<input type='hidden' name='copy_ID' value='$ID' />";
 else $copy_output='';
-$ID=prepare_ID_for_copy($ID,$copy);
+$ID=prepare_ID_for_copy($ID,$copyform);
 
 if ($ID) $head = slookup('dateien', 'filename', 'ID', $ID,'1');
 else     $head = __('New file');
@@ -59,8 +61,7 @@ $buttons = array();
 if (SID) $hidden[session_name()] = session_id();
 if ($justform > 0) $hidden['justform'] = '1';
 $buttons[] = array('type' => 'form_start', 'name' => 'frm', 'hidden' => $hidden, 'enctype'=>"multipart/form-data");
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
+
 $output .= breadcrumb($module, breadcrumb_data($ID));
 $output .= '</div>';
 $output .= $content_div;
@@ -93,6 +94,12 @@ $output .= get_buttons_area($buttons);
 
 //add hidden copystring in case copy was activated:
 $output .= $copy_output;
+
+
+
+$out_array=array();
+
+
 
 /*******************************
 *       basic fields
@@ -161,14 +168,24 @@ $form_fields[] = array('type' => 'parsed_html', 'html' => $tmp);
 $form_fields[] = array('type' => 'text', 'name' => 'filepath', 'label' => __('name and network path').__(':'), 'value' => $row[8]);
 $form_fields[] = array('type' => 'parsed_html', 'html' => '</div>');
 $form_fields[] = array('type' => 'parsed_html', 'html' => '<script type="text/javascript">sh_fields_filemanager("typ");</script>');
-$form_fields[] = array('type' => 'parsed_html', 'html' => build_form($fields));
-$basic_fields = get_form_content($form_fields);
+
+$basic_fields  = build_form($fields);
+
+$basic_fields[0][1]  = '&nbsp;&nbsp;'.get_form_content($form_fields).$basic_fields[0][1];
+
+
+
+
+
+
 
 /*******************************
 *    categorization fields
 *******************************/
 $form_fields = array();
-$tmp = '
+
+$tmp = '<br/>
+
 <label class="label_block" for="parent">'.__('Parent object').__(':').' </label>
 <select class="form" id="parent" name="parent"'.read_o($read_o).'>
 <option value="0"></option>
@@ -176,7 +193,7 @@ $tmp = '
 
 // define access rule
 $access = " and (von = ".(int)$user_ID." or ((acc like 'group' or acc like '%\"$user_kurz\"%') and acc_write = 'w')) and $sql_user_group";
-$where = "where (typ like 'd' OR typ like 'fv') ".$access;
+$where = "where (typ like 'd' OR typ like 'fv') AND is_deleted is NULL ".$access;
 $tmp .= show_elements_of_tree("dateien","filename",$where,"acc"," order by typ,filename",$parent,"parent",$ID);
 
 $tmp .= '</select>';
@@ -218,41 +235,45 @@ if (!isset($acc_write)) {
     else $acc_write = xss($_POST['acc_write']);
 }
 // acc_read, exclude the user itself, acc_write, no parent possible, write access=yes
-$form_fields[] = array('type' => 'parsed_html', 'html' => access_form2($str_persons, 1, $acc_write, 0, 1,'acc', $read_acc));
+$form_fields[] = array('type' => 'parsed_html', 'html' => access_form($str_persons, 1, $acc_write, 0, 1,'acc', $read_acc));
 $assignment_fields = get_form_content($form_fields);
 
-if (PHPR_HISTORY_LOG == 2) $history = history_show('dateien', $ID);
 
-$file_history = file_history_show($ID,$date_format_object);
-if($file_history<>''){
-    $file_history = '<div class="boxHeaderLeft">'.__('File History').'</div>
-                    <div class="boxHeaderRight"><a class="formBoxHeader" href="#oben">'.__('Basis data').'</a></div>
-                    <div class="boxContent">'.$file_history.'</div>
-                    <br style="clear:both" /><br /><br />';
+
+
+if ($ID) {
+    $file_history = file_history_show($ID,$date_format_object);
 }
-$output .= '
-    <br />
-    <div class="inner_content">
-        <a name="content"></a>
-        <a name="oben" id="oben"></a>
-        <fieldset>
-        <legend>'.__('Basis data').'</legend>
-        '.$basic_fields.'
-        </fieldset>
+$out_array = array_merge($out_array,$basic_fields);
 
-        <fieldset>
-        <legend>'.__('Categorization').'</legend>
-        '.$categorization_fields.'
-        </fieldset>
+$out_array[]=array(__('Categorization'),$categorization_fields);
 
-        '.$assignment_fields.'
-        '.$file_history.'
-        '.$history.'
-    </div>
-    <br />
-</form>
-';
-$output .= '</div>';
+$out_array[]=array(__('Release'),$assignment_fields);
+
+if($file_history<>'')$out_array[]=array(__('File History'),$file_history);
+
+if ($ID > 0 and PHPR_HISTORY_LOG == 2) $out_array[]=array(__('History'),history_show('dateien', $ID));
+
+
+
+$output.= generate_output($out_array);
+
+
+
+$out_array=array();
+
+
+
+$output .= '<div class="hline"></div>';
+
+$output .= get_buttons_area($buttons);
+
+$output .= '<div class="hline"></div>';
+
+
+
+$output .= '</form>';
+
 echo $output;
 
 ?>

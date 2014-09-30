@@ -1,25 +1,27 @@
 <?php
 /**
-* calendar list view with context menu
-*
-* @package    calendar
-* @module     view
-* @author     Albrecht Guenther, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_view.php,v 1.56.2.4 2007/01/23 15:35:48 alexander Exp $
-*/
+ * calendar list view with context menu
+ *
+ * @package    calendar
+ * @subpackage view
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_view.php,v 1.66 2008-02-28 04:47:29 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(PATH_PRE.'lib/dbman_lib.inc.php');
 
 $output = '';
 $fields = build_array('calendar', $ID, $mode); ;
+filter_mode($filter_ID);
 sort_mode($module,'datum');
 html_editor_mode($module);
 $is_related_obj = isset($is_related_obj) ? (bool) $is_related_obj : false;
 $rule = isset($rule) ? check_rule($rule) : '';
 $filter_ID = isset($filter_ID) ? (int) $filter_ID : null;
-$operator = isset($operator) && $operator == 'OR' ? $operator : ' AND ';
+$operator = isset($operator) ? qss($operator) : '';
 
 if (isset($save_tdwidth)) store_column_width($module);
 
@@ -71,6 +73,14 @@ if ( !isset($flist[$module][0]) && !isset($flist_store[$module][0]) &&
     $_rule    = 'exact';
     $_keyword = ($view == 4 && $act_for) ? $act_for : $user_ID;
     $where1   = main_filter($_filter, $_rule, $_keyword, 1, 'calendar','',$operator);
+} else {
+    if (is_array($flist[$module])) {
+        foreach ($flist[$module] as $tmp => $filter_data) {
+            if ($filter_data[0] == 'an') {
+                $flist[$module][$tmp][2] = ($view == 4 && $act_for) ? $act_for : $user_ID; 
+            }
+        }
+    }
 }
 
 // distinction
@@ -96,12 +106,17 @@ foreach ($where_array as $where_an) {
 $where .= ') ';
 $where .= main_filter($filter, $rule, $keyword, $filter_ID, 'calendar','',$operator);
 
+// fix show all user info
+$where2 = calendar_get_permission_where($user_ID, $view);
 
-$result = db_query("SELECT ID
-                      FROM ".DB_PREFIX."termine
-                           ".sql_filter_flags($module, array('archive', 'read'))."
-                     WHERE $where
-                           ".sql_filter_flags($module, array('archive', 'read'), false)) or db_die();
+$query = "SELECT ID
+            FROM ".DB_PREFIX."termine
+                 ".sql_filter_flags($module, array('archive', 'read'))."
+           WHERE $where
+                 ".sql_filter_flags($module, array('archive', 'read'), false)
+                ."AND ".DB_PREFIX."termine.is_deleted is NULL
+                 $where2 ";
+$result = db_query($query) or db_die();
 $liste = make_list($result);
 
 $add_paras = array();
@@ -116,7 +131,7 @@ $output .= get_status_bar();
 $output .= get_top_page_navigation_bar();
 $output .= '</div>';
 
-$where = " WHERE $where
+$where = " WHERE $where $where2
                  ".sql_filter_flags($module, array('archive', 'read'), false)."
                  ".sort_string();
 

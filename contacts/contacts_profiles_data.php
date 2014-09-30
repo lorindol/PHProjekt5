@@ -1,10 +1,14 @@
 <?php
-
-// contacts_profiles_data.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: thorsten $
-// $Id: contacts_profiles_data.php,v 1.23.2.3 2007/02/26 14:50:03 thorsten Exp $
+/**
+ * contacts profiles db data script
+ *
+ * @package    contacts
+ * @subpackage profiles
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    contacts_profiles_data.php,v 1.25 2007/03/09 13:58:23 florian Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -27,6 +31,13 @@ else if (isset($use_profile)) {
 
 include_once("./contacts_profiles_forms.php");
 
+/**
+ * delete profile
+ * use global ID for delete it
+ *
+ * @param void
+ * @return void
+ */
 function delete_profile() {
     global $ID, $action;
 
@@ -38,12 +49,19 @@ function delete_profile() {
         $result = db_query("DELETE FROM ".DB_PREFIX."contacts_profiles
                             WHERE ID = ".(int)$ID) or db_die();
         // delete all entries in the other table
-        $result = db_query("DELETE FROM ".DB_PREFIX."contacts_prof_rel
-                            WHERE contacts_profiles_ID = ".(int)$ID) or db_die();
+        delete_record_id('contacts_prof_rel',"WHERE contacts_profiles_ID = ".(int)$ID);
         message_stack_in(__('The profile has been deleted.'), "profiles", "notice");
     }
 }
 
+/**
+ * check the form values
+ * if a error is found, the global error is set to 1
+ * and a msg error is maked generated
+ *
+ * @param void
+ * @return void
+ */
 function check_values() {
     global $error, $name, $contact_personen, $user_ID, $ID, $action;
 
@@ -70,6 +88,13 @@ function check_values() {
     }
 }
 
+/**
+ * insert a profile into the db
+ * use global vars from the form
+ *
+ * @param void
+ * @return void
+ */
 function insert_profile() {
     global $error, $user_ID, $name, $remark;
     global $kategorie, $acc, $contact_personen, $ID, $user_ID, $action;
@@ -100,6 +125,13 @@ function insert_profile() {
     }
 }
 
+/**
+ * update a profile into the db
+ * use global vars
+ *
+ * @param void
+ * @return void
+ */
 function update_profile() {
     global $error, $user_ID, $name, $remark, $kategorie, $acc, $contact_personen, $ID, $action;
 
@@ -127,6 +159,12 @@ function update_profile() {
     }
 }
 
+/**
+ * apply a profile and save the data into the SESSION
+ *
+ * @param int ID - Profile ID
+ * @return void
+ */
 function use_profile($ID) {
     global $flist, $remark;
 

@@ -1,15 +1,27 @@
 <?php
-
-// email_getpart.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $auth$
-// $Id: email_getpart.inc.php,v 1.4 2006/08/22 08:05:47 albrecht Exp $
+/**
+ * Get a specific part of one mail
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $auth$
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: email_getpart.inc.php,v 1.8 2007-05-31 08:11:52 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
-
+/**
+ * Get a specific part of one mail
+ *
+ * @param int   		$link2       		- Imap_stream
+ * @param int    		$x           			- Identificator msg_number
+ * @param object 	$structure   		- Object mail
+ * @param string 	$part_number 	- Value of the part_number
+ * @return misc               				Mail part or false
+ */
 function get_part($link2, $x, $mime_type, $structure=false, $part_number=false) {
     if (!$structure) $structure = imap_fetchstructure($link2, $x);
     if ($structure) {
@@ -32,7 +44,12 @@ function get_part($link2, $x, $mime_type, $structure=false, $part_number=false) 
     return false;
 }
 
-
+/**
+ * Get a structure type
+ *
+ * @param object 	$structure   	- Object mail
+ * @return string             			Part type
+ */
 function email_get_mime_type(&$structure) {
     $primary_mime_type = array( 'TEXT',
                                 'MULTIPART',
@@ -47,5 +64,4 @@ function email_get_mime_type(&$structure) {
     }
     return 'TEXT/PLAIN';
 }
-
 ?>

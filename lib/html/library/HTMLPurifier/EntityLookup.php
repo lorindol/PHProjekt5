@@ -4,13 +4,13 @@
  * Object that provides entity lookup table from entity name to character
  */
 class HTMLPurifier_EntityLookup {
-    
+
     /**
      * Assoc array of entity name to character represented.
      * @public
      */
     var $table;
-    
+
     /**
      * Sets up the entity lookup table from the serialized file contents.
      * @note The serialized contents are versioned, but were generated
@@ -23,9 +23,10 @@ class HTMLPurifier_EntityLookup {
         }
         $this->table = unserialize(file_get_contents($file));
     }
-    
+
     /**
      * Retrieves sole instance of the object.
+     * @static
      * @param Optional prototype of custom lookup table to overload with.
      */
     function instance($prototype = false) {
@@ -39,7 +40,5 @@ class HTMLPurifier_EntityLookup {
         }
         return $instance;
     }
-    
 }
-
 ?>

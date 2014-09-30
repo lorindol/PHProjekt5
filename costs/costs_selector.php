@@ -2,7 +2,7 @@
 /**
  * @package    cost
  * @subpackage main
- * @author     Gustavo Solt, $Author: polidor $
+ * @author     Gustavo Solt, $Author: gustavo $
  * @licence    GPL, see www.gnu.org/copyleft/gpl.html
  * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
  * @version    $Id: cost_selector.php

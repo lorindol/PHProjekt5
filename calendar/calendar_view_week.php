@@ -1,14 +1,15 @@
 <?php
 /**
-* calendar week view
-*
-* @package    calendar
-* @module     view
-* @author     Albrecht Guenther, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_view_week.php,v 1.57 2006/10/26 10:13:35 alexander Exp $
-*/
+ * calendar week view
+ *
+ * @package    calendar
+ * @subpackage view
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_view_week.php,v 1.59 2007-05-31 08:10:11 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 include_once('./calendar_view_day.php');
 

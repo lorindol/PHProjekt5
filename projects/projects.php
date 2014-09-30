@@ -1,16 +1,21 @@
 <?php
-
-// projects.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: thorsten $
-// $Id: projects.php,v 1.42.2.2 2007/02/14 12:06:11 thorsten Exp $
+/**
+ * projects controller script
+ *
+ * @package    projects
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: projects.php,v 1.50 2008-01-08 16:44:19 gustavo Exp $
+ */
 
 $module = 'projects';
 $contextmenu = 1;
 
 define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');
+include_once('./projects.inc.php');
 
 projects_init();
 
@@ -49,8 +54,7 @@ require_once('projects_selector_data.php');
 echo set_page_header();
 
 if ($justform > 0) {
-    $content_div = '<div class="justformcontent">';
-
+    $content_div = '<div id="global-content" class="popup">';
 }
 else {
     include_once(LIB_PATH.'/navigation.inc.php');
@@ -66,11 +70,11 @@ else {
     global $fields;
     $fields_temp = $fields;
     foreach($fields_temp as $field_name => $field_array) {
-        if (isset($_POST[$field_name])) $fields[$field_name]['value'] = xss($_POST[$field_name]);
+        if (isset($_POST[$field_name])) $fields[$field_name]['value'] = strip_tags($_POST[$field_name]);
     }
     // Get value from another module or internar module value
     if (!isset($_GET['contact_ID'])) {
-        if (isset($formdata['contact'])) $contact_ID = xss($formdata['contact']);
+        if (isset($formdata['contact'])) $contact_ID = strip_tags($formdata['contact']);
         elseif(isset($fields['contact']['value'])) {
             $contact_ID = $fields['contact']['value'];
         }
@@ -79,7 +83,7 @@ else {
         }
     }
 
-    if (isset($formdata['project'])) $projekt_ID = xss($formdata['project']);
+    if (isset($formdata['project'])) $projekt_ID = strip_tags($formdata['project']);
     elseif(isset($fields['project']['value'])) {
         $projekt_ID = $fields['project']['value'];
     }
@@ -87,7 +91,7 @@ else {
         $projekt_ID = -1;
     }
 
-    if (isset($formdata['chef'])        && $mode == "forms")    $fields['chef']['value'] = xss($formdata['chef']);
+    if (isset($formdata['chef'])        && $mode == "forms")    $fields['chef']['value'] = strip_tags($formdata['chef']);
     if (isset($formdata['parent'])      && $mode == "forms")    $parent = (int)$formdata['parent'];
     if (isset($formdata['persons'])     && $mode == "forms")    $persons = $formdata['persons'];
     if (isset($formdata['personen'])    && $mode == "forms")    $personen = $formdata['personen'];
@@ -117,6 +121,7 @@ echo "\n</div>\n</body>\n</html>\n";
 /**
  * initialize the projects stuff and make some security checks
  *
+ * @param void
  * @return void
  */
 function projects_init() {
@@ -130,25 +135,25 @@ function projects_init() {
     // convert user date format back to db/iso date format (from the form)
     // use $_POST here, cause dbman_data.inc.php uses also the superglobal $_POST
     if (isset($_POST['anfang'])) {
-        $anfang = $_POST['anfang'] = $date_format_object->convert_user2db(xss($_POST['anfang']));
+        $anfang = $_POST['anfang'] = $date_format_object->convert_user2db(strip_tags($_POST['anfang']));
     }
     if (isset($_POST['ende'])) {
-        $ende = $_POST['ende'] = $date_format_object->convert_user2db(xss($_POST['ende']));
+        $ende = $_POST['ende'] = $date_format_object->convert_user2db(strip_tags($_POST['ende']));
     }
 
     if (!isset($_REQUEST['treemode'])) {
         $_REQUEST['treemode'] = 'auf';
     }
-    $treemode = $_REQUEST['treemode'] = xss($_REQUEST['treemode']);
+    $treemode = $_REQUEST['treemode'] = strip_tags($_REQUEST['treemode']);
 
     if ( !isset($_REQUEST['mode']) ||
-         !in_array($_REQUEST['mode'], array('view', 'forms', 'data', 'gantt', 'options', 'sort', 'stat', 'pdf', 'status_update', 'status_change')) ) {
+         !in_array($_REQUEST['mode'], array('view', 'forms', 'data', 'gantt', 'options', 'sort', 'stat', 'pdf', 'status_update', 'status_change','uploadforms')) ) {
         $_REQUEST['mode'] = 'view';
     }
-    $mode = xss($_REQUEST['mode']);
+    $mode = strip_tags($_REQUEST['mode']);
 
     if (isset($_REQUEST['mode2'])) {
-        $mode2 = xss($_REQUEST['mode2']);
+        $mode2 = strip_tags($_REQUEST['mode2']);
     }
 }
 

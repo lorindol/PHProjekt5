@@ -1,14 +1,14 @@
 <?php
 /**
-* holiday file for sweden
-*
-* @package    calendar
-* @module     main
-* @author     Tore Agblad <tore.agblad@euromail.se>, David Soria Parra, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: specialdays_sweden.php,v 1.2 2006/08/22 08:05:49 albrecht Exp $
-*/
+ * holiday file for sweden
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Tore Agblad <tore.agblad@euromail.se>, David Soria Parra, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: specialdays_sweden.php,v 1.5 2007-05-31 08:12:03 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
 
 class SpecialDays_Sweden
@@ -148,3 +148,4 @@ class SpecialDays_Sweden
 	}
 	
 }
+?>

@@ -1,14 +1,18 @@
 <?php
-
-// gantt_graph.php - PHProjekt Version 5.1
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Nina Schmitt
+/**
+ * script for create gantt graph
+ *
+ * @package    projects
+ * @subpackage gantt
+ * @author     Nina Schmitt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id:
+ */
 
 // assign colours to categories
 $colours = array( "#000000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff",
 "#800080", "#c0c0c0", "#008000", "#000080", "#808000", "#ff0000" );
-
 define('PATH_PRE','../');
 include_once('../lib/lib.inc.php');
 ini_set(max_execution_time, 200);
@@ -106,6 +110,7 @@ foreach ($projectlist as $project) {
 
 // add constraints
 $dep1 = array( '4' => 'STARTEND', '3' => 'STARTSTART', '2' => 'ENDSTART', '5' => 'ENDEND');
+
 foreach ($projectlist as $project) {
     if ($project[4] > 0 && $activity_list[$project[4]]>0) {
         // since the current project only listens to another project,
@@ -113,16 +118,34 @@ foreach ($projectlist as $project) {
         $activity_list[$project[4]]->SetConstrain($projects_ref[$project[0]], 'CONSTRAIN_'.$dep1[$project[10]]);
     }
 }
+
 if (sizeof($activity_list)>0) {
     // Finally add the bar to the graph
     foreach ($activity_list as $activity) {
         $graph->Add($activity);
     }
 }
+
+// add milestones
+if (sizeof($milestone_list)>0) {
+    // Finally add the bar to the graph
+    foreach ($milestone_list as $milestone) {
+        $graph->Add($milestone);
+    }
+}
+
 $graph->Stroke();
 // end print projects
 // ************************
 
+
+/**
+ * Get the start and end date values
+ * use global vars
+ *
+ * @param void
+ * @return void
+ */
 function define_timeframe() {
     global $anfang, $ende, $sql_user_group, $start_month, $start_day, $start_year;
     global $end_day, $end_month, $end_year, $single_project, $scaling;
@@ -132,14 +155,17 @@ function define_timeframe() {
         if ($single_project) {
             $result = db_query("SELECT ID, name, anfang, ende, depend_proj
                                   FROM ".DB_PREFIX."projekte
-                                 WHERE ID = ".(int)$single_project) or db_die();
+                                 WHERE ID = ".(int)$single_project."
+                                   AND is_deleted is NULL") or db_die();
         }
         else {
             $result = db_query("SELECT ID, name, anfang, ende, depend_proj
                                   FROM ".DB_PREFIX."projekte
                                  WHERE parent = 0
+                                   AND is_deleted is NULL
                                    AND $sql_user_group") or db_die();
         }
+        $projectlist = array();
         while ($row = db_fetch_row($result)) {
             $projectlist[] = $row;
         }
@@ -169,6 +195,13 @@ function define_timeframe() {
     }
 }
 
+/**
+ * Get all the project data for display
+ * use global vars
+ *
+ * @param void
+ * @return void
+ */
 function fetch_projects() {
     global $start_day, $start_month, $start_year, $end_day, $end_month, $end_year, $single_project;
     global $sql_user_group, $ende, $anfang, $only_main, $range, $projectlist, $level, $user_ID, $user_kurz;
@@ -182,7 +215,8 @@ function fetch_projects() {
     if ($single_project) {
         $result = db_query("SELECT ID, ende, anfang
                               FROM ".DB_PREFIX."projekte
-                             WHERE ID = ".(int)$single_project) or db_die();
+                             WHERE ID = ".(int)$single_project."
+                               AND is_deleted is NULL") or db_die();
     }
     // fetch main projects
     else {
@@ -198,7 +232,8 @@ function fetch_projects() {
                              WHERE parent = 0 $where
                                AND (acc LIKE 'system'
                                     OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')
-                                        AND $sql_user_group))".sort_string('project_gantt')) or db_die();
+                                    AND $sql_user_group))
+                               AND is_deleted is NULL ".sort_string('project_gantt')) or db_die();
     }
     while ($row = db_fetch_row($result)) {
         if ($row[2] <= $ende and $row[1] >= $anfang) {
@@ -219,21 +254,29 @@ function fetch_projects() {
     $projectlist = add_values($projectlist);
 } // end function
 
-// add subprojects to Gantt
+/**
+ * Add subprojects to Gantt
+ * recursive function
+ * use global vars
+ *
+ * @param int ID - project ID
+ * @return void
+ */
 function sub2($ID) {
     global $sql_user_group, $projectlist, $anfang, $ende, $level, $single_project, $user_ID, $user_kurz;
 
     $result = db_query("SELECT ID, ende, anfang
                           FROM ".DB_PREFIX."projekte
-                         WHERE parent = ".(int)$ID." 
+                         WHERE parent = ".(int)$ID."
                            AND (acc LIKE 'system'
                                 OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')
-                                    AND $sql_user_group))".sort_string('project_gantt')) or db_die();
+                                AND $sql_user_group))
+                           AND is_deleted is NULL ");//.sort_string('project_gantt')) or db_die();
     while ($row = db_fetch_row($result)) {
         if ($row[2] <= $ende and $row[1] >= $anfang) { $liste[] = $row[0]; }
     }
     if ($liste[0] > 0) {
-
+        // sort the projects on this sublevel
         foreach ($liste as $ID) {
             $projectlist[] = $ID;
             $level++;
@@ -243,14 +286,21 @@ function sub2($ID) {
     }
 }
 
+/**
+ * Get all the data of the project
+ *
+ * @param array liste - Array of project ID
+ * @return array      - Array with all the data per project
+ */
 function add_values($liste) {
     global $level;
-
+    $projectlist = array();
     foreach ($liste as $project) {
         $result = db_query("SELECT ID, name, anfang, ende, depend_proj, status,
                                    kategorie, chef, personen, status, depend_mode
                               FROM ".DB_PREFIX."projekte
-                             WHERE ID = ".(int)$project) or db_die();
+                             WHERE ID = ".(int)$project."
+                               AND is_deleted is NULL") or db_die();
         $row = db_fetch_row($result);
         $level = 0;
         $row[] = fetch_sublevel($row[0]);
@@ -259,12 +309,20 @@ function add_values($liste) {
     return $projectlist;
 }
 
+/**
+ * Get subproject level
+ * recursive function
+ *
+ * @param int ID - Project ID
+ * @return int   - Level of the subproject
+ */
 function fetch_sublevel($ID) {
     global $level;
 
     $result = db_query("SELECT parent
                           FROM ".DB_PREFIX."projekte
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     if ($row[0] > 0) {
         $level++;
@@ -277,18 +335,26 @@ function fetch_sublevel($ID) {
 // ************
 // experimental
 
-// chart part
+/**
+ * Chart part
+ * use global vars
+ *
+ * @param int project - Project ID
+ * @return void
+ */
 function add_chart($project) {
-    global $graph, $number, $activity_list, $projects_ref,$colour,$colours;
+    global $graph, $number, $activity_list, $projects_ref,$colour,$colours, $milestone_list;
     global $namel, $chefl, $person, $categorie, $categories;
 
     $number++;
+
     // getting participants
     $participants = '';
 
     // use project_users_rel instead of personen
     $temp_result = db_query("SELECT user_ID FROM ".DB_PREFIX."project_users_rel
-                                    WHERE project_ID = ".(int)$project[0]." ");
+                              WHERE project_ID = ".(int)$project[0]."
+                                AND is_deleted is NULL");
 
     while ($temp_row = db_fetch_row($temp_result)) {
         $participants .= slookup('users','nachname,vorname','ID',$temp_row[0],'1').',';
@@ -334,16 +400,45 @@ function add_chart($project) {
 
     $activity_list[$project[0]] = $activity;
 
+    fetch_milestones($project[0],$number);
+
     // save relation number - projectID
     $projects_ref[$project[0]] = $number;
 }
 
+/**
+ * Fetch milestone
+ *
+ * @param int project ID - Name to display
+ * @param int level      - Number of idents
+ * @return array         - Milestone list
+ */
+function fetch_milestones($project_ID, $number) {
+	global $milestone_list;
+	$query = "SELECT name,begin FROM ".DB_PREFIX."project_elements
+                              WHERE project_ID = ".(int)$project_ID."
+                                AND is_deleted is NULL
+                                AND category = 1";
+    $result = db_query($query);
+    while ($row = db_fetch_row($result)) {
+    	$milestone_list[] = new MileStone($number,'',$row[1],"\n\n".$row[0]);
+    }
+}
+
+/**
+ * Ident the output
+ *
+ * @param string name  - Name to display
+ * @param int level    - Number of idents
+ * @param string blank - string to use in the idents
+ * @return string      - HTML name with idents
+ */
 function indent_name($name, $level, $blank=' ') {
     // first table cell: name of project and indentation
     for ($b = 0; $b < $level; $b++) {
         $indent .= $blank;
     }
-    return $indent.html_out($name);
+    return $indent.strip_tags($name);
 }
 
 

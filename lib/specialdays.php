@@ -1,16 +1,16 @@
 <?php
 /**
-* basic class for holiday files
+* Basic class for holiday files
 *
 * This file stores common functions for reading and writing
 * project-related times that are referenced from modules.
 *
-* @package    library
-* @module     holidays
-* @author     David Soria-Parra, Alex Reil, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: specialdays.php,v 1.13 2006/10/09 10:22:01 albrecht Exp $
+* @package    	lib
+* @subpackage 	holidays
+* @author     		David Soria-Parra, Alex Reil, $Author: gustavo $
+* @licence     GPL, see www.gnu.org/copyleft/gpl.html
+* @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+* @version    		$Id: specialdays.php,v 1.17 2007-05-31 08:11:55 gustavo Exp $
 */
 if (!defined('lib_included')) die('Please use index.php!');
 
@@ -31,12 +31,7 @@ require_once(PATH_PRE."lib/date_format.php");
  * Handles holidays, school holidays and other important dates (called special days).
  * Gives you the possibility to merge the calculations of different classes,
  * implementing SpecialDays_DataClass.
- *
- * @author David Soria Parra <soria_parra@mayflower.de>
- * @since PHProjekt 5.1
- * @package PHProjekt
- * @subpackage Calendar
- * @version $Id: specialdays.php,v 1.13 2006/10/09 10:22:01 albrecht Exp $
+ * @package lib
  */
 class SpecialDays
 {
@@ -44,7 +39,7 @@ class SpecialDays
      * Temp var used by get_masked_days_for_period. Timestamp
      *
      * @access private
-     * @var integer
+     * @var int
      */
     var $_firstDateTimestamp;
 
@@ -52,7 +47,7 @@ class SpecialDays
      * Temp var used by get_masked_days_for_period. Timestamp
      *
      * @access private
-     * @var integer
+     * @var int
      */
     var $_lastDateTimestamp;
 
@@ -60,7 +55,7 @@ class SpecialDays
      * Temp var used by get_masked_days_for_period. Level
      *
      * @access private
-     * @var integer
+     * @var int
      */
     var $_mask;
 
@@ -96,7 +91,7 @@ class SpecialDays
      * The classes are used by get_masked_days_for_period()
      *
      * @see get_masked_days_for_period
-     * @param array $countries
+     * @param array 	$countries
      * @return SpecialDays
      * @access public
      */
@@ -125,9 +120,9 @@ class SpecialDays
      * Adds an user defined day to the list of holidays. The days are stored separated from the main calculation and
      * are merged after finish calculation. Returns FALSE if fails.
      *
-     * @param integer $timestamp
-     * @param string $name
-     * @param integer $type
+     * @param int			$imestamp
+     * @param string		$name
+     * @param int			$type
      * @return boolean
      * @access public
      */
@@ -147,10 +142,10 @@ class SpecialDays
     /**
      * Returnes true if the requested period is in cached period and
      *
-     * @param integer $firstDateTimestamp
-     * @param integer $lastDateTimestamp
-     * @param unknown_type $mask
-     * @return unknown
+     * @param int		$firstDate		- Timestamp
+     * @param int		$lastDate			- Timestamp
+     * @param int		$mask				-
+     * @return boolean
      */
     function _isCacheable($firstDateTimestamp, $lastDateTimestamp, $mask)
     {
@@ -167,6 +162,7 @@ class SpecialDays
     /**
      * Gets the cache
      *
+     * @param void
      * @return mixed
      */
     function _getCache()
@@ -189,9 +185,9 @@ class SpecialDays
      * The returned array is sorted.
      *
      * @see _filter_array()
-     * @param integer $firstDateTimestamp
-     * @param integer $lastDateTimestamp
-     * @param integer $mask
+     * @param int	$firstDate	.- Timestamp
+     * @param int	$lastDate		- Timestamp
+     * @param int	$mask			-
      * @return array
      * @access public
      */
@@ -232,10 +228,10 @@ class SpecialDays
      * Counts the amount of days, calculates by get_masked_days_for_period()
      *
      * @see get_masked_days_for_period()
-     * @param integer $firstDateTimestamp
-     * @param integer $lastDateTimestamp
-     * @param integer $mask
-     * @return integer
+     * @param int	$firstDate	- Timestamp
+     * @param int	$lastDate		- Timestamp
+     * @param int	$mask			-
+     * @return int
      * @access public
      */
     function get_masked_days_count_for_period($firstDateTimestamp, $lastDateTimestamp, $mask = PHPR_SD_ALL)
@@ -247,8 +243,8 @@ class SpecialDays
      * Recieves holidays in a given period
      *
      * @see get_masked_days_for_period()
-     * @param integer $firstDateTimestamp
-     * @param integer $lastDateTimestamp
+     * @param int	$firstDate	- Timestamp
+     * @param int	$lastDate		- Timestamp
      * @return array
      * @access public
      */
@@ -261,9 +257,9 @@ class SpecialDays
      * Calculates the amount of holidays in a given period.
      *
      * @see get_masked_days_count_for_period()
-     * @param integer $firstDateTimestamp
-     * @param integer $lastDateTimestamp
-     * @return integer
+     * @param int	$firstDate	- Timestamp
+     * @param int	$lastDate		- Timestamp
+     * @return int
      * @access public
      */
     function get_holidays_count_for_period($firstDateTimestamp, $lastDateTimestamp)
@@ -275,8 +271,8 @@ class SpecialDays
      * Recieves special days in a given period
      *
      * @see get_masked_days_for_period()
-     * @param integer $firstDateTimestamp
-     * @param integer $lastDateTimestamp
+     * @param int	$firstDate	- Timestamp
+     * @param int	$lastDate		- Timestamp
      * @return array
      * @access public
      */
@@ -289,9 +285,9 @@ class SpecialDays
      * Calculate the amount of special days in a given period
      *
      * @see get_masked_days_count_for_period()
-     * @param integer $firstDateTimestamp
-     * @param integer $lastDateTimestamp
-     * @return integer
+     * @param int	$firstDate	- Timestamp
+     * @param int	$lastDate		- Timestamp
+     * @return int
      * @access public
      */
     function get_special_days_count_for_period($firstDateTimestamp, $lastDateTimestamp)
@@ -302,8 +298,8 @@ class SpecialDays
     /**
      * Returns true if given timestamp is part of the calculated array AND mask contains his type
      *
-     * @param integer $timestamp
-     * @param integer $mask
+     * @param int		$timestamp	- Timescamp
+     * @param int		$mask			-
      * @return boolean
      * @access public
      */
@@ -319,7 +315,7 @@ class SpecialDays
      * Returns true if given timestamp is a holiday
      *
      * @see is_masked_day
-     * @param integer $timestamp
+     * @param int		$timestamp		-
      * @return boolean
      * @access public
      */
@@ -332,7 +328,7 @@ class SpecialDays
      * Returns true if given timestamp is a(n) special/important day
      *
      * @see isMaskedDay
-     * @param integer $timestamp
+     * @param int		$timestamp		-
      * @return boolean
      * @access public
      */
@@ -345,8 +341,8 @@ class SpecialDays
      * Get masked days for a given month
      *
      * @see get_masked_days_for_period()
-     * @param integer $month
-     * @param integer $year
+     * @param int		$month	-
+     * @param int		$year		-
      * @access public
      * @return array
      */
@@ -360,9 +356,9 @@ class SpecialDays
      * Get masked days for a given day
      *
      * @see get_masked_days_for_period()
-     * @param integer $day
-     * @param integer $month
-     * @param integer $year
+     * @param int		$day		-
+     * @param int		$month	-
+     * @param int		$year		-
      * @access public
      * @return array
      */
@@ -375,7 +371,7 @@ class SpecialDays
     /**
      * Calculate holidays from instances
      *
-     * @param integer $year
+     * @param int		$year		-
      * @return array
      * @access private
      */
@@ -392,7 +388,7 @@ class SpecialDays
     /**
      * Replace array key with the date of the holiday
      *
-     * @param array $array
+     * @param array 	$array	-
      * @return array
      * @access private
      */
@@ -412,7 +408,7 @@ class SpecialDays
      * Checks if the date of a holiday is between firstDateTimestamp and lastDateTimestamp
      * Also checks the mask.
      *
-     * @param mixed $element
+     * @param mixed		$element	-
      * @access private
      * @return boolean
      */
@@ -429,6 +425,7 @@ class SpecialDays
     /**
      * Returns the names of the instances
      *
+     * @param void
      * @return array
      * @access public
      */
@@ -448,12 +445,12 @@ class SpecialDays
      *
      * @static static
      * @access public
+     * @param void
      * @return array
      * @see get_instances_name()
      */
     function get_available_countries()
     {
-
         foreach(get_defined_constants() as $name => $value) {
             $file = sprintf(PATH_PRE."/lib/specialdays/%s.php", strtolower($value));
             if(strrpos($name, "PHPR_SD_") !== false && file_exists($file))
@@ -463,6 +460,4 @@ class SpecialDays
         return $result;
     }
 }
-
-
 ?>

@@ -1,7 +1,7 @@
 <?php
 
 //
-// $Id: func.inc.php,v 1.1.2.1 2007/08/02 09:54:48 albrecht Exp $
+// $Id: func.inc.php,v 1.2 2007-08-02 10:11:07 albrecht Exp $
 //
 
 /*

@@ -1,10 +1,12 @@
 <?php
-
-// settings_data_profile.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Franz Graf, $Author: alexander $
-// $Id: settings_data_profile.php,v 1.20.2.3 2007/01/24 15:59:52 alexander Exp $
+/**
+ * @package    settings
+ * @subpackage main
+ * @author     Franz Graf, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: settings_data_profile.php,v 1.24 2007-05-31 08:13:46 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined('lib_included')) die('Please use settings.php!');
@@ -60,9 +62,8 @@ else {
 * @param int $id    ID of the profile to delete
 */
 function delete_profile($id) {
-    $query = "DELETE
-                FROM ".DB_PREFIX."profile
-               WHERE ID = ".(int)$id;
+    $query = "DELETE FROM ".DB_PREFIX."profile
+                    WHERE ID = ".(int)$id;
     db_query($query) or db_die();
     message_stack_in(__('The profile has been deleted.'), 'settings', 'notice');
 }
@@ -174,7 +175,8 @@ function prepare_profile_data(&$data) {
         $data['users'] = array();
         $query = "SELECT kurz
                     FROM ".DB_PREFIX."users
-                   WHERE ID IN ($ids)";
+                   WHERE ID IN ($ids)
+                     AND is_deleted is NULL";
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {
             $data['users'][] = $row[0];

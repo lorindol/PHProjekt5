@@ -1,11 +1,12 @@
 <?php
-
 /**
- * ldap_auth.inc.php - PHProjekt Version 5.2
- * copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
- * www.phprojekt.com
- * Author: Moritz Kiese
- * $Id: ldap_auth.inc.php,v 1.11.2.1 2007/02/26 15:33:19 thorsten Exp $
+ * LDAP auth functions
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Moritz Kiese, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: ldap_auth.inc.php,v 1.16 2007-05-31 08:11:53 gustavo Exp $
  *
  * Modified November, 2002 by James Bourne <jbourne@mtroyal.ab.ca>
  * - rewrote (reused Moritzs' code) to work more efficiently
@@ -23,6 +24,7 @@
  * Modified March 16, 2003 James Bourne <jbourne@mtroyal.ab.ca>
  *   - Changed short name to use uid as this should always be set
  *   - Updated to use db info if possible for ldap_user_conf value
+ * Access form functions
  */
 
 // check whether lib.inc.php has been included
@@ -33,20 +35,21 @@ $user_ID = 0;
 
 require_once(PATH_PRE.'lib/ldapconf.inc.php');
 
-/* get either the correct ldap_name or use the default */
+// get either the correct ldap_name or use the default
 $user_ldap_conf = -1;
 $res1 = db_query("SELECT ldap_name
                     FROM ".DB_PREFIX."users
-                   WHERE loginname = '$loginstring'");
+                   WHERE loginname = '$loginstring'
+                     AND is_deleted is NULL");
 if ($row1 = db_fetch_row($res1)) {
     if (isset($row1[0]) && (strlen($row1[0]) > 0)) {
-        /* take that as being correct */
+        // take that as being correct
         $user_ldap_conf = $row1[0];
     }
 }
 
 if ($user_ldap_conf == -1) {
-    /* not set yet use the default ldap_name of 1 */
+    // not set yet use the default ldap_name of 1
     $user_ldap_conf = 1;
 }
 
@@ -75,7 +78,7 @@ if ($ldap_conf[$user_ldap_conf]['nt_domain'] == '') {
 
     if (!$user_info) die("Can't get the login information.");
 
-    /* your ldap server must define at least these */
+    // your ldap server must define at least these
     $ldap_logon     = $user_info[0]['dn'];
     $ldap_mail      = $user_info[0]['mail'][0];
     $ldap_sn        = $user_info[0]['sn'][0];
@@ -109,7 +112,7 @@ switch ($ldap_conf[$user_ldap_conf]['ldap_sync']) {
 }
 
 if (($found == 1) && ($ldap_conf[$user_ldap_conf]['groupauth'] == 1)) {
-    /* check for the ldap group */
+    // check for the ldap group
     if (!ldap_bind($ldap_con, $ldap_conf[$user_ldap_conf]['srch_dn'], $ldap_conf[$user_ldap_conf]['srch_dn_pw'])) {
         logit("Can't login to LDAP server ".ldap_error($ldap_con));
         die("Can't login to LDAP server ");
@@ -132,16 +135,17 @@ if (($found == 1) && ($ldap_conf[$user_ldap_conf]['groupauth'] == 1)) {
 
 
 if ($found == 1) {
-/* check to see if this client is in the database */
+    // check to see if this client is in the database
     $result = db_query("SELECT ID, vorname, nachname, kurz, firma, email, ldap_name
                           FROM ".DB_PREFIX."users
                          WHERE loginname = '$loginstring'
-                               $admin_login") or db_die();
+                               $admin_login
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
 
     if (!$row) {
         logit("Error fetching DB row return $found = 0");
-        /* if autocreate is set to 1 then create the account in sql */
+        // if autocreate is set to 1 then create the account in sql
         if ($ldap_conf[$user_ldap_conf]['autocreate'] == 1) {
             logit("Auto creating new client $ldap_uid");
 
@@ -159,10 +163,11 @@ if ($found == 1) {
             else {
                 logit("New account created");
 
-                /* get the id from users table and add into the grup table */
+                // get the id from users table and add into the grup table
                 $qry = "SELECT ID
                           FROM ".DB_PREFIX."users
-                         WHERE loginname = '$ldap_uid'";
+                         WHERE loginname = '$ldap_uid'
+                           AND is_deleted is NULL";
                 $result = db_query($qry);
 
                 if (!$result) {
@@ -186,7 +191,7 @@ if ($found == 1) {
         else $user_ldap_conf = $row[6];
 
         if (($user_ldap_conf != 'off') && ($ldap_conf[$user_ldap_conf]['ldap_sync'] == '2')) {
-            /* check against ldap data and update if required */
+            // check against ldap data and update if required
             $qw = '';
             if (strcmp($row[1], $ldap_givenName) != 0) {
                 $qw = "vorname='$ldap_givenName'";
@@ -224,5 +229,4 @@ if ($found == 1) {
 if ($user_ID > 0) {
     $fetch_uservalues = $user_ID;
 }
-
 ?>

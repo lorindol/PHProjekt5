@@ -1,10 +1,12 @@
 <?php
-
-// todo_data.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: todo_data.php,v 1.58.2.7 2007/05/09 14:05:25 polidor Exp $
+/**
+ * @package    todo
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: todo_data.php,v 1.74 2008-02-25 15:12:23 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -35,7 +37,8 @@ switch (true) {
         //check whether this todo is still free ..
         $result = db_query("SELECT ext
                               FROM ".DB_PREFIX."todo
-                             WHERE ID = ".(int)$ID) or db_die();
+                             WHERE ID = ".(int)$ID."
+                               AND is_deleted is NULL") or db_die();
         $row = db_fetch_row($result);
         if ($row[0] > 0) {}
         else {
@@ -68,11 +71,12 @@ switch (true) {
         if ($ext == $user_ID) $status = 3;
         // at the moment of creation the progress must be 0
         $progress = 0;
+        $_POST['progress'] = 0;
 
         $accessstring = insert_access('todo');
         // create record in db
         $_POST['von'] = $user_ID; // userID should not be set from outside
-        sqlstrings_create(); 
+        sqlstrings_create();
         $result = db_query("INSERT INTO ".DB_PREFIX."todo
                                    (        status   ,  sync1    ,  sync2    ,        gruppe      ,  acc             ,  acc_write       , ".$sql_fieldstring.")
                             VALUES (".(int)$status." ,'$dbTSnull','$dbTSnull',".(int)$user_group.",'$accessstring[0]','$accessstring[1]', ".$sql_valuestring.")") or db_die();
@@ -81,22 +85,34 @@ switch (true) {
         // notify recipient about the new todo
         if ($notify_recipient <> '' and $ext > 0) {
             include_once(LIB_PATH."/notification.inc.php");
-            $notify = new Notification($user_ID, $user_group, $module, array($ext),
-            "&mode=forms&ID=".todo_get_last_id($user_ID, $ext),
-            strip_tags($remark.": ".$note));
-            $notify->text_title = __('Todo').': '.strip_tags($remark);
+
+            $notify = new Notification(
+            	$user_ID,
+            	$user_group,
+            	$module,
+            	array($ext),
+            	todo_get_last_id($user_ID, $ext), // backlink_ID
+            	"&mode=forms&ID=".todo_get_last_id($user_ID, $ext),
+            	xss_purifier($note), 	// bodytext
+            	xss($remark), 	// subject
+            	'new' 			// action
+            );
             $notify->notify();
         }
 
         if ($modify_update_b || $create_update_b) {
             // find the ID of the last created user and assign it to ID
             $result = db_query("SELECT MAX(ID)
-                                  FROM ".DB_PREFIX."todo") or db_die();
-            $row = db_fetch_row($result);
-            $ID = $row[0];
-            $query_str = "todo.php?mode=forms&ID=".$ID."&justform=".$justform;
+                                 FROM ".DB_PREFIX."todo
+                                WHERE von = ".(int)$user_ID) or db_die();
+        	$row = db_fetch_row($result);
+        	$ID = $row[0];
+            $query_str = "todo.php?mode=forms&ID=".todo_get_last_id($user_ID, $ext)."&justform=".$justform;
             header('Location: '.$query_str);
         }
+        // write todo into calendar      
+        $write_event = module_events('','todo',todo_get_last_id($user_ID, $ext),$remark,explode(',',$ext),'create',$anfang,$deadline);
+        
         break;
 
     case ($ID > 0 && isset($_REQUEST['remark']) && (xss($_REQUEST['remark']) <> '')):
@@ -105,7 +121,6 @@ switch (true) {
         if ($perm_modify <> 'write' && $perm_modify <> 'owner') {
             $err_msg[] = 'You cannot modify the records with the ID '.$ID;
             $error = true;
-            
             /* SPECIAL CASE */
             // if a user has not write permission but it is assigned to him, then it is possible to modify ONLY the status
             
@@ -127,14 +142,13 @@ switch (true) {
             history_keep('todo', 'status', $ID);
             /* END SPECIAL CASE */
             
-            
         }
         if (!$error) {
             if ((PHPR_HISTORY_LOG > 0)) {
                 sqlstrings_create();
                 history_keep('todo', 'acc,acc_write,'.$sql_fieldstring, $ID);
             }
-            
+
             // workaround if $status is not set
             if (!$status) $status = $row[2];
             
@@ -154,11 +168,11 @@ switch (true) {
                 $status = 1; 
                 $progress = 0;
             }
-            
+
             if (isset($progress)) {
                 $progressstring = " progress = ".(int)$progress.",";
             }
-            
+
             $accessstring = update_access('todo',$perm_modify=='owner'?$user_ID:0);
 
             // update record in db
@@ -182,9 +196,12 @@ switch (true) {
                                            comment1 = '".xss($comment1)."' 
                                      WHERE ID = ".(int)$ID) or db_die();
             }
-            
+
             // update project-related times
             timeproj_change_project_id ('todo', $ID, $project);
+            
+            // update event
+            $write_event = module_events ('','todo',$ID,xss($_REQUEST['remark']),explode(',',$ext),'update',$anfang,$deadline);
         }
         else{
             message_stack_in('You cannot modify the record with the ID '.$ID,$module,"error");
@@ -219,10 +236,10 @@ else if ($modify_update_b || $create_update_b) {
 }
 elseif (!$justform) {
     if ($module <> 'todo') {
-        $fields = build_array($module, $ID, 'view');
-        include_once("./todo_view.php");
-    }
-    else {
+    $fields = build_array($module, $ID, 'view');
+    include_once("./todo_view.php");
+}
+else {
         $query_str = "todo.php?mode=view&justform=".$justform;
         header('Location: '.$query_str);
         die();
@@ -237,7 +254,8 @@ function delete_record($ID) {
     global $user_ID, $module;
     $result = db_query("SELECT von, ext, acc_write
                           FROM ".DB_PREFIX."todo
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     // no entry found
     if (!$row[0]){
@@ -248,9 +266,7 @@ function delete_record($ID) {
     if(strval($perm_modify)== 'write' or strval($perm_modify) == 'owner' or $user_ID==$row['1']){
 
         // delete request
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."todo
-                             WHERE ID = ".(int)$ID) or db_die();
+        delete_record_id('todo',"WHERE ID = ".(int)$ID);
         // delete corresponding entry from db_record
         remove_link($ID, 'todo');
 
@@ -259,6 +275,9 @@ function delete_record($ID) {
 
         // delete history
         if (PHPR_HISTORY_LOG > 0) history_delete('todo', $ID);
+        // delte associted event
+        $write_event = module_events('','todo',$ID,'',explode(',',$row[1]),'delete','','');    
+
     }
     else{
         message_stack_in('You are not allowed to do that '.$ID,$module,"error");

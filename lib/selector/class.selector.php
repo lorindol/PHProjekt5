@@ -1,69 +1,68 @@
 <?php
 /**
-* selector main class
-*
-* @package    selector
-* @module     main
-* @author     Martin Brotzeller, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: class.selector.php,v 1.45.2.2 2007/02/25 14:57:18 gustavo Exp $
-*/
+ * Selector main class
+ *
+ * @package   	selector
+ * @subpackage 	main
+ * @author     	Martin Brotzeller, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: class.selector.php,v 1.52 2007-05-31 08:11:59 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
 
-
 /**
-* Class PHProjektSelector
-*
-* Display and selection of a group of objects, mainly users and contacts
-*
-* @author Martin Brotzeller
-* @copyright (c) 2004 Mayflower GmbH
-* @package PHProjekt
-* @access public
-*/
+ * Class PHProjektSelector
+ *
+ * Display and selection of a group of objects, mainly users and contacts
+ *
+ * @author 		Martin Brotzeller
+ * @copyright 	(c) 2004 Mayflower GmbH
+ * @package 		lib
+ * @access 		public
+ */
 class PHProjektSelector {
     /** Type: single or multiple select
-    *
-    * @access public
-    */
+     *
+     * @access public
+     */
     var $type;
-    
+
     /** View: selectbox or radio/checkboxes
-    *
-    * @access public
-    */
+     *
+     * @access public
+     */
     var $view;
-    
+
     /**
-     * Datasource: Source which delivers the objects, mainly user and contacts table. 
+     * Datasource: Source which delivers the objects, mainly user and contacts table.
      * Based on the data source a file is includet that contains the source specific functions.
-     * Every data source has to provide documentation of the needed fields in sourcedata, 
+     * Every data source has to provide documentation of the needed fields in sourcedata,
      * as well as the functions
      * fetch_fields(); show_filters(); and parse_filters();
      *
      * @access private
      */
     var $datasource;
-    
-    /** 
-     * Sourcedata: Data needed to use the data source, depending on the current source. 
+
+    /**
+     * Sourcedata: Data needed to use the data source, depending on the current source.
      *
      * @access private
      */
     var $sourcedata;
-    
-    /** 
+
+    /**
      * Name: Formular identifier
      *
      * @access private
      */
     var $name;
-    
+
     /**
-     * Name of the submitbutton in the finish formular, that gets posted when the selection is done. 
-     * Intention: this form only gets transfered if the javascript based changes aren't sent to the 
-     * server yet and though updated in the selector. 
+     * Name of the submitbutton in the finish formular, that gets posted when the selection is done.
+     * Intention: this form only gets transfered if the javascript based changes aren't sent to the
+     * server yet and though updated in the selector.
      * Needed data is formname.buttonname, i.e. finishForm.buttonname
      *
      * @access public
@@ -72,29 +71,30 @@ class PHProjektSelector {
 
 
     /**
-     * Array containing names and values of the hidden fields that are needed in the form. 
-     * Examples are mode, view and the like 
+     * Array containing names and values of the hidden fields that are needed in the form.
+     * Examples are mode, view and the like
      *
      * @access private
      * @var array ( formelementNAME => formElementValue, ... )
      */
     var $hidden_fields = array();
 
-    /** 
-     * construktor
+    /**
+     * Constructor class
      *
-     * @param $name       unique identifier of the selector
-     * @param $datasource data source providing the data 
-     * @param $sourcedata data describing reading and display of the data
-     * @param $type       type of display
-     * @param $view       mode of display
+     * @param string		$name      		- Unique identifier of the selector
+     * @param string		$datasource 		- Data source providing the data
+     * @param array		$sourcedata 		- Data describing reading and display of the data
+     * @param string		$type       		- Type of display
+     * @param string		$view       			- Mode of display
+     * @return void
      * @access public
      */
     function PHProjektSelector($name, $datasource=NULL, $sourcedata=array(), $type='single', $view='select') {
 
         if (!isset($name) || $name=="") die(__('Please insert a name'));
         $this->name = $name;
-        if ($datasource != NULL && in_array($datasource, array('contacts', 'users', 'projects'))){
+        if ($datasource != NULL && in_array($datasource, array('contacts', 'users', 'projects', 'organisations'))){
             require_once(dirname(__FILE__).DIRECTORY_SEPARATOR."datasource_".$datasource.".php");
             $this->sourcedata =& $sourcedata;
             $this->datasource =  $datasource;
@@ -110,11 +110,12 @@ class PHProjektSelector {
     }
 
     /**
-     * Add hidden fields to selector form ($mode, $view etc). 
+     * Add hidden fields to selector form ($mode, $view etc).
      * the array key is the variable name, the value the variables value
      *
      * @access public
-     * @param $fields array (ElementName => ElementValue, ...)
+     * @param array	$fields 	- Array (ElementName => ElementValue, ...)
+     * @return void
      */
     function set_hidden_fields($fields) {
         if (!is_array($fields)) return;
@@ -123,15 +124,16 @@ class PHProjektSelector {
         }
     }
 
-    /** 
-     * Create the select boxes 
-    *
-    * @param $fields    Array of fields 
-    * @param $preselect Preselection of active objects 
-    * @param $submiturl url form gets submitted to 
-    * @param $size      rowcount of multiple select box 
-    * @access
-    */
+    /**
+     * Create the select boxes
+     *
+     * @param array	$fields    		- Array of fields
+     * @param int		$preselect 	- Preselection of active objects
+     * @param string	$submiturl 	- Url form gets submitted to
+     * @param int		$size      		- Rowcount of multiple select box
+     * @return string					HTML output
+     * @access
+     */
     function show_select($fields, $preselect, $size) {
         $selstr = '';
 
@@ -206,13 +208,13 @@ class PHProjektSelector {
         return $selstr;
     }
 
-
     /**
-     * Display selection in a separate window, including filters 
+     * Display selection in a separate window, including filters
      *
-     * @param $preselect  Preselection of objects 
-     * @param $size       rowcount of multiple select box
-     * @param $postaction form action to submit data to 
+     * @param array	$preselect  	- Preselection of objects
+     * @param int		$size       		- Rowcount of multiple select box
+     * @param string	$postaction 	- Form action to submit data to
+     * @return string					HTML output
      * @access
      */
     function show_window($preselect, $size, $postaction="") {
@@ -235,18 +237,13 @@ class PHProjektSelector {
                 // this is necessary to extract the keys (we can't apply (int) using implode)
                 $tmp_ids = "";
                 if (is_array($preselect) && count($preselect) > 0) {
-                    
+
                     foreach ($preselect as $tmp_key => $tmp_value) {
                         $tmp_ids .= (int)$tmp_key.",";
                     }
                     $tmp_ids = substr($tmp_ids,0,-1);
                 }
                 $tmp_qry = " OR ".$options['ID']." IN (".$tmp_ids.")";
-                
-                // old fashion way
-                //$tmp_qry = " OR ".$options['ID']." IN (".implode(",",array_keys($preselect)).")";
-                
-                
             }
             $options['where'][] = "1=1)".$tmp_qry;
             unset($tmp_qry);
@@ -334,9 +331,11 @@ class PHProjektSelector {
         unset($name, $value);
     }
 
-    /** 
-     * Returns selected results depend the type select 
+    /**
+     * Returns selected results depend the type select
      *
+     * @param void
+     * @return void
      * @access public
      */
     function get_chosen() {
@@ -357,5 +356,4 @@ class PHProjektSelector {
         return $result;
     }
 }
-
 ?>

@@ -1,20 +1,23 @@
 <?php
 /**
-* contacts list view
-*
-* @package    contacts
-* @module     external contacts
-* @author     Albrecht Guenther, Norbert Ku:ck, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: contacts_view.php,v 1.100.2.8 2007/01/23 15:35:48 alexander Exp $
-*/
+ * contacts list view
+ *
+ * @package    contacts
+ * @subpackage external contacts
+ * @author     Albrecht Guenther, Norbert Ku:ck, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: contacts_view.php,v 1.109 2008-02-21 19:19:35 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
 if (check_role('contacts') < 1) die('You are not allowed to do this!');
 
+include_once(LIB_PATH."/module_navigation.inc.php");
 // diropen_mode($element_mode, $element_ID);
+filter_mode($filter_ID);
 sort_mode($module,'nachname');
 read_mode($module);
 archive_mode($module);
@@ -67,13 +70,14 @@ else $where2 = '';
 // call the main filter routine
 $rule = isset($rule) ? check_rule($rule) : '';
 $filter_ID = isset($filter_ID) ? (int) $filter_ID : null;
-$operator = isset($operator) && $operator == 'OR' ? $operator : ' AND ';
+$operator = isset($operator) ? qss($operator) : '';
 $where = main_filter($filter, $rule, $keyword, $filter_ID, 'contacts','',$operator).$where2;
 $query = "SELECT ID
                       FROM ".DB_PREFIX."contacts
                            ".sql_filter_flags($module, array('archive', 'read'))."
-                     WHERE (acc_read LIKE 'system'
-                            OR ((von = ".(int)$user_ID." 
+                     WHERE ".DB_PREFIX."contacts.is_deleted is NULL AND
+                           (acc_read LIKE 'system'
+                            OR ((von = ".(int)$user_ID."
                             OR acc_read LIKE 'group'
                             OR acc_read LIKE '%\"$user_kurz\"%')
                            ".group_string($module)."))
@@ -103,22 +107,12 @@ if (!$import_contacts) {
     unset($exp);
 }
 
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
 $output .= breadcrumb($module, breadcrumb_data($action));
 $output .= '</div>';
 $output .= $content_div;
 
 // button bar
 $buttons = array();
-if (check_role("contacts") > 1) {
-    $buttons[] = array('type' => 'link', 'href' => $_SERVER['SCRIPT_NAME'].'?mode=forms&amp;action=new'.$sid, 'text' => __('New'), 'active' => false);
-
-    if (PHPR_CONTACTS_PROFILES) {
-        $buttons[] = array('type' => 'link', 'href' => $_SERVER['SCRIPT_NAME'].'?mode=profiles_forms&amp;action=contacts'.$sid, 'text' => __('Profiles'), 'active' => false);
-    }
-
-}
 
 if ($approve_contacts) {
     // form start
@@ -134,10 +128,16 @@ if ($approve_contacts) {
     $buttons[] = array('type' => 'form_end');
     // sql
     $where2  = " AND import LIKE '1'"; // fresh imported only
+
+    if (isset($_SESSION['contacts_parents']) && count($_SESSION['contacts_parents'])>0) {
+        $str = implode(",",$_SESSION['contacts_parents']);
+        $where2 .= " OR ID IN (". $str .")";
+    }
 }
 
-
-$output .= get_buttons_area($buttons, 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');
+$module_nav = new PHProjekt_Module_Navigation($tabs, $buttons, 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');
+$output .= $module_nav ->get_output();
+//$output .= get_buttons_area($buttons, 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');
 $add['hidden'] = array('action'=>'contacts');
 $output .= '<div id="bars">';
 $output .= get_filter_execute_bar('contact_manager', true,$add);
@@ -151,7 +151,7 @@ $output .= '<a name="content"></a>';
 $where.= $where2;
 // build sql string
 $sql = " WHERE (acc_read LIKE 'system'
-               OR ((von = ".(int)$user_ID." 
+               OR ((von = ".(int)$user_ID."
                OR acc_read LIKE 'group'
                OR acc_read LIKE '%\"$user_kurz\"%')
                ".group_string($module)."))
@@ -159,7 +159,6 @@ $sql = " WHERE (acc_read LIKE 'system'
                $where2
                ".sql_filter_flags($module, array('archive', 'read'), false)."
                ".sort_string();
-
 // *******************************
 // list view for external contacts
 $getstring = 'action=contacts';

@@ -1,10 +1,12 @@
 <?php
-
-// mail_down.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: nina $
-// $Id: mail_down.php,v 1.12 2006/10/04 11:05:36 nina Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_down.php,v 1.15 2008-01-14 02:45:05 polidor Exp $
+ */
 
 // intialise the array so noone can introduce poisoned variables
 $arr = array();
@@ -22,8 +24,10 @@ if (check_role("mail") < 1) { die("You are not allowed to do this!"); }
 $arr = explode("|",$file_ID[$rnd]);
 
 // check permission
-$result = db_query("select von from ".DB_PREFIX."mail_client, ".DB_PREFIX."mail_attach
-                     where ".DB_PREFIX."mail_attach.ID = ".(int)$arr[2]." and
+$result = db_query("SELECT von
+                      FROM ".DB_PREFIX."mail_client, ".DB_PREFIX."mail_attach
+                     WHERE ".DB_PREFIX."mail_attach.ID = ".(int)$arr[2]." and
+                           ".DB_PREFIX."mail_client.is_deleted is NULL and
                            ".DB_PREFIX."mail_attach.parent = ".DB_PREFIX."mail_client.ID") or db_die();
 $row = db_fetch_row($result);
 if ($row[0] <> $user_ID) { die("You are not allowed to do this"); }

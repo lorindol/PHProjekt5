@@ -1,14 +1,15 @@
 <?php
 /**
-* import patters for contacts for multiple import from the same source
-*
-* @package    contacts
-* @module     import
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: contacts_import_patterns.php,v 1.27.2.1 2007/01/13 15:00:44 gustavo Exp $
-*/
+ * import patters for contacts for multiple import from the same source
+ *
+ * @package    contacts
+ * @subpackage import
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: contacts_import_patterns.php,v 1.33 2008-02-21 19:19:35 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
@@ -17,20 +18,20 @@ if (check_role("contacts") < 1) die("You are not allowed to do this!");
 // array for field_delimiters
 $delimiters = array(0=>',',1=>';');
 
+$import_contacts = 'other';
 if ($make <> '') {
     // flag for forms
-    $import_contacts = 'other';
     // insert new record
     if ($make == "neu") {
         $result = db_query("INSERT INTO ".DB_PREFIX."contacts_import_patterns
                                    (  name ,                 von,                        pattern           )
-                            VALUES ('".xss($name)."',".(int)$user_ID.",'".serialize(xss($pattern_field))."')") or db_die();
+                            VALUES ('".xss($name)."',".(int)$user_ID.",'".serialize(xss_array($pattern_field))."')") or db_die();
     }
     // update existing record
     else {
         $result = db_query("UPDATE ".DB_PREFIX."contacts_import_patterns
                                SET name = '".xss($name)."',
-                                   pattern = '".serialize(xss($pattern_field))."'
+                                   pattern = '".serialize(xss_array($pattern_field))."'
                              WHERE ID = ".(int)$ID) or db_die();
     }
     $import="yes";
@@ -44,9 +45,8 @@ elseif ($loeschen) {
 }
 
 // form
-if (!$make) {
+if (!$make && !$loeschen) {
     //tabs
-
     $tabs = array();
     $outputex .= '<div id="global-header">';
     $outputex .= get_tabs_area($tabs);

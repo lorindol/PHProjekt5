@@ -1,4 +1,13 @@
 <?php
+/**
+ * @package    misc
+ * @subpackage cti
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: cti_callto.inc.php
+ */
+
 //
 // Start of PHProjekt specific code.
 // 

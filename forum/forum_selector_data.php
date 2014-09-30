@@ -1,14 +1,15 @@
 <?php
 /**
-* forum selector data script
-*
-* @package    forum
-* @module     selector
-* @author     Gustavo Solt, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: forum_selector_data.php,v 1.4 2006/09/24 22:16:46 polidor Exp $
-*/
+ * forum selector data script
+ *
+ * @package    forum
+ * @subpackage selector
+ * @author     Gustavo Solt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: forum_selector_data.php,v 1.6 2007-05-31 08:11:15 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
  
 // Selector for access (Form)

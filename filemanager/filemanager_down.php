@@ -1,14 +1,15 @@
 <?php
 /**
-* filemanager download script
-*
-* @package    filemanager
-* @module     main
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: filemanager_down.php,v 1.33.2.1 2007/07/02 12:25:01 gustavo Exp $
-*/
+ * filemanager download script
+ *
+ * @package    filemanager
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: filemanager_down.php,v 1.38 2008-01-14 02:45:04 polidor Exp $
+ */
+
 define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');
 include_once(PATH_PRE.'lib/dbman_lib.inc.php');
@@ -55,8 +56,8 @@ switch (true) {
     // filename is cryptted
     case ($row[6] <> '' and !$pw):
         $hidden_fields = array ( "ID"       => $ID,
-                                 "mode"     => $mode,
-                                 "mode2"    => $mode2);
+        "mode"     => $mode,
+        "mode2"    => $mode2);
         echo __('One password should be given (file is encrypted)').": ";
         echo "
 <form>
@@ -67,34 +68,39 @@ switch (true) {
         exit;
         break;
 
-    // pw is set
+        // pw is set
     case ($pw <> ''):
         $encryptstring = encrypt($pw, $pw);
         if ($encryptstring <> $row[6]) die("<b>".__('Passwords dont match!')."!</b>");
         $path = PHPR_FILE_PATH."/".$row[3];
         break;
 
-    // the file is locked by another user
+        // the file is locked by another user
     case (($row[7] > '0') and ($row[7] != $user_ID)):
         die("Sorry but this file locked by ".slookup('users', 'nachname,vorname', 'ID', $row[7],'1'));
         break;
 
-    // link
+        // link
     case ($row[4] == 'l'):
         $filelink = (eregi("://", $row[3])) ? $row[3] : "file://".$row[3];
         header("Location:".$filelink);
         exit;
 
-    // case directory
+        // case directory
     case ($row[4] == 'd'):
         die("You cannot download a directory :-)");
         break;
 
-    // case normal file
+        // case normal file
     default:
         $path = PHPR_FILE_PATH."/".$tempname;
+
 }
 
+
+if (strtolower(substr(getenv("OS"),0,7)) == "windows") {
+    $path = str_replace("/","\\",$path);
+}
 
 if (!file_exists($path)) {
     sysadmin_alert('Filemanager download: specified file not found:'.$path,'PHProjekt: Error on file download');

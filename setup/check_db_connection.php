@@ -1,4 +1,13 @@
 <?php
+/**
+ * @package    setup
+ * @subpackage main
+ * @author     Eduardo Polidor, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: check_db_connection.php
+ */
+
 error_reporting(0);
 include_once('setup_functions.php');
 

@@ -1,10 +1,14 @@
 <?php
-
-// authform.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: johann $
-// $Id: authform.inc.php,v 1.45 2006/12/13 07:45:32 johann Exp $
+/**
+ * Authorization form
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: authform.inc.php,v 1.49 2007-05-31 08:11:51 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -82,11 +86,9 @@ else {
     '.xss($login_error).'
 </fieldset>'."\n";
 }
-
 ?>
 
 <br />
-
 <div style="text-align:center;">
     <div id="logo" style="text-align:center;""></div>
     <form action="<?php echo PATH_PRE; ?>index.php" method="post" name="frm">

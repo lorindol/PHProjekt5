@@ -1,10 +1,12 @@
 <?php
-
-// setup_configuration.php - PHProjekt Version 5.2
-// copyright © 2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: setup_configuration.php,v 1.41.2.4 2007/07/24 16:01:47 polidor Exp $
+/**
+ * @package    setup
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: setup_configuration.php,v 1.55 2008-03-04 14:19:53 gustavo Exp $
+ */
 
 // check whether setup.php calls this script - authentication!
 if (!defined('setup_included')) die('Please use setup.php!');
@@ -32,7 +34,7 @@ $config_array = array(
                                                   'mode'        => 'basic',
                                                   'noconfigure' => false,
                                                   'type'        => 'hidden',
-                                                  'default'     => '5.2.2',
+                                                  'default'     => '5.3',
                                                   'gr_config'   => 'version',
                                                   'comment'     => 'installed version'),
 
@@ -121,11 +123,17 @@ $config_array = array(
                                                   'callback'    => 'check_db_prefix',
                                                   'gr_config'   => 'database',
                                                   'comment'     => __('Prefix of tables')),
+                                                  
+                     'password_block'    => array('step'        => 'initial',
+                                                  'noconfigure' => true,
+                                                  'mode'        => 'basic',
+                                                  'label'       => __('Root and Test user Passwords'),
+                                                  'type'        => 'separator'),
 
                       'rootpass'         => array('step'        => 'initial',
                                                   'mode'        => 'basic',
                                                   'noconfigure' => true,
-                                                  'label'       => __('Please define a password for the administrator "root"'),
+                                                  'label'       => __('Please define a password for the administrator root'),
                                                   'type'        => 'password',
                                                   'default'     => ''),
 
@@ -139,7 +147,7 @@ $config_array = array(
                       'testcreation'     => array('step'        => 'initial',
                                                   'mode'        => 'basic',
                                                   'noconfigure' => true,
-                                                  'label'       => __('Create default user "test"'),
+                                                  'label'       => __('Create default user test'),
                                                   'type'        => 'checkbox',
                                                   'values'      => array(1 =>__('Activate'),
                                                                          0 =>__('Do not Activate')),
@@ -150,7 +158,7 @@ $config_array = array(
                       'testpass'         => array('step'        => 'initial',
                                                   'mode'        => 'basic',
                                                   'noconfigure' => true,
-                                                  'label'       => __('Please define a password for the default user "test"'),
+                                                  'label'       => __('Please define a password for the default user test'),
                                                   'type'        => 'password',
                                                   'default'     => ''),
 
@@ -290,6 +298,22 @@ $config_array = array(
                                                   'default'     => 1,
                                                   'gr_config'   => 'system',
                                                   'comment'     => __('activates role based access system')),
+                                                  
+                      'delete_user'       =>array('step'        => 'configuration',
+                                                  'mode'        => 'basic',
+                                                  'noconfigure' => false,
+                                                  'type'        => 'hidden',
+                                                  'default'     => 1,
+                                                  'gr_config'   => 'system',
+                                                  'comment'     => __('allow deletion of records in modules by user (only used in projects module)')),
+                                                  
+                      'delete_admin'      =>array('step'        => 'configuration',
+                                                  'mode'        => 'basic',
+                                                  'noconfigure' => false,
+                                                  'type'        => 'hidden',
+                                                  'default'     => 0,
+                                                  'gr_config'   => 'system',
+                                                  'comment'     => __('allow deletion of records in modules by admin (only used in projects module)')),
 
                       'default_visi'      =>array('step'        => 'configuration',
                                                   'mode'        => 'basic',
@@ -390,6 +414,22 @@ $config_array = array(
                                                   'default'     => 2,
                                                   'gr_config'   => 'projects',
                                                   'comment'     => __('Project management yes = 1, no = 0').", ".__('additionally assign resources to events').": = 2"),
+                                                  
+              'project_progress_variation'=>array('step' => 'configuration',
+                                                  'mode'        => 'basic',
+                                                  'noconfigure' => false,
+                                                  'type'        => 'hidden',
+                                                  'default'     => 25,
+                                                  'gr_config'   => 'projects',
+                                                  'comment'     => __('Accepted desviation of project progress [%]')),
+                                                  
+             'project_progress'           =>array('step'       => 'configuration',
+                                                  'mode'        => 'basic',
+                                                  'noconfigure' => false,
+                                                  'type'        => 'hidden',
+                                                  'default'     => 1,
+                                                  'gr_config'   => 'projects',
+                                                  'comment'     => __('Show Project progress ratio yes = 1, no = 0')),
 
                       'contacts'         => array('step'        => 'configuration',
                                                   'mode'        => 'basic',
@@ -557,15 +597,15 @@ $config_array = array(
                                                   'default'     => 1,
                                                   'gr_config'   => 'chat',
                                                   'comment'     => __('activates chat module')),
-
+                                                  
                      'costs'             => array('step'        => 'configuration',
                                                   'mode'        => 'basic',
                                                   'noconfigure' => false,
-                                                  'label'       => __('Costs').' ('.__('Beta version').')',
+                                                  'label'       => __('Costs'),
                                                   'type'        => 'checkbox',
                                                   'values'      => array(1 =>__('Activate'),
                                                                          0 =>__('Do not Activate')),
-                                                  'default'     => 0,
+                                                  'default'     => 1,
                                                   'gr_config'   => 'modules',
                                                   'comment'     => __('costs yes = 1, no = 0')),
 
@@ -928,6 +968,30 @@ $config_array = array(
                                                   'default'     => 1,
                                                   'gr_config'   => 'system',
                                                   'comment'     => __('Password change')),
+                                                  
+                       'soft_delete'=>      array('step'     => 'configuration',
+                                                  'mode'        => 'basic',
+                                                  'noconfigure' => false,
+                                                  'type'        => 'hidden',
+                                                  'default'     => 0,
+                                                  'gr_config'   => 'system',
+                                                  'comment'     => __('Enable soft deletion on main module tables')),
+
+                       'expert_filters'=>   array('step'     => 'configuration',
+                                                  'mode'        => 'basic',
+                                                  'noconfigure' => false,
+                                                  'type'        => 'hidden',
+                                                  'default'     => 0,
+                                                  'gr_config'   => 'system',
+                                                  'comment'     => __('Enable expert filter creation')),
+                                                  
+                       'ntlm_auth_enabled' => array('step'     => 'configuration',
+                                                  'mode'        => 'basic',
+                                                  'noconfigure' => false,
+                                                  'type'        => 'hidden',
+                                                  'default'     => 0,
+                                                  'gr_config'   => 'system',
+                                                  'comment'     => __('Enable login using NTLM')),
 
                        'groupviewuserheader' => array('step'        => 'configuration',
                                                   'mode'        => 'advanced',
@@ -1056,6 +1120,6 @@ $config_array = array(
 
 $sections_array = array ('version','paths', 'database', 'system', 'modules', 'calendar',
                    'reminder', 'projects', 'timecard', 'contacts', 'notes', 'todo', 'mail',
-                   'file manager', 'forum', 'helpdesk - rts', 'chat', 'layout');
+                   'file manager', 'forum', 'helpdesk - rts','costs', 'chat', 'layout');
 
 ?>

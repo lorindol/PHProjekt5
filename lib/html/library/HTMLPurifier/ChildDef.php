@@ -25,20 +25,20 @@ class HTMLPurifier_ChildDef
      * @public
      */
     var $type;
-    
+
     /**
      * Bool that indicates whether or not an empty array of children is okay
-     * 
+     *
      * This is necessary for redundant checking when changes affecting
      * a child node may cause a parent node to now be disallowed.
-     * 
+     *
      * @public
      */
     var $allow_empty;
-    
+
     /**
      * Validates nodes according to definition and returns modification.
-     * 
+     *
      * @public
      * @param $tokens_of_children Array of HTMLPurifier_Token
      * @param $config HTMLPurifier_Config object
@@ -51,5 +51,4 @@ class HTMLPurifier_ChildDef
         trigger_error('Call to abstract function', E_USER_ERROR);
     }
 }
-
 ?>

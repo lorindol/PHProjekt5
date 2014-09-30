@@ -1,10 +1,14 @@
 <?php
-
-// contacts_profiles_forms.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: alexander $
-// $Id: contacts_profiles_forms.php,v 1.43.2.1 2007/01/23 15:35:48 alexander Exp $
+/**
+ * provides form for make profiles
+ *
+ * @package    contacts
+ * @subpackage profiles
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    contacts_profiles_forms.php,v 1.44 2007/03/09 13:58:23 florian Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -47,6 +51,12 @@ $output .= '</form>
 ';
 echo $output;
 
+/**
+ * make the form for select a profile
+ *
+ * @param array hidden_fields - Array with hidden fields
+ * @return string             - HTML output
+ */
 function show_profiles_box($hidden_fields) {
     global $user_ID, $ID, $action;
     
@@ -69,10 +79,10 @@ function show_profiles_box($hidden_fields) {
 ';
 
     // profiles for contacts
-    $result = db_query("select ID, name
-                        from ".DB_PREFIX."contacts_profiles
-                        where von =".(int)$user_ID." 
-                        order by name") or db_die();
+    $result = db_query("SELECT ID, name
+                          FROM ".DB_PREFIX."contacts_profiles
+                         WHERE von =".(int)$user_ID." 
+                      ORDER BY name") or db_die();
 
     while ($row = db_fetch_row($result)) {
         $output.= "<option value='$row[0]'";
@@ -88,11 +98,18 @@ function show_profiles_box($hidden_fields) {
     return $output;
 }
 
+/**
+ * make the form for edit a profile
+ * use global vars
+ *
+ * @param void
+ * @return string - HTML output
+ */
 function edit_profile() {
     global $ID, $user_ID, $sql_user_group, $action, $user_group;
     global $remark, $name, $contact_personen;
     
-    $buttons[] = array('type' => 'form_start', 'hidden' => array(), 'enctype' => 'multipart/form-data', 'name' => 'frm');
+    $buttons[] = array('type' => 'form_start', 'hidden' => $hidden_fields, 'enctype' => 'multipart/form-data', 'name' => 'frm');
     if ($ID) $buttons[] = array('type' => 'submit', 'name' => 'db_aendern', 'value' => __('Modify'), 'active' => false);
     else $buttons[] = array('type' => 'submit', 'name' => 'db_neu', 'value' => __('OK'), 'active' => false);
     $buttons[] = array('type' => 'submit', 'name' => 'cancel_b', 'value' => __('Back'), 'active' => false);
@@ -116,7 +133,8 @@ function edit_profile() {
         // fetch all selected contacts and store them in an array
         $result = db_query("SELECT contact_ID
                               FROM ".DB_PREFIX."contacts_prof_rel
-                             WHERE contacts_profiles_ID = ".(int)$ID) or db_die();
+                             WHERE contacts_profiles_ID = ".(int)$ID."
+                               AND is_deleted is NULL") or db_die();
         while ($row = db_fetch_row($result)) {
             $selected[] = $row[0];
         }
@@ -140,8 +158,10 @@ function edit_profile() {
     // values of the contacts
     if (!isset($contact_personen)) {
         if (!isset($_POST[$contact_personen])) {
-            $tmp_result = db_query("SELECT contact_ID FROM ".DB_PREFIX."contacts_prof_rel
-                                    WHERE contacts_profiles_ID = ".(int)$ID) or db_die();
+            $tmp_result = db_query("SELECT contact_ID
+                                      FROM ".DB_PREFIX."contacts_prof_rel
+                                     WHERE contacts_profiles_ID = ".(int)$ID."
+                                       AND is_deleted is NULL") or db_die();
             while ($tmp_row = db_fetch_row($tmp_result)) {
                 $contact_personen[] = $tmp_row[0];
             }
@@ -151,7 +171,7 @@ function edit_profile() {
     $contact_assignment = '
         <fieldset>
         <legend>'.__('Contacts').'</legend>'.
-        selector_create_select_contacts('contact_personen[]', $contact_personen, 'action_form_to_profile_contact_selector', '0', '', '7', '1').'
+        selector_create_select_contacts('contact_personen[]', $contact_personen, 'action_form_to_profile_contact_selector', '0', read_o($read_o), '7', '1').'
         </fieldset>
     ';
     

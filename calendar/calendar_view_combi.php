@@ -1,14 +1,15 @@
 <?php
 /**
-* calendar list view for several users
-*
-* @package    calendar
-* @module     view
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_view_combi.php,v 1.19 2006/11/14 07:54:52 gustavo Exp $
-*/
+ * calendar list view for several users
+ *
+ * @package    calendar
+ * @subpackage view
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_view_combi.php,v 1.24 2008-02-28 04:47:29 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 $user_params = calendar_get_user_params();
@@ -180,6 +181,16 @@ switch ($mode) {
             }
         }
         break;
+    case 'gantt':
+        $tsanf    = mktime(0,0,0, 1, 1, $year);
+        $danf     = date('Y-m-d', $tsanf);
+        $tsend    = mktime(0,0,0, 12, 31, $year);
+        $dend     = date('Y-m-d', $tsend);
+        $sql_add = " AND datum >= '$danf' AND datum <= '$dend' ORDER BY an, datum, anfang";
+        $res = calendar_view_combi_get_events($combisel, $sql_add);
+        $_SESSION['calendardata']['res'] = $res;
+        echo "<img src='./calendar_gantt.php?year=$year' vspace='5'><br />";
+        break;
 }
 
 $a = 0;
@@ -251,6 +262,8 @@ foreach ($res as $row) {
     }
     $he -= $tages_anfang;
 
+    // Fix foe year view
+    if ($tinterval == 0) { $tinterval = 1; }
     $i1 = $daydiff * (int) ceil($daylen/$tinterval) + (int) floor(($ha*60+$ma)/$tinterval);   // $i1: first row
     $i2 = $daydiff * (int) ceil($daylen/$tinterval) + (int) floor(($he*60+$me-1)/$tinterval); // $i2: last row
 
@@ -347,93 +360,93 @@ for ($i=0; $i<$nrofrows; $i++) {
 }
 
 
-echo '
-<table cellspacing="1" cellpadding="0" class="calendar_table" width="100%" border="0">
-';
+if ($mode != 'gantt') {
+    echo '
+    <table cellspacing="1" cellpadding="0" class="calendar_table" width="100%" border="0">
+    ';
 
-if ($axis == 'h' or $axis == 'x') {
-    for ($a=0; $a<$coloffset+$nrofcols; $a++) {
-        echo "    <tr>\n";
-        for ($i=0; $i<$nrofrows+1; $i++) {
-            if ($repeat[$i][$a] == 0) {
-                for ($r=1; $r<$nrofrows+1-$i and $repeat[$i+$r][$a]; $r++);
-                $class = $cal_class[$isset[$i][$a]];
+    if ($axis == 'h' or $axis == 'x') {
+        for ($a=0; $a<$coloffset+$nrofcols; $a++) {
+            echo "    <tr>\n";
+            for ($i=0; $i<$nrofrows+1; $i++) {
+                if ($repeat[$i][$a] == 0) {
+                    for ($r=1; $r<$nrofrows+1-$i and $repeat[$i+$r][$a]; $r++);
+                    $class = $cal_class[$isset[$i][$a]];
 
-                if ($a < $coloffset) {
-                    $class = 'calendar_day_prevnext';
-                }
-
-                if ($i >= 1 and $a >= $coloffset-1) $wd = ' width="80"';
-                else                                $wd = '';
-
-                if ($axis == 'x' and $i >= 1 and $a >= $coloffset) {
-                    $w = 17+21*($r-1);
-                    $alt_title = $htmrow[$a];
-                    if ($htmtab[$i][$a] != '&nbsp;') {
-                        $alt_title .= $htmtab[$i][$a];
+                    if ($a < $coloffset) {
+                        $class = 'calendar_day_prevnext';
                     }
-                    echo '        <td'.$wd.' class="'.$class.'"'.($r>1 ? ' colspan="'.$r.'"' : '').">\n";
-                    echo '            <span title="'.$alt_title.'">&nbsp;</span>'."\n";
-                    echo "        </td>\n";
-                }
-                else {
-                    if ($i == 0 and $a >= $coloffset and $devent[$a-$coloffset] != '') {
-                        $devent2 = trim(ereg_replace("---- - ----:", '', $devent[$a-$coloffset]));
+
+                    if ($i >= 1 and $a >= $coloffset-1) $wd = ' width="80"';
+                    else                                $wd = '';
+
+                    if ($axis == 'x' and $i >= 1 and $a >= $coloffset) {
+                        $w = 17+21*($r-1);
+                        $alt_title = $htmrow[$a];
+                        if ($htmtab[$i][$a] != '&nbsp;') {
+                            $alt_title .= $htmtab[$i][$a];
+                        }
                         echo '        <td'.$wd.' class="'.$class.'"'.($r>1 ? ' colspan="'.$r.'"' : '').">\n";
-                        echo '            <img src="'.IMG_PATH.'/b.gif" width="5" alt="'.$devent2.'" title="'.$devent2.'" align="top" />'.$htmtab[$i][$a]."\n";
+                        echo '            <span title="'.$alt_title.'">&nbsp;</span>'."\n";
                         echo "        </td>\n";
                     }
                     else {
-                        echo '        <td'.$wd.' class="'.$class.'"'.($r>1 ? ' colspan="'.$r.'"' : '').">\n";
+                        if ($i == 0 and $a >= $coloffset and $devent[$a-$coloffset] != '') {
+                            $devent2 = trim(ereg_replace("---- - ----:", '', $devent[$a-$coloffset]));
+                            echo '        <td'.$wd.' class="'.$class.'"'.($r>1 ? ' colspan="'.$r.'"' : '').">\n";
+                            echo '            <img src="'.IMG_PATH.'/b.gif" width="5" alt="'.$devent2.'" title="'.$devent2.'" align="top" />'.$htmtab[$i][$a]."\n";
+                            echo "        </td>\n";
+                        }
+                        else {
+                            echo '        <td'.$wd.' class="'.$class.'"'.($r>1 ? ' colspan="'.$r.'"' : '').">\n";
+                            echo $htmtab[$i][$a]."\n";
+                            echo "        </td>\n";
+                        }
+                    }
+                }
+            }
+            echo "    </tr>\n";
+        }
+    }
+    else {
+        for ($i=0; $i<$nrofrows+1; $i++) {
+            echo "    <tr>\n";
+            for ($a=0; $a<$coloffset+$nrofcols; $a++) {
+                if ($repeat[$i][$a] == 0) {
+                    for ($r=1; $r<$nrofrows+1-$i and $repeat[$i+$r][$a]; $r++);
+                    $class = $cal_class[$isset[$i][$a]];
+
+                    if ($a < $coloffset) {
+                        $wdth = 1;
+                        $class = 'calendar_day_prevnext';
+                    }
+                    else {
+                        $wdth = floor(100/$nrofcols);
+                    }
+
+                    if ($i == 0 and $a >= $coloffset and $devent[$a-$coloffset] != '') {
+                        $devent2 = trim(ereg_replace("---- - ----:", '', $devent[$a-$coloffset]));
+                        echo '        <td width="'.$wd.'" class="'.$class.'"'.($r>1 ? ' rowspan="'.$r.'"' : '').">\n";
+                        echo $htmtab[$i][$a]."<br />\n".$devent2."\n";
+                        echo "        </td>\n";
+                    }
+                    else {
+                        echo '        <td valign="'.(($r > 1) ? 'middle' : 'top').'" width="'.$wdth.'%" class="'.$class.'"'.($r>1 ? ' rowspan="'.$r.'"' : '').">\n";
                         echo $htmtab[$i][$a]."\n";
                         echo "        </td>\n";
                     }
                 }
             }
+            echo "    </tr>\n";
         }
-        echo "    </tr>\n";
     }
+
+    echo '
+    </table>
+    <br /><br />
+    </div>
+    ';
 }
-else {
-    for ($i=0; $i<$nrofrows+1; $i++) {
-        echo "    <tr>\n";
-        for ($a=0; $a<$coloffset+$nrofcols; $a++) {
-            if ($repeat[$i][$a] == 0) {
-                for ($r=1; $r<$nrofrows+1-$i and $repeat[$i+$r][$a]; $r++);
-                $class = $cal_class[$isset[$i][$a]];
-
-                if ($a < $coloffset) {
-                    $wdth = 1;
-                    $class = 'calendar_day_prevnext';
-                }
-                else {
-                    $wdth = floor(100/$nrofcols);
-                }
-
-                if ($i == 0 and $a >= $coloffset and $devent[$a-$coloffset] != '') {
-                    $devent2 = trim(ereg_replace("---- - ----:", '', $devent[$a-$coloffset]));
-                    echo '        <td width="'.$wd.'" class="'.$class.'"'.($r>1 ? ' rowspan="'.$r.'"' : '').">\n";
-                    echo $htmtab[$i][$a]."<br />\n".$devent2."\n";
-                    echo "        </td>\n";
-                }
-                else {
-                    echo '        <td valign="'.(($r > 1) ? 'middle' : 'top').'" width="'.$wdth.'%" class="'.$class.'"'.($r>1 ? ' rowspan="'.$r.'"' : '').">\n";
-                    echo $htmtab[$i][$a]."\n";
-                    echo "        </td>\n";
-                }
-            }
-        }
-        echo "    </tr>\n";
-    }
-}
-
-echo '
-</table>
-
-<br /><br />
-
-</div>
-';
 
 
 /**
@@ -448,6 +461,7 @@ function calendar_view_combi_get_users($combisel) {
     $query = "SELECT ID, nachname, vorname, kurz, loginname
                 FROM ".DB_PREFIX."users
                WHERE ID IN ('".implode("','", $combisel)."')
+                 AND is_deleted is NULL
             ORDER BY ";
 
     switch (PHPR_GROUPVIEWUSERHEADER) {
@@ -487,6 +501,7 @@ function calendar_view_combi_get_events($combisel, $sql_add) {
     $query = "SELECT ID, von, an, event, anfang, ende, visi, partstat, datum, status
                 FROM ".DB_PREFIX."termine
                WHERE an IN ('".implode("','", $combisel)."')
+                 AND is_deleted is NULL
                      $sql_add";
     $res = db_query($query) or db_die();
     while ($row = db_fetch_row($res)) {

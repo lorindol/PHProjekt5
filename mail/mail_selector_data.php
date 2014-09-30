@@ -1,13 +1,19 @@
 <?php
-
-/*
+/**
  * This file check the $_REQUEST for see what selector was clicked
  * In first case, (Form to Selector) the data are stored on the SESSION and call the selector file.
  * In second case, (Selector to Form) get the selected data and continue with the form.
  * Author: Gustavo Solt gustavo.solt@gmail.com
+ *
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_selector_data.php
  */
  
- if (!defined("lib_included")) die("Please use index.php!"); 
+if (!defined("lib_included")) die("Please use index.php!"); 
  
 // Common values
 $formdata['_ID']            = $ID;

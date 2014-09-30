@@ -1,33 +1,35 @@
 <?php
 /**
-* selector for internal users
-*
-* @package    selector
-* @module     main
-* @author     Martin Brotzeller, Gustavo Solt, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: datasource_users.php,v 1.54.2.1 2007/01/24 14:27:36 alexander Exp $
-*/
+ * Selector for internal users
+ *
+ * @package    	selector
+ * @subpackage 	main
+ * @author     	Martin Brotzeller, Gustavo Solt, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: datasource_users.php,v 1.61 2008-03-13 17:49:38 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 // since lib.inc.php is already included, lib_path contains the correct value
 include_once(LIB_PATH.'/selector/selector.inc.php');
 
-/** 
- * fetch_fields() - Query the data source 
+/**
+ * fetch_fields() - Query the data source
  *
- * @param options Array containing the definition of the data source
- *                'table'     - Table to be queried 
+ * @param array		$options 			- Array containing the definition of the data source
+ *                'table'     - Table to be queried
  *                'where'     - where criteria for this table
- *                'order'     - comma separated list of fields to sort by 
+ *                'order'     - comma separated list of fields to sort by
  *                'ID'        - name of the id column
  *                'display'   - array containing the fields to be displayed
  *                'dstring'   - Format string for the fields to be displayed
  *                'tisplay'   - array containing the column titles in xhtml
  *                'tstring'   - format string for the titles
  *                'filter'    - array containing data to display and set the filters.
- *                'limit'     - maximum number of entries returned 
- * @param preselect Array containing selected options
+ *                'limit'     - maximum number of entries returned
+ * @param array		$preselect 		- Array containing selected options
+ * @return array						Array with the found hits
  * @access public
  */
 function usersfetch_fields($options,$preselect) {
@@ -93,9 +95,12 @@ function usersfetch_fields($options,$preselect) {
                 FROM ".DB_PREFIX."grup_user AS g
            LEFT JOIN ".DB_PREFIX."users AS u ON g.user_ID=u.ID
            LEFT JOIN ".DB_PREFIX."gruppen AS gr ON g.grup_ID=gr.ID
-               WHERE ".$options['ID']." = ".xss($k);
+               WHERE ".$options['ID']." = ".xss($k)."
+                 AND u.status = 0
+                 AND u.usertype != 1
+                 AND u.is_deleted is NULL";
             $result = db_query($query) or db_die();
-    
+
             $row = db_fetch_row($result);
             $hits['display'][$row[0]] = "$row[1], $row[2] ($row[3])";
             $hits['tisplay'][$row[0]] = "$row[1], $row[2] ($row[4])";
@@ -107,7 +112,10 @@ function usersfetch_fields($options,$preselect) {
                     FROM ".DB_PREFIX."grup_user AS g
                LEFT JOIN ".DB_PREFIX."users AS u ON g.user_ID=u.ID
                LEFT JOIN ".DB_PREFIX."gruppen AS gr ON g.grup_ID=gr.ID
-                   WHERE $where $order";
+                   WHERE u.is_deleted is NULL
+                     AND u.status = 0
+                     AND u.usertype != 1
+                     AND $where $order";
         $result = db_query($query) or db_die();
 
         $hits = array('display'=>array(), 'tisplay'=>array(), 'overflow'=>false);
@@ -143,12 +151,13 @@ function usersfetch_fields($options,$preselect) {
     return $hits;
 }
 
-/** 
- * Display Filters 
+/**
+ * Display Filters
  *
- * @param $options    - options, see fetch_fields
- * @param $object     - serialized selector object containing selected entries 
- * @param $name       - name of the current filter objects 
+ * @param array		$options    	- Options, see fetch_fields
+ * @param string	$object     	- Serialized selector object containing selected entries
+ * @param string	$name       	- Name of the current filter objects
+ * @return string					HTML output
  * @access public
  */
 function usersdisplay_filters1($options, $object, $name, $getprm=array()) {
@@ -240,7 +249,7 @@ function usersdisplay_filters1($options, $object, $name, $getprm=array()) {
                     </tr>\n";
 
         foreach ($usersextras as $key=>$val) {
-            $val = xss($val);
+            $val = xss_array($val);
             $fform .= $val['getform']($selector_name);
         }
     }
@@ -269,7 +278,7 @@ function usersdisplay_filters1($options, $object, $name, $getprm=array()) {
             } else {
                 $filter_list_arr[] = " <a href='".xss($_SERVER['SCRIPT_NAME'])."?filterdel=$k".$hrefprm."&amp;".$getstring.$sid.
                                      "' class='filter_active' title='".__('Delete')."'>&nbsp;".str_replace("%", "", $v)."&nbsp;</a>\n";
-            }                                 
+            }
         }
         // link to delete all filter
         if ($_SESSION[$selector_name]['javascript']) {
@@ -277,7 +286,7 @@ function usersdisplay_filters1($options, $object, $name, $getprm=array()) {
             $filter_link_2 = "&amp;".$getstring.$sid;
             $fform .= "<b>".__('Filtered').":</b> ".implode('+', $filter_list_arr).
                       "&nbsp;&nbsp;|&nbsp;&nbsp;<a href='#' onclick=\"get_filter_delete_link('".$filter_link_1."', '".$filter_link_2."', '".$selector_type."', '".$selector_name."');\" ".
-                      "class='filter_manage' title='".__('Delete all filter')."'>".__('Delete all filter')."</a>\n";            
+                      "class='filter_manage' title='".__('Delete all filter')."'>".__('Delete all filter')."</a>\n";
         } else {
             $fform .= "<b>".__('Filtered').":</b> ".implode('+', $filter_list_arr).
                       "&nbsp;&nbsp;|&nbsp;&nbsp;<a href='".xss($_SERVER['SCRIPT_NAME'])."?filterdel=-1".$hrefprm."&amp;".$getstring.$sid.
@@ -289,10 +298,11 @@ function usersdisplay_filters1($options, $object, $name, $getprm=array()) {
     return $fform;
 }
 
-/** 
+/**
  * Parse filter and put it in the session
  *
- * @param  $object    - current selection object which gets the filter added 
+ * @param string	$object    - Current selection object which gets the filter added
+ * @return void
  * @access
  */
 function usersparse_filters(&$object) {
@@ -305,7 +315,7 @@ function usersparse_filters(&$object) {
 
         // only put the filter['text'] strings
         $options = $object->sourcedata['filter']['text'];
-        
+
         if (    isset($textfilterstring) &&
                 $textfilterstring != ""  &&
                 array_key_exists($textfilter,$options)) {
@@ -332,11 +342,11 @@ function usersparse_filters(&$object) {
     }
 }
 
-/** 
- * Display input and select box for profiles 
+/**
+ * Display input and select box for profiles
  *
- * @param string selector_name - Name of the selector
- * @return string
+ * @param string 	$selector_name 	- Name of the selector
+ * @return string						HTML output
  * @access public
  */
 function usersextra_profiles($selector_name) {
@@ -345,7 +355,7 @@ function usersextra_profiles($selector_name) {
     $options = "<option selected='selected'></option>\n";
     $query = "SELECT ID, bezeichnung, von
                 FROM ".DB_PREFIX."profile
-               WHERE von = ".(int)$user_ID." 
+               WHERE von = ".(int)$user_ID."
                   OR acc LIKE '%\"$user_kurz\"%'";
     $res = db_query($query) or db_die();
     $num_res = 0;
@@ -377,8 +387,10 @@ function usersextra_profiles($selector_name) {
 }
 
 /**
- * Evaluate select box extra_profiles 
+ * Evaluate select box extra_profiles
  *
+ * @param void
+ * @return array			Array with found hits
  * @access public
  */
 function userseval_extra_profiles() {
@@ -390,7 +402,8 @@ function userseval_extra_profiles() {
         $kurz = "'".implode("','", $personen)."'";
         $query = "SELECT ID
                     FROM ".DB_PREFIX."users
-                   WHERE kurz IN ($kurz)";
+                   WHERE kurz IN ($kurz)
+                     AND is_deleted is NULL";
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {
             $addprof[$row[0]] = $row[0];
@@ -398,24 +411,26 @@ function userseval_extra_profiles() {
         $selektor_answer = __('Added profile')."<br /><br />\n";
     }
     if (count($addprof) == 0) $selektor_answer = __('there were no hits found.')."<br /><br />\n";
-        
+
     return $addprof;
 }
 
-/** 
- * display input and select box for projects
+/**
+ * Display input and select box for projects
  *
- * @param string selector_name - Name of the selector
- * @return string
+ * @param string 	$selector_name 	- Name of the selector
+ * @return string						HTML output
  * @access public
  */
 function usersextra_projects($selector_name) {
     global $user_ID, $user_kurz, $sql_user_group;
-    
+
     $options = "<option selected='selected'></option>\n";
     $query = "SELECT ID, name
                 FROM ".DB_PREFIX."projekte
-               WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') AND $sql_user_group))";
+               WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')
+                      AND $sql_user_group))
+                 AND is_deleted is NULL";
     $res = db_query($query) or db_die();
     $num_res = 0;
     while ($row = db_fetch_row($res)) {
@@ -443,9 +458,11 @@ function usersextra_projects($selector_name) {
     return $ret;
 }
 
-/** 
+/**
  * Evaluates the select box extra_project
  *
+ * @param void
+ * @return array			Array with found hits
  * @access public
  */
 function userseval_extra_projects() {
@@ -455,8 +472,9 @@ function userseval_extra_projects() {
     $addproj = array();
     if (isset($usersextra_project) && $usersextra_project != 0) {
         $query = "SELECT user_ID
-                FROM ".DB_PREFIX."project_users_rel
-               WHERE project_ID = ". intval($usersextra_project) ." ";
+                    FROM ".DB_PREFIX."project_users_rel
+                   WHERE project_ID = ". intval($usersextra_project) ."
+                     AND is_deleted is NULL";
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {
             list($u_id,$u_g) = split(",",slookup('users', 'ID,gruppe', 'ID', $row[0],'1'));
@@ -471,11 +489,11 @@ function userseval_extra_projects() {
     return $addproj;
 }
 
-/** 
- * Displays input and select box for groups 
+/**
+ * Displays input and select box for groups
  *
- * @param string selector_name - Name of the selector
- * @return string
+ * @param string 	$selector_name 	- Name of the selector
+ * @return string						HTML output
  * @access public
  */
 function usersextra_groups($selector_name) {
@@ -492,7 +510,7 @@ function usersextra_groups($selector_name) {
         }
     }
 
-    $options = "<option selected='selected'></option>\n"; 
+    $options = "<option selected='selected'></option>\n";
     $query = "SELECT ID, name, kurz
                 FROM ".DB_PREFIX."gruppen ".$additional_where;
     $res = db_query($query) or db_die();
@@ -519,13 +537,15 @@ function usersextra_groups($selector_name) {
     $ret .= "</select>
         </td>
     </tr>\n";
-    
+
     return $ret;
 }
 
-/** 
- * Evaluates the select box extra_groups 
+/**
+ * Evaluates the select box extra_groups
  *
+ * @param void
+ * @return array			Array with found hits
  * @access public
  */
 function userseval_extra_groups() {
@@ -546,6 +566,7 @@ function userseval_extra_groups() {
         $query = "SELECT u.ID
                     FROM ".DB_PREFIX."grup_user AS g, ".DB_PREFIX."users AS u
                    WHERE u.ID=g.user_ID
+                     AND u.is_deleted is NULL
                      AND g.grup_ID = ".(int)$usersextra_group." ".$additional_where;
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {

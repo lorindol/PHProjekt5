@@ -1,16 +1,25 @@
 <?php
-
-// access.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: access.inc.php,v 1.9 2006/09/24 22:16:47 polidor Exp $
+/**
+ * Access functions
+ *
+ * @package    	lib
+ * @subpackage	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence    	GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: access.inc.php,v 1.13 2007-05-31 08:11:51 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
-
-//  access selection
+/**
+ * Correct the acc value
+ *
+ * @param string 	$acc 		- Value of the acc field
+ * @param string  	$table		- Table name
+ * @return string        			Correct acc
+ */
 function assign_acc($acc, $table) {
     global $profil, $persons, $parent, $user_ID;
 
@@ -46,8 +55,6 @@ function assign_acc($acc, $table) {
 
     // else: personal access or access for all -> leave value
     // -> no action.
-
     return $acc;
 }
-
 ?>

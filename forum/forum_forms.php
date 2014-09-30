@@ -1,14 +1,15 @@
 <?php
 /**
-* forum forms script
-*
-* @package    forum
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: forum_forms.php,v 1.52.2.3 2007/02/27 16:05:39 polidor Exp $
-*/
+ * forum forms script
+ *
+ * @package    forum
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: forum_forms.php,v 1.58 2007-05-31 08:11:15 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
@@ -127,9 +128,8 @@ function writetext() {
         if (!isset($_POST[$persons])) $str_persons = $row[11];
         else $str_persons = xss($_POST[$persons]);
     } else $str_persons = serialize($persons);
-    #$comment .= access_form2($str_persons, 0, $row[12], 0, 0).'</div>';
-    $comment .= "</fieldset>";
-    $comment .= access_form2($str_persons, 0, $row[12], 0, 0).'</div>';
+    $comment .= "</form></fieldset>";
+    $comment .= access_form($str_persons, 0, $row[12], 0, 0).'</div>';
 
     $output .= '
     <br />
@@ -143,7 +143,7 @@ function writetext() {
         <fieldset>
         <legend>'.__('Comment').'</legend>
         '.$comment.'
-        </fieldset></form>
+        </fieldset>
     </div>
     ';
     unset($posting);
@@ -244,7 +244,7 @@ function create_forum($fID=""){
     $form_fields[] = array('type' => 'parsed_html', 'html' => $html);
     $basic_fields = get_form_content($form_fields);
     // release fieldset
-    $release_fields = array(array('type' => 'parsed_html', 'html' => access_form2($str_persons, 0, $row[12], 0, 0)));
+    $release_fields = array(array('type' => 'parsed_html', 'html' => access_form($str_persons, 0, $row[12], 0, 0)));
     $release_fieldset = get_form_content($release_fields);
 
     $output .= '
@@ -266,10 +266,6 @@ function create_forum($fID=""){
     return $output;
 }
 
-// tabs
-$tabs = array();
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
 $output .= breadcrumb($module, breadcrumb_data($fID, $ID, $newbei, $newfor));
 $output .= '</div>';
 $output .= '<div id="global-content">';

@@ -1,10 +1,14 @@
 <?php
-
-// dbman_lib.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: dbman_lib.inc.php,v 1.84.2.4 2007/03/13 04:39:42 polidor Exp $
+/**
+ * Misc functions for all the scripts
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: dbman_lib.inc.php,v 1.94 2007-05-31 08:11:52 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -28,9 +32,15 @@ if ($contextmenu == 1) {
     $menu2 = new contextmenu();
 }
 
-
-
-// fetch all elements of a form, it's properties and the related values if an ID is given
+/**
+ * Fetch all elements of a form
+ * it's properties and the related values if an ID is given
+ *
+ * @param string 	$module 	- Module name
+ * @param int    		$ID     	- Record ID
+ * @param string 	$mode   	- Type of view: list_alt/forms/data/show
+ * @return array         			Array with all the data field
+ */
 function build_array($module, $ID, $mode='forms', $id_field='ID') {
     global $tablename;
 
@@ -39,7 +49,6 @@ function build_array($module, $ID, $mode='forms', $id_field='ID') {
         case 'list_alt':
             $mode2 = 'list_alt != \'\'';
             $order = 'list_alt'; // we will order the list_alt by itself
-            //$order = 'form_pos';
             break;
         case 'forms':
         case 'data':
@@ -60,7 +69,7 @@ function build_array($module, $ID, $mode='forms', $id_field='ID') {
     // form array for fields
     $query="SELECT db_name, form_name, form_type, form_tooltip, form_pos, form_regexp,
                                form_default, form_select, list_pos, filter_show, list_alt, db_table,
-                               form_colspan, form_rowspan,form_length, field_type
+                               form_colspan, form_rowspan,form_length, field_type, form_tab 
                           FROM ".DB_PREFIX."db_manager
                          WHERE db_table LIKE '".qss($table)."'
                            AND $mode2
@@ -82,7 +91,9 @@ function build_array($module, $ID, $mode='forms', $id_field='ID') {
                                   'form_colspan' => $row[12],
                                   'form_rowspan' => $row[13],
                                   'form_length'  => $row[14],
-                                  'field_type'   => $row[15] );
+                                  'field_type'   => $row[15],
+                                  'db_name'      => $row[0],
+                                  'form_tab'     => $row[16] );
 
     }
     if (count($fields)>=1) $db_fields = array_keys($fields);
@@ -109,12 +120,14 @@ function build_array($module, $ID, $mode='forms', $id_field='ID') {
     return $fields;
 }
 
-
-// end file operations
-// ****************
-
-// if the mail module is installed, then all mailto: links
-// should point to this module
+/**
+ * If the mail module is installed, then all mailto: links
+ * should point to this module
+ *
+ * @param string 	$mailadress 	- The mail
+ * @param string 	$class      		- Class to use
+ * @return string            			HTML output for mailto
+ */
 function showmail_link($mailadress, $class = '') {
 
     if ($class <> '') {
@@ -123,8 +136,7 @@ function showmail_link($mailadress, $class = '') {
 
     if (PHPR_QUICKMAIL > 0) {
         $str =  "<a href=\"javascript:mailto(0,'$mailadress','".(SID ? session_id() : '')."')\" $class>".format_mailaddress($mailadress)."</a>&nbsp;\n";
-    }
-    else {
+    } else {
         $str = "<a href='mailto:$mailadress' $class>".format_mailaddress($mailadress)."</a>&nbsp;\n";
     }
     return $str;
@@ -133,8 +145,8 @@ function showmail_link($mailadress, $class = '') {
 /**
  * returns the name of an email address
  *
- * @param string $mailaddress
- * @return string
+ * @param string 	$mailaddress	- The mail
+ * @return string            				The name
  */
 function format_mailaddress($mailaddress) {
   if (ereg('&lt;',$mailaddress)) {
@@ -144,29 +156,14 @@ function format_mailaddress($mailaddress) {
   else return $mailaddress;
 }
 
-// replaces strings with a dollars prefix with the value of the variables of the same name
-// OR constants declared between '@', eg. @DB_PREFIX@
+/**
+ * Replaces strings with a dollars prefix with the value of the variables of the same name
+ * OR constants declared between '@', eg. @DB_PREFIX@
+ *
+ * @param string 	$string  	- The string to fix
+ * @return string         			The fixed string
+ */
 function enable_vars($string) {
-
-
-    /*
-    // Old way to replace var names. Deprecated because it uses eval
-    // insert by Boris: rewrite __(" to __(' so that it is recognized by the reg-ex below
-    if (strpos($string, '__("') !== false) {
-        $string = preg_replace("/__\(\"(.*?)\"\)/", "__('\\1')", $string);
-    }
-
-    if (strpos($string, "__('") !== false) {
-        $pattern = "/(__\('.*?'\))/e";
-
-        // replace language function
-        $string = preg_replace($pattern, "''.eval('return \\1;').''", $string);
-
-        // replace some other specials like concatenating operators
-        $string = preg_replace("/(^.*$)/e", "eval('return \"\\1\";')", $string);
-        return $string;
-    }
-    */
 
     if (strpos($string, '__(') !== false) {
 
@@ -202,11 +199,22 @@ function enable_vars($string) {
     return $ret;
 }
 
+/**
+ * Get the translated string
+ *
+ * @param string 	$varname  	- Name of the var
+ * @return string          				Translated string
+ */
 function enable_variable($varname) {
     return $GLOBALS[$varname[1]];
 }
 
-
+/**
+ * Get the translated string
+ *
+ * @param string 	$varname  	- Name of the constant
+ * @return string          				Translated string
+ */
 function enable_constant($conname) {
     if (defined($conname[1])) {
         $defined_constants = get_defined_constants();
@@ -216,13 +224,13 @@ function enable_constant($conname) {
 }
 
 /**
-* sets the archiv flag to several entries
-* @author Albrecht Günther / Alex Haslberger / Gustavo Solt
-* @param array  $ID ids of the entries
-* @param string $module module to which the entry belongs
-* @param integer $flag 1 to put in archive, 0 to remove them
-* @return void
-*/
+ * Sets the archiv flag to several entries
+ *
+ * @param array  	$ID     	- Ids of the entries
+ * @param string 	$module 	- Module to which the entry belongs
+ * @param int    		$flag   	- 1 to put in archive, 0 to remove them
+ * @return void
+ */
 function set_archiv_flag($ID, $module, $flag) {
     global $user_ID, $dbTSnull;
 
@@ -259,19 +267,19 @@ function set_archiv_flag($ID, $module, $flag) {
         else {
             $query =  "INSERT INTO ".DB_PREFIX."db_records
                                    (        t_author ,                 t_module    ,    t_record,  t_datum   , t_archiv)
-                            VALUES (".(int)$user_ID.", '".DB_PREFIX.qss($module)."',".(int)$ID.", '$dbTSnull', ".(int)$flag.")";
+                            VALUES (".(int)$user_ID.", '".DB_PREFIX.qss($module)."',".(int)$ID.", '$dbTSnull', $flag)";
            $result = db_query($query) or db_die();
         }
     }
 }
 
 /**
-* check the archiv flag to several entries
-* @author Gustavo Solt
-* @param array  $ID ids of the entries
-* @param string $module module to which the entry belongs
-* @return boolean t_archiv value
-*/
+ * Check the archiv flag to several entries
+ *
+ * @param array  	$ID     	- Ids of the entries
+ * @param string 	$module 	- Module to which the entry belongs
+ * @return boolean      			Value of the t_archiv field
+ */
 function check_archiv_flag($ID, $module) {
     global $user_ID;
 
@@ -288,12 +296,12 @@ function check_archiv_flag($ID, $module) {
 }
 
 /**
-* sets the read flag to several entries
-* @author Albrecht Günther / Alex Haslberger
-* @param array  $ID ids of the entries
-* @param string $module module to which the entry belongs
-* @return void
-*/
+ * Sets the read flag to several entries
+ *
+ * @param array  	$ID     	- Ids of the entries
+ * @param string 	$module 	- Module to which the entry belongs
+ * @return void
+ */
 function set_read_flag($ID, $module) {
     global $user_ID, $dbTSnull;
 
@@ -322,7 +330,7 @@ function set_read_flag($ID, $module) {
                        WHERE t_record = ".(int)$ID." AND
                              t_module = '".DB_PREFIX.qss($module)."' AND
                              t_author = ".(int)$user_ID;
-            $result = db_query(xss($query)) or db_die();
+            $result = db_query($query) or db_die();
         }
         else {
             $query = "INSERT INTO ".DB_PREFIX."db_records
@@ -333,6 +341,14 @@ function set_read_flag($ID, $module) {
     }
 }
 
+/**
+ * Sets the status flag to several entries
+ *
+ * @param array  	$ID     	- Ids of the entries
+ * @param string 	$module 	- Module to which the entry belongs
+ * @param int    		$status	- Status value
+ * @return void
+ */
 function set_status($ID, $module, $status) {
     global $user_ID, $tablename;
 
@@ -345,7 +361,16 @@ function set_status($ID, $module, $status) {
     }
 }
 
-
+/**
+ * Make the submit button
+ *
+ * @param string 	$url         			- Action for the form
+ * @param string 	$method      		- Method of the form
+ * @param array  	$hidden      		- Array with hidden values
+ * @param string 	$submitname  	- Name of the submit button
+ * @param string 	$submitvalue 	- Value of the submit button
+ * @return string            				HTML output
+ */
 function set_button($url, $method='post', $hidden, $submitname='submit', $submitvalue) {
     $str = "<form action='$url' method='$method'>\n";
     foreach ($hidden as $hidden_name => $hidden_value) {
@@ -359,9 +384,8 @@ function set_button($url, $method='post', $hidden, $submitname='submit', $submit
 /**
  * Functions determines wether all groups are shown or not
  *
- * @author Nina Schmitt
- * @param  string $module
- * @return string
+ * @param string 	$module 	- Module name
+ * @return string        			WHERE clause
  */
 function group_string($module='') {
     global $sql_user_group, $user_ID;
@@ -376,5 +400,4 @@ function group_string($module='') {
         //else: admin!
         return '';
 }
-
 ?>

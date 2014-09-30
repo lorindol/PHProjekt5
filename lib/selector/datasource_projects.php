@@ -1,33 +1,35 @@
 <?php
 /**
-* selector for projects
-*
-* @package    selector
-* @module     main
-* @author     Martin Brotzeller, Gustavo Solt, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: datasource_projects.php,v 1.15.2.1 2007/01/24 14:27:36 alexander Exp $
-*/
+ * Selector for projects
+ *
+ * @package    	selector
+ * @subpackage 	main
+ * @author     	Martin Brotzeller, Gustavo Solt, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: datasource_projects.php,v 1.21 2007-11-26 17:01:21 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 // since lib.inc.php is already included, lib_path contains the correct value
 include_once(LIB_PATH.'/selector/selector.inc.php');
 
-/** 
- * fetch_fields() - Query the data source 
+/**
+ * fetch_fields() - Query the data source
  *
- * @param options Array containing the definition of the data source
- *                'table'     - Table to be queried 
+ * @param array		$ptions 			- Array containing the definition of the data source
+ *                'table'     - Table to be queried
  *                'where'     - where criteria for this table
- *                'order'     - comma separated list of fields to sort by 
+ *                'order'     - comma separated list of fields to sort by
  *                'ID'        - name of the id column
  *                'display'   - array containing the fields to be displayed
  *                'dstring'   - Format string for the fields to be displayed
  *                'tisplay'   - array containing the column titles in xhtml
  *                'tstring'   - format string for the titles
  *                'filter'    - array containing data to display and set the filters.
- *                'limit'     - maximum number of entries returned 
- * @param preselect Array containing selected options
+ *                'limit'     - maximum number of entries returned
+ * @param array		$preselect 		- Array containing selected options
+ * @return array						Array with the found hits
  * @access public
  */
 function projectsfetch_fields($options,$preselect) {
@@ -91,9 +93,10 @@ function projectsfetch_fields($options,$preselect) {
 
             $query = "SELECT ".$options['ID'].", p.name
                         FROM ".DB_PREFIX."projekte AS p
-                       WHERE ".$options['ID']." = ".xss($k);
+                       WHERE ".$options['ID']." = ".xss($k)."
+                         AND p.is_deleted is NULL";
             $result = db_query($query) or db_die();
-    
+
             $row = db_fetch_row($result);
             $hits['display'][$row[0]] = "$row[1]";
             $hits['tisplay'][$row[0]] = "$row[1]";
@@ -103,7 +106,9 @@ function projectsfetch_fields($options,$preselect) {
         // query for projects
         $query = "SELECT ".$options['ID'].", p.name
                     FROM ".DB_PREFIX."projekte AS p
-                   WHERE $where $order";
+                    WHERE $where
+                      AND p.is_deleted is NULL
+                          $order";
         $result = db_query($query) or db_die();
 
         $hits = array('display'=>array(), 'tisplay'=>array(), 'overflow'=>false);
@@ -139,12 +144,13 @@ function projectsfetch_fields($options,$preselect) {
     return $hits;
 }
 
-/** 
- * Display Filters 
+/**
+ * Display Filters
  *
- * @param $options    - options, see fetch_fields
- * @param $object     - serialized selector object containing selected entries 
- * @param $name       - name of the current filter objects 
+ * @param array		$options    	- Options, see fetch_fields
+ * @param string	$object     	- Serialized selector object containing selected entries
+ * @param string	$name			- Name of the current filter objects
+ * @return string					HTML output
  * @access public
  */
 function projectsdisplay_filters1($options, $object, $name, $getprm=array()) {
@@ -221,7 +227,7 @@ function projectsdisplay_filters1($options, $object, $name, $getprm=array()) {
                     <tr>
                         <td class='selector_head'>
                             <table border='0' class='selector_filter'>";
-    
+
     // Selector object
     $sobject = unserialize(urldecode($object));
     $selector_name = $sobject['this']->name;
@@ -236,7 +242,7 @@ function projectsdisplay_filters1($options, $object, $name, $getprm=array()) {
                     </tr>\n";
 
         foreach ($projectsextras as $key=>$val) {
-            $val = xss($val);
+            $val = xss_array($val);
             $fform .= $val['getform']($selector_name);
         }
     }
@@ -265,7 +271,7 @@ function projectsdisplay_filters1($options, $object, $name, $getprm=array()) {
             } else {
                 $filter_list_arr[] = " <a href='".xss($_SERVER['SCRIPT_NAME'])."?filterdel=$k".$hrefprm."&amp;".$getstring.$sid.
                                      "' class='filter_active' title='".__('Delete')."'>&nbsp;".str_replace("%", "", $v)."&nbsp;</a>\n";
-            }                                 
+            }
         }
         // link to delete all filter
         if ($_SESSION[$selector_name]['javascript']) {
@@ -273,7 +279,7 @@ function projectsdisplay_filters1($options, $object, $name, $getprm=array()) {
             $filter_link_2 = "&amp;".$getstring.$sid;
             $fform .= "<b>".__('Filtered').":</b> ".implode('+', $filter_list_arr).
                       "&nbsp;&nbsp;|&nbsp;&nbsp;<a href='#' onclick=\"get_filter_delete_link('".$filter_link_1."', '".$filter_link_2."', '".$selector_type."', '".$selector_name."');\" ".
-                      "class='filter_manage' title='".__('Delete all filter')."'>".__('Delete all filter')."</a>\n";            
+                      "class='filter_manage' title='".__('Delete all filter')."'>".__('Delete all filter')."</a>\n";
         } else {
             $fform .= "<b>".__('Filtered').":</b> ".implode('+', $filter_list_arr).
                       "&nbsp;&nbsp;|&nbsp;&nbsp;<a href='".xss($_SERVER['SCRIPT_NAME'])."?filterdel=-1".$hrefprm."&amp;".$getstring.$sid.
@@ -285,10 +291,11 @@ function projectsdisplay_filters1($options, $object, $name, $getprm=array()) {
     return $fform;
 }
 
-/** 
+/**
  * Parse filter and put it in the session
  *
- * @param  $object    - current selection object which gets the filter added 
+ * @param string	$object    - Current selection object which gets the filter added
+ * @return void
  * @access
  */
 function projectsparse_filters(&$object) {
@@ -298,10 +305,10 @@ function projectsparse_filters(&$object) {
         $_SESSION['filters'] =& $filters;
 
         $sarr =& $filters[$object->name];
-        
+
         // only put the filter['text'] strings
         $options = $object->sourcedata['filter']['text'];
-        
+
         if (    isset($textfilterstring) &&
                 $textfilterstring != ""  &&
                 array_key_exists($textfilter,$options)) {
@@ -327,6 +334,5 @@ function projectsparse_filters(&$object) {
         }
     }
 }
-
 $contactsextras = array();
 ?>

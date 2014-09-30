@@ -1,10 +1,12 @@
 <?php
-
-// updates.php - PHProjekt Version 5.2
-// copyright © 2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: updates.php,v 1.143.2.15 2007/08/02 16:43:00 polidor Exp $
+/**
+ * @package    setup
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: updates.php,v 1.194 2008-03-03 06:08:08 gustavo Exp $
+ */
 
 // check whether setup.php calls this script - authentication!
 if (!defined("setup_included")) die("Please use setup.php!");
@@ -595,7 +597,7 @@ $version_old == "2.1" or $version_old == "2.0" or $version_old == "1.3" or $vers
     }
 
     // ... and now for notes!
-    if ($notes and $old_config_array["PHPR_OLD"]) {
+    if ($notes and $old_config_array["PHPR_NOTES"]) {
         $result = db_query("alter table ".DB_PREFIX."notes add acc ".$db_text[$db_type]) or db_die();
         $result = db_query("update ".DB_PREFIX."notes set acc = ''") or db_die();
         $result = db_query("alter table ".DB_PREFIX."notes add acc_write ".$db_text[$db_type]) or db_die();
@@ -952,7 +954,7 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
 
     // history
     if ($history_log and $old_config_array["PHPR_HISTORY_LOG"]) {
-        
+
         // note: on postgres all integer values are the same type
         if ($db_type <> 'postgresql') {
             $result = db_query("ALTER TABLE ".DB_PREFIX."history CHANGE von von ".$db_int8[$db_type]) or db_die() ;
@@ -961,15 +963,15 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
 
     // notes
     if ($notes and $old_config_array["PHPR_NOTES"]) {
-        
+
         // note: on postgres all integer values are the same type
         if ($db_type <> 'postgresql') {
             $result = db_query("ALTER TABLE ".DB_PREFIX."notes CHANGE parent parent ".$db_int6[$db_type]);
         }
-        
+
         // for versions without it
         $result = db_query("ALTER TABLE ".DB_PREFIX."notes ADD parent".$db_int8[$db_type]);
-        
+
         if ($db_type <> 'postgresql') {
             $result = db_query("ALTER TABLE ".DB_PREFIX."notes CHANGE kategorie kategorie ".$db_varchar100[$db_type]);
         }
@@ -1132,7 +1134,7 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive) VALUES (".($ii+=1).",'mail_client', 'projekt', '__(\"Project\")', 'project', NULL, 3, 2, 1, NULL, NULL, NULL, NULL, NULL, 'on', 0)") or db_die();
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive) VALUES (".($ii+=1).",'mail_client', 'sender', '__(\"To\")', 'text', NULL, 0, 0, 0, NULL, NULL, NULL, 3, NULL, 'on', 0)") or db_die();
 
-    
+
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'todo','remark','__(\"Title\")','text','Kurze Beschreibung',1,2,1,NULL,NULL,NULL,1,NULL,'1',0,NULL,NULL)") or db_die();
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'todo','deadline','__(\"Deadline\")','date',NULL,7,1,1,NULL,NULL,NULL,2,NULL,'1',0,NULL,NULL)") or db_die();
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'todo','datum','__(\"Date\")','timestamp_create',NULL,5,1,1,NULL,NULL,NULL,0,NULL,'1',0,NULL,NULL)") or db_die();
@@ -1147,7 +1149,7 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'todo','ext','__(\"to\")','userID',NULL,3,1,1,NULL,NULL,NULL,4,NULL,'1',0,NULL,NULL)") or db_die();
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'todo', 'progress', '__(\"progress\") [%]', 'text', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, 0, NULL, NULL)") or db_die();
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'todo', 'status', '__(\"Status\")', 'select_values', NULL, NULL, NULL, NULL, NULL, NULL, '1#__(\"waiting\")|2#__(\"Open\")|3#__(\"accepted\")|4#__(\"rejected\")|5#__(\"ended\")', 7, NULL, NULL, 0, NULL, NULL)") or db_die();
-    
+
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'rts', 'name', '__(\"Title\")', 'text', 'the title of the request', 1, 1, 1, NULL, NULL, NULL, 1, '0', '1', 0, NULL, NULL)") or db_die();
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'rts', 'note', '__(\"Remark\")', 'textarea', 'the body of the request set by the customer', 6, 1, 1, NULL, NULL, NULL, 0, '1', '1', 0, NULL, NULL)") or db_die();
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn) VALUES (".($ii+=1).",'rts', 'submit', '__(\"Date\")', 'timestamp_create', 'date/time the request ha been submitted', 4, 1, 1, NULL, NULL, NULL, 0, '0', '0', 0, NULL, NULL)") or db_die();
@@ -1203,7 +1205,7 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
     $result = db_query("UPDATE ".DB_PREFIX."db_manager set form_name = '__(\"End\")' WHERE form_name = '\$proj_end'") or db_die();
     $result = db_query("UPDATE ".DB_PREFIX."db_manager set form_name = '__(\"Leader\")' WHERE form_name = '\$proj_chef'") or db_die();
     $result = db_query("UPDATE ".DB_PREFIX."db_manager set form_name = '__(\"Contact\")' WHERE form_name = '\$proj_text12'") or db_die();
-    $result = db_query("UPDATE ".DB_PREFIX."db_manager set form_name = '__(\"Hourly rate\"\")' WHERE form_name = '\$proj_text13'") or db_die();
+    $result = db_query("UPDATE ".DB_PREFIX."db_manager set form_name = '__(\"Hourly rate\")' WHERE form_name = '\$proj_text13'") or db_die();
     $result = db_query("UPDATE ".DB_PREFIX."db_manager set form_name = '__(\"Calculated budget\")' WHERE form_name = '\$proj_text14'") or db_die();
     $result = db_query("UPDATE ".DB_PREFIX."db_manager set form_name = '__(\"Aim\")' WHERE form_name = '\$proj_text11'") or db_die();
     $result = db_query("UPDATE ".DB_PREFIX."db_manager set form_name = '__(\"Priority\")' WHERE form_name = '\$proj_prio'") or db_die();
@@ -1310,7 +1312,7 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
     if ($db_type <> 'postgresql') {
         $result = db_query("ALTER TABLE ".DB_PREFIX."termine CHANGE ID ID ".$db_int11_auto[$db_type]) or db_die();
     }
-    
+
     $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD parent ".$db_int11[$db_type]) or db_die();
     $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD partstat ".$db_int1[$db_type]) or db_die();
     $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD status ".$db_int1[$db_type]) or db_die();
@@ -1526,9 +1528,9 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
     else {
         $result = db_query("ALTER TABLE ".DB_PREFIX."mail_account ALTER COLUMN type TYPE ".$db_varchar60[$db_type]) or db_die() ;
     }
-    
+
     $result = db_query("alter table ".DB_PREFIX."mail_account ADD deletion ".$db_int2[$db_type]);
-    
+
     // add the records in the db manager
     $result = db_query("SELECT MAX(ID) FROM ".DB_PREFIX."db_manager") or db_die();
     $row = db_fetch_row($result);
@@ -1878,7 +1880,7 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
     }
     if ($db_type == "oracle") { sequence("global_mail_account"); }
     if ($db_type == "interbase") { ib_autoinc("global_mail_account"); }
-    
+
     // add the records in the db manager
     $result = db_query("SELECT MAX(ID) FROM ".DB_PREFIX."db_manager") or db_die();
     $row = db_fetch_row($result);
@@ -2288,7 +2290,7 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
 
     // rename file field to other name compatible with all dbms
     if ($db_type <> 'sqlite') {
-        
+
         if ($db_type == 'postgresql') {
             $result = db_query("ALTER TABLE ".DB_PREFIX."rts RENAME COLUMN file TO filename");
         }
@@ -2362,12 +2364,193 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
     $result = db_query("update ".DB_PREFIX."db_manager set db_name = 'filename' where db_table = 'rts' and db_name = 'file'");
 
     // end update file field on rts table
+
+} // end update to 5.2.2
+
+// *************
+// update to 5.3
+// *************
+
+if ( ($setup == "update") and (ereg("5.2.2",$version_old) or ereg("5.2.1",$version_old) or
+ereg("5.2",$version_old) or ereg("5.1",$version_old) or ereg("5.0",$version_old) or
+ereg("4.2",$version_old) or ereg("4.1",$version_old) or
+ereg("4.0",$version_old) or ereg("3.3",$version_old) or ereg("3.2",$version_old) or
+ereg("3.1",$version_old) or ereg("3.0",$version_old) or ereg("2.4",$version_old) or
+ereg("2.3",$version_old) or $version_old == "2.2" or $version_old == "2.1" or
+$version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
+
+    // *****************************************
+    // new fields to share filters between users
+
+    $result = db_query("ALTER TABLE ".DB_PREFIX."filter ADD acc ".$db_text[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."filter ADD acc_write ".$db_text[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."filter ADD gruppe ".$db_int8[$db_type]);
+
+    // *****************************************
+    // Organisation tables
+    $result = db_query("CREATE TABLE ".DB_PREFIX."organisations (
+      ID ".$db_int8_auto[$db_type].",
+      name ".$db_varchar100[$db_type].",
+      gruppe ".$db_int8[$db_type].",
+      von ".$db_int8[$db_type].",
+      parent ".$db_int8[$db_type].",
+      sync1 ".$db_varchar20[$db_type].",
+      sync2 ".$db_varchar20[$db_type].",
+      acc ".$db_text[$db_type].",
+      acc_write ".$db_text[$db_type].",
+      link ".$db_varchar255[$db_type].",
+      adress ".$db_varchar255[$db_type].",
+      category ".$db_varchar255[$db_type].",
+      PRIMARY KEY  ( ID ))");
+
+
+    $result = db_query("CREATE TABLE ".DB_PREFIX."organisation_contacts_rel (
+     ID ".$db_int8_auto[$db_type].",
+     organisation_ID ".$db_int8[$db_type].",
+     contact_ID ".$db_int8[$db_type].",
+     role ".$db_varchar255[$db_type].",
+     PRIMARY KEY  ( ID ))");
+
+    // extend module designer with other modules
+    $result = db_query("select max(ID) from ".DB_PREFIX."db_manager") or db_die();
+    $row = db_fetch_row($result);
+    $ii = $row[0];
+
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'organisations', 'name', '__(\"Name\")', 'text', 'Name of the company', 1, 1, 1, NULL, NULL, NULL, 1, NULL, '1', 0, NULL, NULL, NULL, NULL)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn, form_length, field_type) VALUES (".($ii+=1).",'organisations', 'link', '__(\"Url\")', 'text', 'Url of the company', 2, 1, 1, '', '', '', 2, '', '1', 0, NULL, NULL, 0, NULL)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn, form_length, field_type) VALUES (".($ii+=1).",'organisations', 'adress', '__(\"Adress\")', 'text', 'Adress of the company', 3, 1, 1, '', '', '', 3, 'on', '1', 0, NULL, NULL, 0, NULL)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn, form_length, field_type) VALUES (".($ii+=1).",'organisations', 'category', '__(\"Category\")', 'select_category', 'Select an existing category or insert a new one', 4, 1, 1, '', NULL, '(acc like system or ((von =  or acc like group or acc like %\"\"%) and (1 = 1)))', 4, NULL, '1', 0, NULL, NULL, NULL, NULL)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn, form_length, field_type) VALUES (".($ii+=1).",'organisations', 'ID', '__(\"Contacts\")', 'display_contacts', 'Contacts', 0, 1, 1, '', NULL, '', 5, NULL, '0', 0, NULL, NULL, NULL, NULL)");
+
+    $result = db_query("ALTER TABLE ".DB_PREFIX."roles ADD organisations ".$db_int1[$db_type]);
+
+    // *****************************************
+    // new fields to add todos (or other objects) on calendar
+
+    $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD module_name ".$db_varchar20[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD module_ID ".$db_int8[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD module_type ".$db_varchar20[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD mailnotify ".$db_text[$db_type]);
+
+    // New field for project_users_rel
+    $result = db_query("ALTER TABLE ".DB_PREFIX."project_users_rel ADD user_unit ".$db_int8[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."project_users_rel ADD favorite ".$db_int1[$db_type]);
+
+    // New field for project templates
+    $result = db_query("ALTER TABLE ".DB_PREFIX."projekte ADD template ".$db_varchar20[$db_type]);
+
+    // ************* modules table and data ***********
+    //
+    // modules
+    $result = db_query("
+      CREATE TABLE ".DB_PREFIX."modules ( 
+      ID ".$db_int8_auto[$db_type].",
+      name ".$db_varchar255[$db_type].",
+      index_name ".$db_varchar255[$db_type].",
+      dir ".$db_varchar255[$db_type].",
+      position ".$db_int4[$db_type].",
+      parent ".$db_int8[$db_type].",
+      module_type ".$db_varchar255[$db_type].",
+      additional_check ".$db_varchar255[$db_type].",
+      form_cols ".$db_int4[$db_type].",
+      is_deleted ".$db_int1[$db_type].",
+      PRIMARY KEY (ID)
+    ) ");
+    if ($result) { echo __('Table modules (for access permission) created').".<br />\n"; }
+    else { echo __('An error ocurred while creating table: ')." modules<br />"; $error = 1; }
+    if ($db_type == "oracle") { sequence("modules"); }
+    if ($db_type == "interbase") { ib_autoinc("modules"); }
+
+    $result = db_query("
+      CREATE TABLE ".DB_PREFIX."module_role_rel (
+      ID ".$db_int8_auto[$db_type].",
+      von ".$db_int8[$db_type].",
+      role_ID ".$db_int8[$db_type].",
+      module_ID ".$db_int8[$db_type].",
+      access ".$db_int1[$db_type].",
+      PRIMARY KEY (ID)
+    ) ");
+    if ($result) { echo __('Table module_role_rel (for access permission) created').".<br />\n"; }
+    else { echo __('An error ocurred while creating table: ')." module_role_rel<br />"; $error = 1; }
+    if ($db_type == "oracle") { sequence("module_role_rel"); }
+    if ($db_type == "interbase") { ib_autoinc("module_role_rel"); }
+
+    // *************** modules records **************
+    //
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (1, '__(\"Summary\")', 'summary', 'summary/summary.php?mode=view', 1, 0, 'navigation', '2', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (2, '__(\"Calendar\")', 'calendar', 'calendar/calendar.php', 2, 0, 'navigation', 'PHPR_CALENDAR', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (3, '__(\"Contacts\")', 'contacts', 'contacts/contacts.php?mode=view', 3, 0, 'navigation', 'PHPR_CONTACTS', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (4, '__(\"Forum\")', 'forum', 'forum/forum.php?mode=view', 4, 0, 'navigation', 'PHPR_FORUM', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (5, '__(\"Chat\")', 'chat', 'chat/chat.php?mode=view', 5, 0, 'navigation', 'PHPR_CHAT', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (6, '__(\"Filemanager\")', 'filemanager', 'filemanager/filemanager.php?mode=view', 6, 0, 'navigation', 'PHPR_FILEMANAGER', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (7, '__(\"Projects\")', 'projects', 'projects/projects.php?mode=view', 7, 0, 'navigation', 'PHPR_PROJECTS', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (8, '__(\"Timecard\")', 'timecard', 'timecard/timecard.php?mode=view', 8, 0, 'navigation', 'PHPR_TIMECARD', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (9, '__(\"Notes\")', 'notes', 'notes/notes.php?mode=view', 9, 0, 'navigation', 'PHPR_NOTES, 2, null')");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (10, '__(\"Helpdesk\")', 'helpdesk', 'helpdesk/helpdesk.php?mode=view', 10, 0, 'navigation', 'PHPR_RTS', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (11, '__(\"Mail\")', 'mail', 'mail/mail.php?mode=view', 11, 0, 'navigation', 'PHPR_QUICKMAIL', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (12, '__(\"Todo\")', 'todo', 'todo/todo.php?mode=view', 12, 0, 'navigation', 'PHPR_TODO', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (13, '__(\"Bookmarks\")', 'bookmarks', 'bookmarks/bookmarks.php?mode=view', 13, 0, 'navigation', 'PHPR_BOOKMARKS', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (14, '__(\"Votum\")', 'votum', 'votum/votum.php?mode=view', 14, 0, 'navigation', 'PHPR_VOTUM', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (15, ' __(\"Group members\")', 'members', 'contacts/members.php?mode=view', 0, 3, 'navigation', 'PHPR_CONTACTS', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (17, '__(\"Statistic\")', 'statistic', 'projects/projects.php?mode=stat', 3, 7, 'view', '2', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (18, '__(\"My Statistic\")', 'mystatistic', 'projects/projects.php?mode=stat&amp;mode2=mystat', 4, 7, 'view', '2', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (19, '__(\"Profiles\")', 'profiles', 'contacts/contacts.php?mode=profiles_forms&amp;action=contacts', 2, 3, 'view', 'PHPR_CONTACTS_PROFILES', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (20, '__(\"Gantt\")', 'gantt', 'projects/projects.php?mode=gantt', 4, 7, 'view', 'PHPR_SUPPORT_CHART', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (22, '__(\"Links\")', 'links', 'links/links.php?mode=view', 9, 0, 'navigation', 'PHPR_LINKS', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (24, '__(\"Costs\")', 'costs','costs/costs.php?mode=view', 16, 0, 'navigation', 'PHPR_COSTS', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (25, '__(\"Timescale\")', 'timescale','timescale/timescale.php', 5, 7, 'view', '2', null, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (26, '__(\"Companies\")', 'organisations','organisations/organisations.php?mode=view', 0, 3, 'navigation', 'PHPR_CONTACTS', 2, null)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."modules VALUES (27, '__(\"Options\")', 'project_options','projects/projects.php?mode=options', 6, 7, 'view', '2', null, null)");
+
+
+    // Update roles from 5.2 version to 5.3 version
     
-    
-    // *********************
-    // Special Cost upgrade
-    // *********************
-    
+    // Collecting access by role from old roles table
+    $query = "SELECT ID, von, title, remark, summary, calendar, contacts, forum, chat, 
+                     filemanager, bookmarks, votum, mail, notes, helpdesk, projects, timecard, todo, news, costs 
+                FROM ".DB_PREFIX."roles";
+    $result = db_query($query);
+
+    // relation between modules IDs and roles field -on previows query
+    $tmpRoleIdRel = array( 1 => 4, // summary
+                           2 => 5, // calendar
+                           3 => 6, // contacts
+                           4 => 7, // forum
+                           5 => 8, // chat
+                           6 => 9, // filemanager
+                          13 => 10, // bookmarks
+                          14 => 11, // votum
+                          11 => 12, // mail
+                           9 => 13, // notes
+                          10 => 4, // helpdesk
+                           7 => 15, // projects
+                           8 => 16, // timecard
+                          12 => 17, // todo
+                          24 => 19, // costs
+                          15 =>  6, // group members = contacts
+                          26 =>  6, // companies = contacts 
+                          19 =>  6, // profiles = contacts
+                          17 =>  15, // statistics = projects
+                          18 =>  15, // my statistics = projects
+                          20 =>  15, // gantt = projects
+                          25 =>  15, // timescale = projects
+                          27 =>  15, // options = projects
+                          );
+    // with each role
+    while ($oneRow = db_fetch_row($result)) {
+        
+        // for each different 'module'
+        foreach ($tmpRoleIdRel as $moduleID => $fieldNr) {
+            
+            // insertint the old role value into module_role_rel 
+            $query = "INSERT into ".DB_PREFIX."module_role_rel (von, role_ID, module_ID, access) 
+                      VALUES (".(int)$oneRow[1].",".(int)$oneRow[0].",".(int)$moduleID.",".(int)$oneRow[$fieldNr].")";
+            
+            $result2 = db_query($query);
+        }
+    }
+
+
     // *****************************************
     // Costs tables
     $result = db_query("CREATE TABLE ".DB_PREFIX."costs (
@@ -2385,32 +2568,231 @@ $version_old == "2.0" or $version_old == "1.3" or $version_old == "1.2") ) {
         acc_write ".$db_text[$db_type].",
         gruppe ".$db_int8[$db_type].",
         parent ".$db_int8[$db_type].",
-        is_deleted ".$db_varchar20[$db_type].",
         PRIMARY KEY  (ID)) ");
-    if ($result) { echo __('costs (...)').".<br />\n"; }
-    else { echo __('An error ocurred while creating table: ')." costs<br />"; $error = 1; }
+    if ($result) { echo __('Table costs created').".<br />\n"; }
+    elseif(get_sql_errno($result) != $db_error_code_table_exists[$db_type]) {
+        echo __('An error ocurred while creating table: ')." costs (".get_sql_errno($result).")<br />\n"; $error = 1;
+    }
     if ($db_type == "oracle") { sequence("costs"); }
     if ($db_type == "interbase") { ib_autoinc("costs"); }
-    
-    // extend module designer with other modules
-    $result = db_query("select max(ID) from ".DB_PREFIX."db_manager") or db_die();
-    $row = db_fetch_row($result);
-    $ii = $row[0];
-    
+
+
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'costs', 'name',   '__(\"Title\")'   , 'text'        , 'Title of this note'          , 1, 1, 1, NULL, NULL, NULL, 1, NULL, '1', 0, NULL, NULL, NULL, NULL)");
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'costs', 'remark', '__(\"Comment\")' , 'textarea'    , 'bodytext of the note'        , 2, 1, 5, NULL, NULL, NULL, 2, NULL, '1', 0, NULL, NULL, NULL, NULL)");
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'costs', 'amount', '__(\"Amount\")'  , 'text'        , 'Amount of the cost'          , 3, 1, 1, NULL, NULL, NULL, 0, NULL, '1', 0, NULL, NULL, NULL, NULL)");
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'costs', 'contact','__(\"Contact\")' , 'contact'     , 'Contact related to this note', 4, 1, 1, NULL, NULL, NULL, 4, NULL, '1', 0, NULL, NULL, NULL, 'integer')");
     $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'costs', 'projekt','__(\"Projects\")', 'project'     , 'Project related to this note', 5, 1, 1, NULL, NULL, NULL, 5, NULL, '1', 0, NULL, NULL, NULL, 'integer')");
-    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'costs', 'datum',  '__(\"Date\")'    , 'date'        , 'Datum'                       , 6, 1, 1, NULL, NULL, NULL, 6, NULL, '1', 0, NULL, NULL, NULL, NULL)");    
+
     $result = db_query("ALTER TABLE ".DB_PREFIX."roles ADD costs ".$db_int1[$db_type]);
+
+    // soft delete fields
+    $result = db_query("ALTER TABLE ".DB_PREFIX."projekte ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."project_users_rel ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."project_contacts_rel ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."contacts ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."contacts_prof_rel ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."lesezeichen ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."dateien ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."forum ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."rts ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."mail_client ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."notes ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."organisations ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."todo ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."votum ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."users ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."costs ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."gruppen ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."timecard ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."db_remarks ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."contacts_import_patterns ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."mail_account ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."db_manager ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."db_records ADD is_deleted ".$db_int1[$db_type]);
+
+    // *****************************************
+    // Savedata table
+    $result = db_query("CREATE TABLE ".DB_PREFIX."savedata (
+        ID ".$db_int8_auto[$db_type].",
+        user_ID ".$db_int11[$db_type].",
+        module ".$db_varchar255[$db_type].",
+        name ".$db_varchar255[$db_type].",
+        settings ".$db_text[$db_type].",
+        PRIMARY KEY  (ID)) ");
+    if ($result) { echo __('Table savedata (for user settings) created').".<br />\n"; }
+    else { echo __('An error ocurred while creating table: ')." savedata<br />"; $error = 1; }
+    if ($db_type == "oracle") { sequence("savedata"); }
+    if ($db_type == "interbase") { ib_autoinc("savedata"); }
+
+    // indexes for several tables
+    $result = db_query("CREATE INDEX i_contact_ID ON ".DB_PREFIX."contacts_prof_rel (contact_ID)");
+    $result = db_query("CREATE INDEX i_contacts_profiles_ID ON ".DB_PREFIX."contacts_prof_rel (contacts_profiles_ID)");
+    $result = db_query("CREATE INDEX i_user_ID ON ".DB_PREFIX."logintoken (user_ID)");
+    $result = db_query("CREATE INDEX i_role_ID ON ".DB_PREFIX."module_role_rel (role_ID)");
+    $result = db_query("CREATE INDEX i_module_ID ON ".DB_PREFIX."module_role_rel (module_ID)");
+    $result = db_query("CREATE INDEX i_project_ID ON ".DB_PREFIX."project_contacts_rel (project_ID)");
+    $result = db_query("CREATE INDEX i_contact_ID ON ".DB_PREFIX."project_contacts_rel (contact_ID)");
+    $result = db_query("CREATE INDEX i_project_ID ON ".DB_PREFIX."project_users_rel (project_ID)");
+    $result = db_query("CREATE INDEX i_user_ID ON ".DB_PREFIX."project_users_rel (user_ID)");
+    $result = db_query("CREATE INDEX i_user_ID ON ".DB_PREFIX."projekt_statistik_einstellungen (user_ID)");
+    $result = db_query("CREATE INDEX i_stat_einstellung_ID ON ".DB_PREFIX."projekt_statistik_projekte (stat_einstellung_ID)");
+    $result = db_query("CREATE INDEX i_projekt_ID ON ".DB_PREFIX."projekt_statistik_projekte (projekt_ID)");
+    $result = db_query("CREATE INDEX i_stat_einstellung_ID ON ".DB_PREFIX."projekt_statistik_user (stat_einstellung_ID)");
+    $result = db_query("CREATE INDEX i_user_ID ON ".DB_PREFIX."projekt_statistik_user (user_ID)");
+    $result = db_query("CREATE INDEX i_protokoll_ID ON ".DB_PREFIX."protokoll_elemente (protokoll_ID)");
+    $result = db_query("CREATE INDEX i_todo_ID ON ".DB_PREFIX."protokoll_elemente (todo_ID)");
+    $result = db_query("CREATE INDEX i_user_ID ON ".DB_PREFIX."savedata (user_ID)");
+    $result = db_query("CREATE INDEX i_termin_ID ON ".DB_PREFIX."termine_res_rel (termin_ID)");
+    $result = db_query("CREATE INDEX i_res_ID ON ".DB_PREFIX."termine_res_rel (res_ID)");
+    $result = db_query("CREATE INDEX i_user_ID ON ".DB_PREFIX."users_proxy (user_ID)");
+    $result = db_query("CREATE INDEX i_proxy_ID ON ".DB_PREFIX."users_proxy (proxy_ID)");
+    $result = db_query("CREATE INDEX i_user_ID ON ".DB_PREFIX."users_reader (user_ID)");
+    $result = db_query("CREATE INDEX i_reader_ID ON ".DB_PREFIX."users_reader (reader_ID)");
+    $result = db_query("CREATE INDEX i_user_ID ON ".DB_PREFIX."users_viewer (user_ID)");
+    $result = db_query("CREATE INDEX i_viewer_ID ON ".DB_PREFIX."users_viewer (viewer_ID)");
+
+    // grup_user table
+    $result = db_query("ALTER TABLE ".DB_PREFIX."grup_user ADD role_ID ".$db_int8[$db_type]);
+
+    $result = db_query("ALTER TABLE ".DB_PREFIX."db_manager ADD form_tab ".$db_int2[$db_type]." AFTER db_name");
+
+
+    // project elements
+    $result = db_query("
+              CREATE TABLE ".DB_PREFIX."project_elements (
+              ID ".$db_int8_auto[$db_type].",
+              name ".$db_varchar60[$db_type].",
+              description ".$db_text[$db_type].",
+              project_ID ".$db_int8[$db_type].",
+              begin ".$db_varchar10[$db_type].",
+              end ".$db_varchar10[$db_type].",
+              category ".$db_varchar80[$db_type].",
+              colour ".$db_varchar10[$db_type].",
+              von ".$db_int8[$db_type].",
+              assigned ".$db_text[$db_type].",
+              parent ".$db_int8[$db_type].",
+              PRIMARY KEY (ID)
+            ) ");
+    if (!$result) {
+        if(get_sql_errno($result) != $db_error_code_table_exists[$db_type]) {
+            echo __('An error ocurred while creating table: ')." project_elements<br />\n"; $error = 1;
+        }
+    }
+    if ($db_type == "oracle") { sequence("project_elements"); }
+    if ($db_type == "interbase") { ib_autoinc("project_elements"); }
+
+    $result = db_query("CREATE INDEX i_project_ID ON ".DB_PREFIX."project_elements (project_ID)");
+
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'project_elements','description', '__(\"Description\")', 'textarea', 'bodytext of the note', 6,2, 4, '', '', '', 5, 'on', '1', 0, NULL, NULL, 15, NULL)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'project_elements', 'name','__(\"Name\")', 'text', 'Title of this note', 1, 0, 0, '', NULL, NULL, 1,NULL, '1', 0, NULL, NULL, NULL, NULL)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type, form_tab) VALUES (".($ii+=1).",'project_elements', 'category','__(\"Category\")', 'select_values', 'Select an existing category ', 4, 1, 1,NULL, NULL, '1#__(\"Milestone\")|2#__(\"Planning Phase\")|3#__(\"Test phase\")|4#__(\"Online Phase\")|5#__(\"Conflict\")|6#__(\"Suggestion on solution of conflicts\")|7#__(\"Task of technical\")|8#__(\"Reference\")|9#__(\"Meeting\")|10#__(\"Task externally assign\")', 2,NULL, '1', 0, NULL, NULL, NULL, NULL,0)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'project_elements', 'begin','__(\"Begin\")', 'date', '', 2, 1, 1, '', '', '2', 4, 'on', '1', 0, NULL,NULL, 15, NULL)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'project_elements', 'end','__(\"End\")', 'date', '', 3, 1, 1, '', '', '3', 3, 'on', '1', 0, NULL, NULL,15, NULL)");
+    $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type) VALUES (".($ii+=1).",'project_elements', 'assigned','__(\"Assigned\")', 'multiple_users', '', 2, 1, 1, '', '', '', 6, '', '', 0,NULL, NULL, 0, NULL)");
+
+
+    // costcentre and costunits
+    $result = db_query("
+              CREATE TABLE ".DB_PREFIX."controlling_costunits (
+              ID ".$db_int8_auto[$db_type].",
+              name ".$db_varchar60[$db_type].",
+              PRIMARY KEY (ID)
+            ) ");
+    if (!$result) {
+        if(get_sql_errno($result) != $db_error_code_table_exists[$db_type]) {
+            echo __('An error ocurred while creating table: ')." controlling_costunits<br />\n"; $error = 1;
+        }
+    }
+    if ($db_type == "oracle") { sequence("controlling_costunits"); }
+    if ($db_type == "interbase") { ib_autoinc("controlling_costunits"); }
+
+    $result = db_query("
+              CREATE TABLE ".DB_PREFIX."controlling_costcentres (
+              ID ".$db_int8_auto[$db_type].",
+              name ".$db_varchar60[$db_type].",
+              is_deleted ".$db_int1[$db_type].",
+              PRIMARY KEY (ID)
+            ) ");
+    if (!$result) {
+        if(get_sql_errno($result) != $db_error_code_table_exists[$db_type]) {
+            echo __('An error ocurred while creating table: ')." controlling_costcentres<br />\n"; $error = 1;
+        }
+    }
+    if ($db_type == "oracle") { sequence("controlling_costcentres"); }
+    if ($db_type == "interbase") { ib_autoinc("controlling_costcentres"); }
+
+
+    $result = db_query("ALTER TABLE ".DB_PREFIX."projekte ADD costcentre_id ".$db_int11[$db_type]." AFTER template");
+
+    $result = db_query("ALTER TABLE ".DB_PREFIX."projekte ADD contractor_id ".$db_int11[$db_type]." AFTER costcentre_id");
+
+    // projekt_statistik_einstellungen
+    $result = db_query("ALTER TABLE ".DB_PREFIX."projekt_statistik_einstellungen ADD isAllContractors ".$db_int1[$db_type]." AFTER isAllUsers");
+    $result = db_query("ALTER TABLE ".DB_PREFIX."projekt_statistik_einstellungen ADD isAllCostunits ".$db_int1[$db_type]." AFTER isAllUsers");
+    $result = db_query("ALTER TABLE ".DB_PREFIX."projekt_statistik_einstellungen ADD isAllCostcentres ".$db_int1[$db_type]." AFTER isAllUsers");
+    $result = db_query("ALTER TABLE ".DB_PREFIX."projekt_statistik_einstellungen ADD filter_mode ".$db_varchar40[$db_type]." AFTER isAllContractors");
+
+    $result = db_query("
+              CREATE TABLE ".DB_PREFIX."projekte_costunit (
+              ID ".$db_int8_auto[$db_type].",
+              projekte_ID ".$db_int8[$db_type].",
+              costunit_id ".$db_int8[$db_type].",
+              fraction ".$db_varchar40[$db_type].",
+              is_deleted ".$db_int1[$db_type].",
+              PRIMARY KEY (ID)
+            ) ");
+    if (!$result) {
+        if(get_sql_errno($result) != $db_error_code_table_exists[$db_type]) {
+            echo __('An error ocurred while creating table: ')." projekte_costunit<br />\n"; $error = 1;
+        }
+    }
+    if ($db_type == "oracle") { sequence("projekte_costunit"); }
+    if ($db_type == "interbase") { ib_autoinc("projekte_costunit"); }
+
+    $result = db_query("
+        CREATE TABLE ".DB_PREFIX."projekt_statistik_contractors (
+            stat_einstellung_ID ".$db_int8[$db_type].",
+            contractor_id ".$db_int8[$db_type]."
+        )");
+    if ($result) { echo __('Table projekt_statistik_contractors (for project management) created').".<br />\n"; }
+    elseif(get_sql_errno($result) != $db_error_code_table_exists[$db_type]) {
+        echo __('An error ocurred while creating table: ')." projekt_statistik_contractors'<br />\n"; $error = 1;
+    }
+
+    $result = db_query("
+        CREATE TABLE ".DB_PREFIX."projekt_statistik_costunits (
+            stat_einstellung_ID ".$db_int8[$db_type].",
+            costunit_id ".$db_int8[$db_type]."
+        )");
+    if ($result) { echo __('Table projekt_statistik_costunits (for project management) created').".<br />\n"; }
+    elseif(get_sql_errno($result) != $db_error_code_table_exists[$db_type]) {
+        echo __('An error ocurred while creating table: ')." projekt_statistik_costunits'<br />\n"; $error = 1;
+    }
+
+    $result = db_query("
+        CREATE TABLE ".DB_PREFIX."projekt_statistik_costcentres (
+            stat_einstellung_ID ".$db_int8[$db_type].",
+            costcentre_id ".$db_int8[$db_type]."
+        )");
+    if ($result) { echo __('Table projekt_statistik_costcentres (for project management) created').".<br />\n"; }
+    elseif(get_sql_errno($result) != $db_error_code_table_exists[$db_type]) {
+        echo __('An error ocurred while creating table: ')." projekt_statistik_costcentres'<br />\n"; $error = 1;
+    }
+
+    // Add is deleted on timecard and project_elements tables
+    $result = db_query("ALTER TABLE ".DB_PREFIX."timecard ADD is_deleted ".$db_int1[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."project_elements ADD is_deleted ".$db_int1[$db_type]);
+
     
-    // ****************************
-    // End of cost tables creation
-    // ****************************
-    
+    // Timescale improvement
+    $result = db_query("ALTER TABLE ".DB_PREFIX."todo ADD phase ".$db_int2[$db_type]);
 
-} // end update to 5.2.2
+    // $result = db_query("INSERT INTO ".DB_PREFIX."db_manager (ID, db_table, db_name, form_name, form_type, form_tooltip, form_pos, form_colspan, form_rowspan, form_regexp, form_default, form_select, list_pos, list_alt, filter_show, db_inactive, rights, ownercolumn ,form_length, field_type, form_tab) VALUES (".($ii+=1).",'todo', 'phase','__(\"Phase\")', 'select_values', 'Select an existing cphase type ', 10, 1, 1,NULL, NULL, '0#|1#__(\"Milestone\")#CCCC66|2#__(\"Planning Phase\")#336699|3#__(\"Test phase\")#FFFF00||4#__(\"Online Phase\")#009900|5#__(\"Conflict\")#CC3333|6#__(\"Suggestion on solution of conflicts\")#FF6666|7#__(\"Task of technical\")#CC0099|8#__(\"Reference\")#33FF99|9__(\"#Meeting\")#CCFFCC|10#__(\"Task externally assign\")#FFCCCC', 2,NULL, '1', 0, NULL, NULL, NULL, 'integer', 0)");
 
-
+    // Add ical_ID to database
+    $result = db_query("ALTER TABLE ".DB_PREFIX."termine ADD ical_ID ".$db_varchar128[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."todo ADD ical_ID ".$db_varchar128[$db_type]);
+    $result = db_query("ALTER TABLE ".DB_PREFIX."rts ADD ical_ID ".$db_varchar128[$db_type]);
+}
 ?>

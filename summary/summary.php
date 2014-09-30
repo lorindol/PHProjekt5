@@ -1,10 +1,12 @@
 <?php
-
-// summary.php - PHProjekt Version 5.2
-// copyright © 2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: albrecht $
-// $Id: summary.php,v 1.94.2.3 2007/02/09 13:35:52 albrecht Exp $
+/**
+ * @package    summary
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: summary.php,v 1.99 2007-05-31 08:13:49 gustavo Exp $
+ */
 
 define('PATH_PRE','../');
 $module = 'summary';
@@ -61,9 +63,6 @@ if (isset($_REQUEST['action_form_to_list_von_selector']) ||
     require_once('./summary_selector.php');
 } else {
     // tabs
-    $tabs = array();
-    $output = "<div id='global-header' title='PHProjekt ".PHPR_VERSION.", ".__('logged in as').": ".$_SESSION['user_firstname']." ".$_SESSION['user_name'].", ".__('Group').": ".$_SESSION['user_group']."'>";
-    $output .= get_tabs_area($tabs);
     $output .= breadcrumb($module, array());
 
     // timecard start/stop buttons and project watch button

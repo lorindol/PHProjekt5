@@ -1,10 +1,12 @@
 <?php
-
-// summary.inc.php - PHProjekt Version 5.2
-// copyright © 2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: summary.inc.php,v 1.48.2.4 2007/04/28 15:01:27 polidor Exp $
+/**
+ * @package    summary
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: summary.inc.php,v 1.57 2008-02-04 15:09:32 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined('lib_included')) die('Please use index.php!');
@@ -37,10 +39,10 @@ function summary_show_timecard() {
         $rowq = db_fetch_row($resultq);
         // buttons for 'come' and 'leave', alternate display
         if ($rowq[0] > 0) {
-            $buttons[] = array('type' => 'link', 'href' => '/'.PHPR_INSTALL_DIR.'timecard/timecard.php?mode=data&amp;action=clock_out'.$sid, 'text' => __('Project booking stop'), 'stopwatch' => 'started');
+            $buttons[] = array('type' => 'link', 'href' => '/'.PHPR_INSTALL_DIR.'timecard/timecard.php?mode=data&amp;action=clock_out&amp;csrftoken='.make_csrftoken().$sid, 'text' => __('Project booking stop'), 'stopwatch' => 'started');
         }
         else {
-            $buttons[] = array('type' => 'link', 'href' => '/'.PHPR_INSTALL_DIR.'timecard/timecard.php?mode=books&amp;action=clockin'.$sid, 'text' => str_replace('-', '', __('Project booking start')), 'stopwatch' => 'stopped');
+            $buttons[] = array('type' => 'link', 'href' => '/'.PHPR_INSTALL_DIR.'timecard/timecard.php?mode=books&amp;action=clockin&amp;csrftoken='.make_csrftoken().$sid, 'text' => str_replace('-', '', __('Project booking start')), 'stopwatch' => 'stopped');
         }
     }
     return $buttons;
@@ -51,7 +53,7 @@ function summary_show_calendar() {
 
     $output = '';
     /**************************
-         events of today
+    events of today
     **************************/
     $output_calendar_1 = '
     <br /><table class="relations" style="width:100%">
@@ -76,6 +78,7 @@ function summary_show_calendar() {
                           FROM ".DB_PREFIX."termine
                          WHERE datum = '$today1'
                            AND an = ".(int)$user_ID."
+                           AND is_deleted is NULL
                       ORDER BY anfang") or db_die();
     $nr = 0;
     $found = false;
@@ -99,7 +102,7 @@ function summary_show_calendar() {
 
 
     /**************************
-         unconfirmed events
+    unconfirmed events
     **************************/
     $output_calendar_2 = '
     <br /><table class="relations" style="width:100%">
@@ -127,6 +130,7 @@ function summary_show_calendar() {
                            AND an = ".(int)$user_ID."
                            AND partstat = 1
                            AND datum >= '$today1'
+                           AND is_deleted is NULL
                       ORDER BY datum,anfang") or db_die();
     $found = false;
     while ($row = db_fetch_row($result) and $nr < $tdelements) {
@@ -153,12 +157,14 @@ function summary_show_forum() {
     $result = db_query("SELECT f.ID, f.titel, f.lastchange, vorname, nachname, f.datum, f.parent
                           FROM ".DB_PREFIX."forum f
                      LEFT JOIN ".DB_PREFIX."users u ON f.von = u.ID
-                         WHERE (f.von = ".(int)$user_ID." 
+                         WHERE f.is_deleted is NULL
+                           AND (f.von = ".(int)$user_ID." 
                                 OR f.acc LIKE 'system' 
                                 OR ((f.acc LIKE 'group' 
                                      OR f.acc LIKE '%$user_kurz%') 
                                     AND f.gruppe = ".(int)$user_group."))
                                     $lastlogin_where
+                           AND u.is_deleted is NULL
                       ORDER BY f.ID DESC") or db_die();
     $output_forum = '
     <br /><table id="forum" summary="table for forum" class="relations" style="width:100%">
@@ -206,6 +212,7 @@ function summary_show_votum() {
                           FROM ".DB_PREFIX."votum
                          WHERE an LIKE '%\"$user_ID\"%'
                            AND (fertig IS NULL OR fertig NOT LIKE '%\"$user_ID\"%')
+                           AND is_deleted is NULL
                       ORDER BY datum DESC") or db_die();
     $nr = 0;
     $found = false;
@@ -232,12 +239,13 @@ function summary_show_votum() {
         // fetch author from user table
         $result2 = db_query("SELECT nachname
                                FROM ".DB_PREFIX."users
-                              WHERE ID = ".(int)$row[2]) or db_die();
+                              WHERE ID = ".(int)$row[2]."
+                                AND is_deleted is NULL") or db_die();
         $row2 = db_fetch_row($result2);
         // display poll
         $alt_title = __('Poll created on the ')." $month-$day / ".$row2[0];
         $output_votum .= "<img src='".IMG_PATH."/b.gif' alt='$alt_title' title='$alt_title' width='7' border='0' />&nbsp;".
-                         html_out($row[3])."<br />\n";
+        html_out($row[3])."<br />\n";
 
         // is it a poll where you can vote 1. alternatively (-> radio button)
         if ($row[4] == 'r') {
@@ -321,6 +329,7 @@ function summary_show_latest($module) {
     global $flist, $filter_module, $filter, $rule, $keyword, $filter_ID;
     global $build_table_records, $contextmenu;
     global $summary_perpage, $summary_show_last_login;
+    global $is_related_obj2;
 
     $contextmenu = 0;
 
@@ -328,14 +337,14 @@ function summary_show_latest($module) {
     $fieldlist = array();
 
     $map_module2caption = array( 'contacts'    => __('Contacts')
-                                ,'helpdesk'    => __('Helpdesk')
-                                ,'filemanager' => __('Files')
-                                ,'dateien'     => __('Files')
-                                ,'notes'       => __('Notes')
-                                ,'projects'    => __('Projects')
-                                ,'todo'        => __('Todo')
-                                ,'mail'        => __('Mail')
-                                );
+    ,'helpdesk'    => __('Helpdesk')
+    ,'filemanager' => __('Files')
+    ,'dateien'     => __('Files')
+    ,'notes'       => __('Notes')
+    ,'projects'    => __('Projects')
+    ,'todo'        => __('Todo')
+    ,'mail'        => __('Mail')
+    );
 
     if ($module == 'filemanager') {
         $module = 'dateien';
@@ -370,13 +379,14 @@ function summary_show_latest($module) {
         $fields[$key] = $value;
         $a++;
     }
-	if ($filter_module == $module) {
-        $where = main_filter($filter, $rule, $keyword, $filter_ID, $module,'','');
+    if ($filter_module == $module) {
+        $where = main_filter($filter, $rule, $keyword, $filter_ID, $module,'',$operator);
     }
     else {
-        $where = main_filter('', '', '', '', $module, '','');
+        $where = main_filter('', '', '', '', $module, '',$operator);
     }
     $filter_out = '';
+    $is_related_obj2 = true;
     if (!empty($flist[$module])) $filter_out .= '&nbsp;'.display_filters($module, $link);
     $filter_out .= "&nbsp;&nbsp;".display_manage_filters($module, '#000000')."<br />\n";
 
@@ -389,7 +399,7 @@ function summary_show_latest($module) {
                              OR $acc LIKE '%\"$user_kurz\"%')
                             ".group_string($module)."))
                        $where ";
-    switch ($module) {
+    switch($module){
         case 'mail':
             $nwhere .=  " and typ <> 'd' ORDER BY date_inserted DESC";
             break;
@@ -414,55 +424,65 @@ function summary_show_latest($module) {
 }
 
 function summary_insert_vote($votum_ID) {
-	global $user_ID, $radiopoll, $zahl1, $zahl2, $zahl3;
-	// make sure the user hasn't already voted
-	$result = db_query("SELECT fertig, an
+    global $user_ID, $radiopoll, $zahl1, $zahl2, $zahl3;
+    // make sure the user hasn't already voted
+    $result = db_query("SELECT fertig, an
                           FROM ".DB_PREFIX."votum
-                         WHERE ID = ".(int)$votum_ID) or db_die();
-	$row = db_fetch_row($result);
-	if (!ereg("\"$user_ID\"", $row[0])) {
+                         WHERE ID = ".(int)$votum_ID."
+                           AND is_deleted is NULL") or db_die();
+    $row = db_fetch_row($result);
+    if (!ereg("\"$user_ID\"", $row[0])) {
 
-		$stimme = false;
-		// radiobutton?
-		if (isset($radiopoll) && in_array($radiopoll, array('zahl1', 'zahl2', 'zahl3'))) {
-			$votum_field = $radiopoll;
-			$stimme = true;
-		}
-		// checkboxes?
-		else {
-			if (isset($zahl1)) {
-				$votum_field = 'zahl1';
-				$stimme = true;
-			}
-			else if (isset($zahl2)) {
-				$votum_field = 'zahl2';
-				$stimme = true;
-			}
-			else if (isset($zahl3)) {
-				$votum_field = 'zahl3';
-				$stimme = true;
-			}
-		}
-		// no vote at all?
-		if (!$stimme) $votum_field = 'kein';
+        // if poll type is multiple option then the user can select several fields
+        $votum_field = array();
 
-		$votum_field = qss($votum_field);
-		$result = db_query("UPDATE ".DB_PREFIX."votum
-                               SET $votum_field = $votum_field + 1
+        $stimme = false;
+        // radiobutton?
+        if (isset($radiopoll) && in_array($radiopoll, array('zahl1', 'zahl2', 'zahl3'))) {
+            $votum_field[] = $radiopoll;
+            $stimme = true;
+        }
+        // checkboxes?
+        else {
+            if (isset($zahl1) && $zahl1 == 'yes') {
+                $votum_field[] = 'zahl1';
+                $stimme = true;
+            }
+            if (isset($zahl2) && $zahl2 == 'yes') {
+                $votum_field[] = 'zahl2';
+                $stimme = true;
+            }
+            if (isset($zahl3) && $zahl3 == 'yes') {
+                $votum_field[] = 'zahl3';
+                $stimme = true;
+            }
+        }
+        // no vote at all?
+        if (!$stimme) $votum_field[] = 'kein';
+
+        if (count($votum_field) > 0) {
+            foreach ($votum_field as $dummy => $oneField) {
+                $oneField = qss($oneField);
+                $result = db_query("UPDATE ".DB_PREFIX."votum
+                               SET $oneField = $oneField + 1
                              WHERE ID = ".(int)$votum_ID) or db_die();
+            }
+        }
 
-		// update list of users already voted
-		$result = db_query("SELECT fertig
+
+        // update list of users already voted
+        $result = db_query("SELECT fertig
                               FROM ".DB_PREFIX."votum
-                             WHERE ID = ".(int)$votum_ID) or db_die();
-		$row = db_fetch_row($result);
-		$pers = unserialize($row[0]);
-		$pers[] = $user_ID;
-		$fertig = serialize($pers);
-		$result = db_query("UPDATE ".DB_PREFIX."votum
+                             WHERE ID = ".(int)$votum_ID."
+                               AND is_deleted is NULL") or db_die();
+        $row = db_fetch_row($result);
+        $pers = unserialize($row[0]);
+        $pers[] = $user_ID;
+        $fertig = serialize($pers);
+        $result = db_query("UPDATE ".DB_PREFIX."votum
                                SET fertig = '$fertig'
                              WHERE ID = ".(int)$votum_ID) or db_die();
-	} // close bracket from if query, whether the user already has been voted
+    } // close bracket from if query, whether the user already has been voted
 }
 
 /**
@@ -473,12 +493,12 @@ function summary_insert_vote($votum_ID) {
 function summary_show_addons() {
     $outAddons = '';
 
-	// check whether the addon directory exists at all
+    // check whether the addon directory exists at all
     $addons_dir = dirname(__FILE__).'/../addons/';
 
     if(is_dir($addons_dir)){
 
-    	// open the addon directory
+        // open the addon directory
         $fp = opendir($addons_dir);
         // read directory to check if summary.php exists.
         while($file = readdir($fp)){
@@ -486,28 +506,28 @@ function summary_show_addons() {
             // but exclude links, index files, system files etc.
             if (is_dir($addons_dir.$file) && $file <> '.' && $file <> '..' && $file <> 'CVS' and !ereg('^_', $file) ) {
 
-            	// checks if summary file exists
-		        if(file_exists($addons_dir.$file."/summary.php") ) {
+                // checks if summary file exists
+                if(file_exists($addons_dir.$file."/summary.php") ) {
 
-		        	    // header of summary section
-		            	$outAddons .= '<br /><span class="modname">'.ucfirst($file).__(' Addon').__(':')."</span><br />\n";
+                    // header of summary section
+                    $outAddons .= '<br /><span class="modname">'.ucfirst($file).__(' Addon').__(':')."</span><br />\n";
 
-		            	// include addon's summary file
-		            	define('ADDON_DIR',$addons_dir.$file);
-		                include_once(ADDON_DIR."/summary.php");
+                    // include addon's summary file
+                    define('ADDON_DIR',$addons_dir.$file);
+                    include_once(ADDON_DIR."/summary.php");
 
-		                // if summary function was added, then lets get the string
-		                $function_name = "summary_show_".$file;
+                    // if summary function was added, then lets get the string
+                    $function_name = "summary_show_".$file;
 
-		                if (function_exists($function_name)) {
+                    if (function_exists($function_name)) {
 
-		                	$outAddons .= $function_name();
-		                }
-		            }
+                        $outAddons .= $function_name();
+                    }
                 }
             }
-            closedir($fp);
         }
+        closedir($fp);
+    }
 
     return $outAddons;
 }

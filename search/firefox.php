@@ -1,4 +1,12 @@
 <?php
+/**
+ * @package    search
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: firefox.php
+ */
 
 define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');

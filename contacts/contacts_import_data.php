@@ -1,14 +1,15 @@
 <?php
 /**
-* stores imported contacts into db
-*
-* @package    contacts
-* @module     import
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: contacts_import_data.php,v 1.27.2.1 2007/01/13 15:00:44 gustavo Exp $
-*/
+ * stores imported contacts into db
+ *
+ * @package    contacts
+ * @subpackage import
+ * @author     Albrecht Guenther, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: contacts_import_data.php,v 1.33 2007-11-09 10:28:55 nina Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // array for field_delimiters
@@ -18,6 +19,7 @@ $delimiters = array( 0 => ',', 1 => ';' );
 $import_contacts = trim($import_contacts);
 include_once(LIB_PATH.'/access.inc.php');
 $access = assign_acc($acc, 'contacts');
+$_SESSION['contacts_parents'] = array();
 switch ($import_contacts) {
 
     // vcard
@@ -95,7 +97,7 @@ switch ($import_contacts) {
                                                plz = '".xss($adr[5])."',
                                                land = '".xss($adr[6])."',
                                                kategorie = '".xss($kategorie)."',
-                                               bemerkung = '".xss($note)."',
+                                               bemerkung = '".xss_purifier($note)."',
                                                von = ".(int)$user_ID.",
                                                email2 = '".xss($mail2)."',
                                                mobil = '".xss($mob)."',
@@ -108,9 +110,10 @@ switch ($import_contacts) {
                                          WHERE ID=".(int)$parent) or db_die();
                 }
                 else {
+                    $_SESSION['contacts_parents'][] = $parent;
                     $result = db_query("INSERT INTO ".DB_PREFIX."contacts
                                                (        vorname    ,        nachname   ,        gruppe      ,        firma      ,        email   ,        tel1    ,        tel2   ,        fax     ,        strasse   ,        stadt     ,        plz       ,        land      ,        kategorie    ,        bemerkung,        von      ,        email2   ,        mobil  ,        url    ,        anrede     ,        state     ,import,        parent  ,  acc_read,  acc_write )
-                                        VALUES ('".xss($name[1])."','".xss($name[0])."',".(int)$user_group.",'".xss($company)."','".xss($mail)."','".xss($tel1)."','".xss($tel2)."','".xss($fax)."','".xss($adr[2])."','".xss($adr[3])."','".xss($adr[5])."','".xss($adr[6])."','".xss($kategorie)."','".xss($note)."' ,".(int)$user_ID.",'".xss($mail2)."','".xss($mob)."','".xss($url)."','".xss($name[3])."','".xss($adr[4])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
+                                        VALUES ('".xss($name[1])."','".xss($name[0])."',".(int)$user_group.",'".xss($company)."','".xss($mail)."','".xss($tel1)."','".xss($tel2)."','".xss($fax)."','".xss($adr[2])."','".xss($adr[3])."','".xss($adr[5])."','".xss($adr[6])."','".xss($kategorie)."','".xss_purifier($note)."' ,".(int)$user_ID.",'".xss($mail2)."','".xss($mob)."','".xss($url)."','".xss($name[3])."','".xss($adr[4])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
                 }
             }
         }
@@ -151,7 +154,7 @@ switch ($import_contacts) {
                                                        plz = '".xss($a[17])."',
                                                        land = '".xss($a[19])."',
                                                        kategorie = '".xss($kategorie)."',
-                                                       bemerkung = '".xss($a[28])."',
+                                                       bemerkung = '".xss_purifier($a[28])."',
                                                        von = ".(int)$user_ID.",
                                                        email2 = '".xss($a[13])."',
                                                        url = '".xss($a[14])."',
@@ -162,9 +165,10 @@ switch ($import_contacts) {
                                                  WHERE ID = ".(int)$parent) or db_die();
                         }
                         else {
+                            $_SESSION['contacts_parents'][] = $parent;
                             $result = db_query("INSERT INTO ".DB_PREFIX."contacts
-                                                       (        vorname ,        nachname,        gruppe      ,        firma    ,        email   ,        tel1     ,        tel2     ,        fax      ,        strasse  ,        stadt    ,        plz      ,        land     ,        kategorie    ,        bemerkung,        von      ,        email2   ,        url      ,        state    ,import,        parent  ,  acc_read,  acc_write)
-                                                VALUES ('".xss($a[0])."','".xss($a[1])."',".(int)$user_group.",'".xss($a[24])."','".xss($a[5])."','".xss($a[21])."','".xss($a[11])."','".xss($a[22])."','".xss($a[15])."','".xss($a[16])."','".xss($a[17])."','".xss($a[19])."','".xss($kategorie)."','".xss($a[28])."',".(int)$user_ID.",'".xss($a[13])."','".xss($a[14])."','".xss($a[18])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
+                                                       (        vorname ,        nachname,        gruppe      ,        firma    ,        email   ,        tel1     ,        tel2     ,        fax      ,        strasse  ,        stadt    ,        plz      ,        land     ,        kategorie    ,        bemerkung,        von      ,        email2   ,        url      ,        state    ,import,        parent  ,  acc_read,  acc_write )
+                                                VALUES ('".xss($a[0])."','".xss($a[1])."',".(int)$user_group.",'".xss($a[24])."','".xss($a[5])."','".xss($a[21])."','".xss($a[11])."','".xss($a[22])."','".xss($a[15])."','".xss($a[16])."','".xss($a[17])."','".xss($a[19])."','".xss($kategorie)."','".xss_purifier($a[28])."',".(int)$user_ID.",'".xss($a[13])."','".xss($a[14])."','".xss($a[18])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
                         }
                     }
                 }
@@ -208,7 +212,7 @@ switch ($import_contacts) {
                                                        plz = '".xss($a[13])."',
                                                        land = '".xss($a[14])."',
                                                        kategorie = '".xss($kategorie)."',
-                                                       bemerkung = '".xss($a[73])."',
+                                                       bemerkung = '".xss_purifier($a[73])."',
                                                        von = ".(int)$user_ID.",
                                                        email2 = '".xss($a[57])."',
                                                        mobil = '".xss($a[40])."',
@@ -221,9 +225,10 @@ switch ($import_contacts) {
                                                  WHERE ID = ".(int)$parent) or db_die();
                         }
                         else {
+                            $_SESSION['contacts_parents'][] = $parent;
                             $result = db_query("INSERT INTO ".DB_PREFIX."contacts
                                                        (        vorname ,        nachname,        gruppe      ,        firma   ,        email    ,        tel1     ,        tel2     ,        fax      ,        strasse ,        stadt    ,        plz      ,        land     ,        kategorie    ,        bemerkung,        von      ,        email2   ,        mobil    ,        url      ,        anrede ,         state    ,import,        parent  ,  acc_read,  acc_write )
-                                                VALUES ('".xss($a[1])."','".xss($a[3])."',".(int)$user_group.",'".xss($a[5])."','".xss($a[55])."','".xss($a[31])."','".xss($a[37])."','".xss($a[30])."','".xss($a[8])."','".xss($a[11])."','".xss($a[13])."','".xss($a[14])."','".xss($kategorie)."','".xss($a[73])."',".(int)$user_ID.",'".xss($a[57])."','".xss($a[40])."','".xss($a[86])."','".xss($a[0])."','".xss($a[12])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
+                                                VALUES ('".xss($a[1])."','".xss($a[3])."',".(int)$user_group.",'".xss($a[5])."','".xss($a[55])."','".xss($a[31])."','".xss($a[37])."','".xss($a[30])."','".xss($a[8])."','".xss($a[11])."','".xss($a[13])."','".xss($a[14])."','".xss($kategorie)."','".xss_purifier($a[73])."',".(int)$user_ID.",'".xss($a[57])."','".xss($a[40])."','".xss($a[86])."','".xss($a[0])."','".xss($a[12])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
                         }
                     }
                 }
@@ -253,15 +258,17 @@ switch ($import_contacts) {
                 if (!$error) {
                     // company name is set import business address
                     if ($a[5] != "") {
+                        $_SESSION['contacts_parents'][] = $parent;
                         $result = db_query("INSERT INTO ".DB_PREFIX."contacts
-                                                   (        vorname ,        nachname,        gruppe      ,        firma   ,        email   ,        tel1    ,        tel2     ,        fax      ,        strasse  ,        stadt    ,        plz      ,        land     ,        kategorie    ,        bemerkung,        von      ,        mobil    ,        anrede  ,        state    ,import,        parent  ,  acc_read,  acc_write)
-                                            VALUES ('".xss($a[0])."','".xss($a[1])."',".(int)$user_group.",'".xss($a[5])."','".xss($a[6])."','".xss($a[9])."','".xss($a[10])."','".xss($a[13])."','".xss($a[20])."','".xss($a[21])."','".xss($a[23])."','".xss($a[24])."','".xss($kategorie)."','".xss($a[8])."' ,".(int)$user_ID.",'".xss($a[11])."','".xss($a[3])."','".xss($a[22])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
+                                                   (        vorname ,        nachname,        gruppe      ,        firma   ,        email   ,        tel1    ,        tel2     ,        fax      ,        strasse  ,        stadt    ,        plz      ,        land     ,        kategorie    ,        bemerkung,        von      ,        mobil    ,        anrede  ,        state    ,import,        parent  ,  acc_read,  acc_write )
+                                            VALUES ('".xss($a[0])."','".xss($a[1])."',".(int)$user_group.",'".xss($a[5])."','".xss($a[6])."','".xss($a[9])."','".xss($a[10])."','".xss($a[13])."','".xss($a[20])."','".xss($a[21])."','".xss($a[23])."','".xss($a[24])."','".xss($kategorie)."','".xss_purifier($a[8])."' ,".(int)$user_ID.",'".xss($a[11])."','".xss($a[3])."','".xss($a[22])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
                     }
                     // seems to be a home address
                     else {
+                        $_SESSION['contacts_parents'][] = $parent;
                         $result = db_query("INSERT INTO ".DB_PREFIX."contacts
                                                    (        vorname ,        nachname,        gruppe      ,        firma   ,        email   ,        tel1     ,        tel2    ,        fax      ,        strasse  ,        stadt    ,        plz      ,        land     ,       kategorie     ,        bemerkung,       von      ,        mobil    ,        anrede  ,        state    ,import,        parent  ,  acc_read,  acc_write )
-                                            VALUES ('".xss($a[0])."','".xss($a[1])."',".(int)$user_group.",'".xss($a[5])."','".xss($a[6])."','".xss($a[10])."','".xss($a[9])."','".xss($a[12])."','".xss($a[15])."','".xss($a[16])."','".xss($a[17])."','".xss($a[19])."','".xss($kategorie)."','".xss($a[8])."',".(int)$user_ID.",'".xss($a[11])."','".xss($a[3])."','".xss($a[17])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
+                                            VALUES ('".xss($a[0])."','".xss($a[1])."',".(int)$user_group.",'".xss($a[5])."','".xss($a[6])."','".xss($a[10])."','".xss($a[9])."','".xss($a[12])."','".xss($a[15])."','".xss($a[16])."','".xss($a[17])."','".xss($a[19])."','".xss($kategorie)."','".xss_purifier($a[8])."',".(int)$user_ID.",'".xss($a[11])."','".xss($a[3])."','".xss($a[17])."','1'   ,".(int)$parent.",'$access' ,'$acc_write')") or db_die();
                     }
                 }
             }
@@ -347,6 +354,7 @@ switch ($import_contacts) {
                                            AND ID = ".(int)$parent) or db_die();
                 }
                 else if(!$isheader) {
+                    $_SESSION['contacts_parents'][] = $parent;
                     $result = db_query("INSERT INTO ".DB_PREFIX."contacts
                                                (        gruppe      ,        von      ,import,        parent  ,  acc_read,  acc_write , ".$sql_fieldstring." )
                                         VALUES (".(int)$user_group.",".(int)$user_ID.",1     ,".(int)$parent.",'$access' ,'$acc_write', ".$sql_valuestring." )") or db_die();

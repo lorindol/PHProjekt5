@@ -1,14 +1,15 @@
 <?php
 /**
-* helpdesk selector data script
-*
-* @package    helpdesk
-* @module     selector
-* @author     Gustavo Solt, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: helpdesk_selector_data.php,v 1.5.2.2 2007/01/23 15:35:47 alexander Exp $
-*/
+ * helpdesk selector data script
+ *
+ * @package    helpdesk
+ * @subpackage selector
+ * @author     Gustavo Solt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: helpdesk_selector_data.php,v 1.8 2007-05-31 08:11:17 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
  
 // Common values

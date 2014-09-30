@@ -1,16 +1,17 @@
 <?php
 /**
-* forum options script
-*
-* allows special operations like deleting nodes
-*
-* @package    forum
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: forum_options.php,v 1.43.2.1 2007/08/11 16:27:28 polidor Exp $
-*/
+ * forum options script
+ *
+ * allows special operations like deleting nodes
+ *
+ * @package    forum
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: forum_options.php,v 1.47 2007-05-31 08:11:15 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
@@ -44,28 +45,33 @@ function show_postings() {
     // form end
     $buttons[] = array('type' => 'form_end');
     // delete posting
-    $buttons[] = array('type' => 'link', 'href' => 'forum.php?mode=options&tree_mode='.$tree_mode.'&fID='.$fID.$sid.'&amp;csrftoken='.make_csrftoken(), 'text' => $button_delete, 'active' => false);
+    $buttons[] = array('type' => 'link', 'href' => 'forum.php?mode=options&tree_mode='.$tree_mode.'&fID='.$fID.$sid, 'text' => $button_delete, 'active' => false);
     $output .= get_buttons_area($buttons);
     $output .='<div class="hline"></div>';
     $output .= '<a name="content"></a>';
 
     if ($fID) {
-        $result = db_query("select ID, titel, datum
-                              from ".DB_PREFIX."forum
-                         where von = ".(int)$user_ID." AND parent = ".(int)$fID." 
-                          order by datum desc") or db_die();
+        $result = db_query("SELECT ID, titel, datum
+                              FROM ".DB_PREFIX."forum
+                             WHERE von = ".(int)$user_ID."
+                               AND parent = ".(int)$fID."
+                               AND is_deleted is NULL
+                          ORDER BY datum desc") or db_die();
     }
     else {
-        $result = db_query("select ID, titel, datum
-                              from ".DB_PREFIX."forum
-                             where von =".(int)$user_ID." AND (parent = 0 OR parent IS NULL) 
-                          order by datum desc") or db_die();
+        $result = db_query("SELECT ID, titel, datum
+                              FROM ".DB_PREFIX."forum
+                             WHERE von =".(int)$user_ID."
+                               AND (parent = 0 OR parent IS NULL)
+                               AND is_deleted is NULL
+                          ORDER BY datum desc") or db_die();
     }
     $options = '';
     while ($row = db_fetch_row($result)) {
-        $result2 = db_query("select ID
-                               from ".DB_PREFIX."forum
-                              where antwort =".(int)$row[0]) or db_die();
+        $result2 = db_query("SELECT ID
+                               FROM ".DB_PREFIX."forum
+                              WHERE antwort =".(int)$row[0]."
+                                AND is_deleted is NULL") or db_die();
         $row2 = db_fetch_row($result2);
         if (!$row2[0]) {
             $options .= "<option value='$row[0]'>".html_out(substr($row[1],0,40))." (".$date_format_object->convert_dbdatetime2user($row[2]).")\n";
@@ -112,12 +118,9 @@ function delete_posting($ID) {
     // check permission
     include_once(LIB_PATH."/permission.inc.php");
     check_permission("forum","von",$ID);
-    $result = db_query("DELETE
-                          FROM ".DB_PREFIX."forum
-                         WHERE parent = ".(int)$ID) or db_die();
+    delete_record_id('forum',"WHERE parent = ".(int)$ID);
     // db action
-    $result = db_query("delete from ".DB_PREFIX."forum
-                        where ID = ".(int)$ID) or db_die();
+    delete_record_id('forum',"WHERE ID = ".(int)$ID);
 
     // remove the db_record
     remove_link($ID, 'forum');
@@ -130,10 +133,6 @@ function delete_posting($ID) {
 
 // show own records ...
 if (!$ID){
-    // tabs
-    $tabs   = array();
-    $output = '<div id="global-header">';
-    $output .= get_tabs_area($tabs);
     $output .= breadcrumb($module, breadcrumb_data($fID, $ID, $newbei, $newfor, $mode));
     $output .= '</div>';
     $output .= '<div id="global-content">';

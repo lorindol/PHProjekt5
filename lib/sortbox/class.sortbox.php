@@ -2,12 +2,12 @@
 /**
  * Sortbox main class
  *
- * @package    sortbox
- * @module     main
- * @author     Gustavo solt
- * @licence    GPL, see www.gnu.org/copyleft/gpl.html
- * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
- * @version    $Id: 
+ * @package    	sortbox
+ * @subpackage 	main
+ * @author     	Gustavo solt
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id:
  */
 if (!defined('lib_included')) die('Please use index.php!');
 
@@ -17,52 +17,53 @@ if (!defined('lib_included')) die('Please use index.php!');
  *
  * @author Gustavo solt
  * @copyright (c) 2004 Mayflower GmbH
- * @package PHProjekt
+ * @package lib
  * @access public
  */
 class PHProjektSortbox {
-    /** 
+    /**
      * Type: single (only sort) or double (select and sort)
      *
      * @access public
      */
     var $type;
-    
+
     /**
-     * Datasource: Source which delivers the objects, mainly user and contacts table. 
+     * Datasource: Source which delivers the objects, mainly user and contacts table.
      * Based on the data source a file is includet that contains the source specific functions.
-     * Every data source has to provide documentation of the needed fields in sourcedata, 
+     * Every data source has to provide documentation of the needed fields in sourcedata,
      * as well as the functions
      * fetch_fields(); save_fields();
      *
      * @access private
      */
     var $datasource;
-    
-    /** 
+
+    /**
      * Name: Formular identifier
      *
      * @access private
      */
     var $name = 'sortbox_';
-    
+
     /**
-     * Array containing names and values of the hidden fields that are needed in the form. 
-     * Examples are mode, view and the like 
+     * Array containing names and values of the hidden fields that are needed in the form.
+     * Examples are mode, view and the like
      *
      * @access private
      * @var array ( formelementNAME => formElementValue, ... )
      */
     var $hidden_fields = array();
 
-    /** 
+    /**
      * Constructor
      *
-     * @param $options    Array with options
+     * @param array	$options    - Array with options
      *    'field_to_sort' - Fiel of the db to sort
      *    'extra_value'   - extra field for the select
      *    'datasource'    - Source for get data
      *    'type'          - Type of the sortbox single/double
+     * @return void
      * @access public
      */
     function PHProjektSortbox($options) {
@@ -83,12 +84,13 @@ class PHProjektSortbox {
         }
     }
 
-    /** 
-     * Create the select boxes 
+    /**
+     * Create the select boxes
      *
-     * @param $fields    Array of fields 
-     * @param $preselect Preselection of active objects 
-     * @param $size      rowcount of multiple select box 
+     * @param array	$fields    		- Array of fields
+     * @param array	$preselect 	- Preselection of active objects
+     * @param int		$size     	 	- Rowcount of multiple select box
+     * @return string					HTML output
      * @access
      */
     function show_select($fields, $preselect, $size) {
@@ -105,7 +107,7 @@ class PHProjektSortbox {
             }
             // Keep the order
             $dstslct = $this->order($dstslct);
-           
+
             $selstr.= "<table border='0'>\n\t<tr>\n\t<td width='200'>\n";
             $selstr.= "\t\t".__('found elements')."<br />\n";
             $selstr.= "\t\t<select size='$size' name='sortbox_srcs[]' multiple='multiple'>\n";
@@ -150,16 +152,16 @@ class PHProjektSortbox {
         return $selstr;
     }
 
-
     /**
      * Display selection in a separate window
      *
-     * @param $size       rowcount of multiple select box
+     * @param int	$size       	- Rowcount of multiple select box
+     * @return string			HTML output
      * @access
      */
     function show_window($size) {
 
-        $this->hidden_fields = array_merge($this->hidden_fields, 
+        $this->hidden_fields = array_merge($this->hidden_fields,
                         array('field_to_sort' => $this->datasource->options['field_to_sort'],
                               'extra_value'   => $this->datasource->options['extra_value'],
                               'datasource'    => $this->datasource->options['datasource'],
@@ -173,8 +175,8 @@ class PHProjektSortbox {
 
         // Preselected items without javascript
         if (    (isset($_POST['movsrcdst'])) ||
-                (isset($_POST['movdstsrc'])) || 
-                (isset($_POST['movdownup'])) || 
+                (isset($_POST['movdstsrc'])) ||
+                (isset($_POST['movdownup'])) ||
                 (isset($_POST['movupdown'])) ) {
 
             $_SESSION[$this->name]['javascript'] = false;
@@ -185,8 +187,8 @@ class PHProjektSortbox {
                 }
             }
             unset($tmp_val);
-            
-            // Remove: Entries from the right box should be removed 
+
+            // Remove: Entries from the right box should be removed
             if (isset($_POST['movdstsrc']) && isset($_POST['sortbox_dsts'])) {
                 foreach ($_POST['sortbox_dsts'] as $tmp_val) {
                     unset($_SESSION[$this->name]['data'][$tmp_val]);
@@ -230,7 +232,7 @@ class PHProjektSortbox {
                 // write current data back into the session
                 $preselect                     = $tmp_array;
                 $_SESSION[$this->name]['data'] = $tmp_array;
-        
+
                 unset($tmp_val);
                 unset($save_id);
                 unset($tmp_array);
@@ -256,7 +258,7 @@ class PHProjektSortbox {
                 // write current data back into the session
                 $preselect                     = $tmp_array;
                 $_SESSION[$this->name]['data'] = $tmp_array;
-        
+
                 unset($tmp_val);
                 unset($save_id);
                 unset($tmp_array);
@@ -265,8 +267,8 @@ class PHProjektSortbox {
 
         list($fields,$preselect) = $this->datasource->fetch_fields($preselect);
         if (    (isset($_POST['movsrcdst'])) ||
-                (isset($_POST['movdstsrc'])) || 
-                (isset($_POST['movdownup'])) || 
+                (isset($_POST['movdstsrc'])) ||
+                (isset($_POST['movdownup'])) ||
                 (isset($_POST['movupdown'])) ) {
             $_SESSION[$this->name]['data'] = $preselect;
         }
@@ -279,17 +281,24 @@ class PHProjektSortbox {
         foreach ($this->hidden_fields as $name => $value) {
             echo "<input type='hidden' name='".$name."' value='".xss($value)."' />\n";
         }
-        
+
         echo get_buttons(array(array("type" => "submit", "name" => 'save', "value" => __('Apply'))));
         echo get_buttons(array(array("type" => "button", "name" => 'close', "value" => __('Close window'), "onclick" => 'javascript:ReloadParentAndClose();')));
         echo "</fieldset></form>\n";
         unset($name, $value);
     }
 
+    /**
+     * Sort an array with a saved order
+     *
+     * @param array 	$array 	- Data array
+     * @return array				Sorted array
+     * @access public
+     */
     function order($array) {
         $pos = 0;
         $array_pos = array();
-        
+
         // Without javascript
         if (isset($_SESSION[$this->name]['data']) && is_array($_SESSION[$this->name]['data'])) {
             foreach ($_SESSION[$this->name]['data'] as $tmp_id => $tmp_val) {

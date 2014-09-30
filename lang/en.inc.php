@@ -8,7 +8,7 @@ $l_text31a = array("default", "15 min.", "30 min.", " 1 hour", " 2 hours", " 4 h
 $l_text31b = array(0, 15, 30, 60, 120, 240, 1440);
 $name_day = array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
 $name_day2 = array("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su");
-
+            
 
 //Lang Data
 
@@ -310,7 +310,7 @@ $_lang["Events"]  = "Events";
 $_lang["Exclude archived elements"]  = "Exclude archived elements";
 $_lang["Exclude read elements"]  = "Exclude read elements";
 $_lang["Export"]  = "Export";
-$_lang["Export as csv file"]  = "csv Export";
+$_lang["Export as csv file"]  = "Export as csv file";
 $_lang["Export column titles as first row"]  = "Export column titles as first row";
 $_lang["Extended search"]  = "Extended search";
 $_lang["External contacts"]  = "External contacts";
@@ -948,7 +948,7 @@ $_lang["You cannot add entries at this date. Since there have been %s days. You 
 $_lang["You cannot delete bookings at this date. Since there have been %s days. You just can edit bookings of entries not older than %s days."]  = "You cannot delete bookings at this date. Since there have been %s days. You just can edit bookings of entries not older than %s days.";
 $_lang["You cannot delete entries at this date. Since there have been %s days. You just can edit entries not older than %s days."]  = "You cannot delete entries at this date. Since there have been %s days. You just can edit entries not older than %s days.";
 $_lang["You didnt repeat the new password correctly"]  = "You didn't repeat the new password correctly";
-$_lang["You got an answer to your posting"]  = "You got an answer to your posting
+$_lang["You got an answer to your posting"]  = "You got an answer to your posting 
  ";
 $_lang["You have to choose a saved setting"]  = "You have to choose a saved setting";
 $_lang["You have to fill in the following fields: family name, short name and password."]  = "You have to fill in the following fields: family name, short name and password.";
@@ -1290,4 +1290,12 @@ $_lang["with POP before SMTP"]  = "with POP before SMTP";
 $_lang["with new values"]  = "with new values";
 $_lang["yes"]  = "yes";
 $_lang["yes = 1"]  = "yes = 1";
+// vacation/absence in contacts
+$_lang['present'] = "present";
+$_lang['absent'] = "absent";
+$_lang['expected'] = "expected";
+$_lang['Appointments'] = "Appointments";
+$_lang['full-time'] = "full-time";
+$_lang['appointment'] = "Termin";
+$_lang['gone'] = "gegangen";
 ?>

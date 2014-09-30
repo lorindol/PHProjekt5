@@ -1,14 +1,15 @@
 <?php
 /**
-* bookmarks db data handling script
-*
-* @package    bookmarks
-* @module     main
-* @author     Albrecht Guenther, $Author: thorsten $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: bookmarks_data.php,v 1.20.2.3 2007/02/26 13:46:09 thorsten Exp $
-*/
+ * bookmarks db data handling script
+ *
+ * @package    bookmarks
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: bookmarks_data.php,v 1.26 2007-05-31 08:10:10 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
@@ -31,14 +32,12 @@ function delete_bookmark() {
         $res = db_query("SELECT bezeichnung
                            FROM ".DB_PREFIX."lesezeichen
                           WHERE ID = ".(int)$ID."
-                            AND von = ".(int)$user_ID) or db_die();
+                            AND is_deleted is NULL
+                            AND von = ".(int)$user_ID);
         $row = db_fetch_row($res);
         if ($row[0]) {
             $row[0] = stripslashes($row[0]);
-            $res = db_query("DELETE
-                               FROM ".DB_PREFIX."lesezeichen
-                              WHERE ID = ".(int)$ID."
-                                AND von = ".(int)$user_ID) or db_die();
+            delete_record_id('lesezeichen',"WHERE ID = ".(int)$ID." AND von = ".(int)$user_ID);
             if ($res) {
                 message_stack_in("$row[0] ".__(' is deleted.'), "boookmarks", "notice");
             }
@@ -115,6 +114,7 @@ function check_values() {
     $result = db_query("SELECT ID, url, bezeichnung
                           FROM ".DB_PREFIX."lesezeichen
                          WHERE ID <> ".(int)$ID."
+                           AND is_deleted is NULL
                            AND $sql_user_group") or db_die();
     while ($row = db_fetch_row($result)) {
         $row[1] = stripslashes($row[1]);

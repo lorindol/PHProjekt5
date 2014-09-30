@@ -1,10 +1,12 @@
 <?php
-
-// notes_data.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: gustavo $
-// $Id: notes_data.php,v 1.38.2.1 2007/01/13 15:00:46 gustavo Exp $
+/**
+ * @package    notes
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: notes_data.php,v 1.42 2008-01-09 14:01:47 nina Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -39,7 +41,7 @@ else if (!$ID) {
     $accessstring = insert_access('notes');
     sqlstrings_create();
     $query = "INSERT INTO ".DB_PREFIX."notes
-                     (        gruppe      ,        von      ,        parent  , sync1     ,  sync2    ,  acc             ,  acc_write       ,".$sql_fieldstring.")
+                     (        gruppe      ,        von      ,        parent  ,  sync1    ,  sync2    ,  acc             ,  acc_write       ,".$sql_fieldstring.")
               VALUES (".(int)$user_group.",".(int)$user_ID.",".(int)$parent.",'$dbTSnull','$dbTSnull','$accessstring[0]','$accessstring[1]',".$sql_valuestring.")";
     $result = db_query($query) or db_die();
 
@@ -83,10 +85,7 @@ else if ($ID > 0) {
     }
 }
 
-if ($copy){
-   include_once("./notes_forms.php");
-}
-else if (!$justform) {
+if (!$justform) {
   $ID = 0;
   $mode = 'view';
   include_once("./notes_view.php");
@@ -103,7 +102,8 @@ function delete_record($ID) {
     // check permission
     $result = db_query("SELECT von, acc_write
                           FROM ".DB_PREFIX."notes
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                          AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     if ($row[0] == 0) die("no entry found.");
     if ($row[0] <> $user_ID and !$row[1]) die("You are not privileged to do this!");
@@ -111,7 +111,8 @@ function delete_record($ID) {
     // check whether there are subelements below this record ..
     $result = db_query("SELECT ID
                           FROM ".DB_PREFIX."notes
-                         WHERE parent = ".(int)$ID) or db_die();
+                         WHERE parent = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     if ($row[0] > 0) {
         message_stack_in(__('Please delete all subelements first')."!", "notes", "error");
@@ -125,9 +126,7 @@ function delete_record($ID) {
             }
         }
         // delete record in db
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."notes
-                             WHERE ID = ".(int)$ID) or db_die();
+        delete_record_id('notes',"WHERE ID = ".(int)$ID);
         // delete corresponding entry from db_record
         remove_link($ID, 'notes');
         // delete history for this db entry

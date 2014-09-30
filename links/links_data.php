@@ -1,10 +1,12 @@
 <?php
-
-// links_data.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: gustavo $
-// $Id: links_data.php,v 1.26.2.1 2007/01/13 16:42:00 gustavo Exp $
+/**
+ * @package    links
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: links_data.php,v 1.28 2007-05-31 08:12:07 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -33,8 +35,8 @@ else if ($delete_file) {
 else if ($create_b) {
     sqlstrings_create();
     $query = "INSERT INTO ".DB_PREFIX."links
-                          (             gruppe ,       von,       archiv,".$sql_fieldstring.")
-                   VALUES (".(int)$user_group.",".(int)$user_ID.",0     ,".$sql_valuestring.")";
+                          (             gruppe ,       von,   archiv,".$sql_fieldstring." )
+                   VALUES (".(int)$user_group.",".(int)$user_ID.",0, ".$sql_valuestring.")";
     $result = db_query($query) or db_die();
 }
 else if (($modify_b and $ID > 0) || ($modify_update_b and $ID > 0 )) {

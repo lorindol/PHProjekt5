@@ -1,14 +1,15 @@
 <?php
 /**
-* helpdesk controller script
-*
-* @package    helpdesk
-* @module     main
-* @author     Albrecht Guenther, Nina Schmitt, $Author: thorsten $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: helpdesk.php,v 1.50.2.2 2007/02/14 12:45:05 thorsten Exp $
-*/
+ * helpdesk controller script
+ *
+ * @package    helpdesk
+ * @subpackage main
+ * @author     Albrecht Guenther, Nina Schmitt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: helpdesk.php,v 1.58 2008-01-03 22:26:35 gustavo Exp $
+ */
+
 $module = 'helpdesk';
 define('PATH_PRE','../');
 $contextmenu = 1;
@@ -58,13 +59,16 @@ $fields = build_array('helpdesk', $ID, $mode);
 require_once('helpdesk_selector_data.php');
 // reload only in view  later this will be in the settings per module!
 $page_reload = isset($page_reload) ? (int) $page_reload : 0;
-if($page_reload > 0 and $mode == view){
+if($page_reload > 0 and $mode == 'view'){
     $he_add[]='  <meta http-equiv="refresh" content="'.$page_reload.
     '; URL=helpdesk.php?mode=view" />'."\n";
 }
 echo set_page_header();
-if ($justform <= 0) {
-    include_once(PATH_PRE.'lib/navigation.inc.php');
+if ($justform > 0) {
+    $content_div = '<div id="global-content" class="popup">';
+} else {
+    include_once(LIB_PATH.'/navigation.inc.php');
+    $content_div = '<div id="global-content">';
 }
 
 // put the values in the form
@@ -90,7 +94,7 @@ if (isset($formdata['assigned']) && $mode == "forms") {
     $fields['assigned']['value'] = (int)$formdata['assigned'];
 }
 if (isset($formdata['persons']) && $mode == "forms") {
-    $persons = xss_array($formdata['persons']);
+    $persons = $formdata['persons'];
 }
 if(!isset($submode)){
 	if($user_type==4)$submode='discussion';
@@ -133,3 +137,5 @@ function helpdesk_init() {
     $mode = xss($_REQUEST['mode']);
 
 }
+
+?>

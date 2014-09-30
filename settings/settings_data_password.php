@@ -1,10 +1,12 @@
 <?php
-
-// settings_data_password.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: settings_data_password.php,v 1.12.2.1 2007/01/30 03:58:44 polidor Exp $
+/**
+ * @package    settings
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: settings_data_password.php,v 1.16 2007-05-31 08:13:46 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined('lib_included')) die('Please use settings.php!');
@@ -13,7 +15,8 @@ if (!defined('lib_included')) die('Please use settings.php!');
 // fetch password from this user from database
 $result = db_query("SELECT pw
                       FROM ".DB_PREFIX."users
-                     WHERE ID = ".(int)$user_ID) or db_die();
+                     WHERE ID = ".(int)$user_ID."
+                       AND is_deleted is NULL") or db_die();
 $row = db_fetch_row($result);
 
 $password2_enhanced = '';

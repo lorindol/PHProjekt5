@@ -1,10 +1,12 @@
 <?php
-
-// mail_rules.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: gustavo $
-// $Id: mail_rules.php,v 1.27 2006/11/07 00:28:30 gustavo Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_rules.php,v 1.31 2007-06-05 04:04:55 polidor Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) { die("Please use index.php!"); }
@@ -29,7 +31,9 @@ if ($make) {
     switch ($mode2) {
         case 'mail_to_contact':
             update_mail_to_contact($mail2con);
-            include_once('./mail_options.php');
+            $query_str = "mail.php?mode=options&csrftoken=".make_csrftoken();
+            header('Location: '.$query_str);
+            die();
             break;
         case 'incoming':
             update_general_rule('incoming', $dir);
@@ -73,12 +77,16 @@ if ($make) {
             }
             break;
     }
-    include_once('./mail_options.php');
+    $query_str = "mail.php?mode=options&csrftoken=".make_csrftoken();
+    header('Location: '.$query_str);
+    die();
 }
 elseif ($loeschen) {
     $result = db_query("DELETE FROM ".DB_PREFIX."mail_rules
                         WHERE ID = ".(int)$ID) or db_die();
-    include_once('./mail_options.php');
+    $query_str = "mail.php?mode=options&csrftoken=".make_csrftoken();
+    header('Location: '.$query_str);
+    die();
 }
 
 
@@ -93,7 +101,6 @@ else {
     if (SID) $hidden = array_merge($hidden, array(session_name()=>session_id()));
     $buttons[] = array('type' => 'form_start', 'hidden' => $hidden);
     $output = get_buttons($buttons);
-    $output .= '<div id="global-header">'.get_tabs_area($tabs).'</div>';
     $output .= '<div id="global-content">';
 
     // button bar
@@ -148,10 +155,11 @@ else {
     // select directory
     $create_duplicate_fields.="&nbsp;&nbsp;<label for='dir'>".__('in')." ".__('Directory')."</label>\n";
     $create_duplicate_fields.="<select name='dir' id='dir'><option value=''></option>\n";
-    $result2 = db_query("select ID, subject
-                         from ".DB_PREFIX."mail_client
-                        where von = ".(int)$user_ID." and
-                              typ like 'd'") or db_die();
+    $result2 = db_query("SELECT ID, subject
+                           FROM ".DB_PREFIX."mail_client
+                          WHERE von = ".(int)$user_ID." and
+                                is_deleted is NULL and
+                                typ like 'd'") or db_die();
     while ($row2 = db_fetch_row($result2)) {
         $create_duplicate_fields.="<option value='$row2[0]'";
         if ($row2[0] == $row[6]) { $create_duplicate_fields.=" selected"; }

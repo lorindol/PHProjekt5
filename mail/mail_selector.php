@@ -1,15 +1,18 @@
 <?php
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_selector.php
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
 require_once(LIB_PATH."/selector/selector.inc.php");
 
-$tabs = array();
-// form start
-echo '<div id="global-header">';
-echo get_tabs_area($tabs);
-echo '</div>';
 echo '<div id="global-content">'."\n";
 
 // --------- Selektor config ---------
@@ -62,6 +65,10 @@ if (!isset($stuff['preselect'])) {
     
     if (is_array($_SESSION['maildata']['formdata']['_selector'])) {
         foreach ($_SESSION['maildata']['formdata']['_selector'] as $tmp_id) {
+            if ($_SESSION['maildata']['formdata']['_selector_type'] == "member") {
+                    $tmp_id = slookup('users', 'ID', 'kurz', $tmp_id);
+            }
+            
             $stuff['preselect'][$tmp_id] = "on";
         }
     } else {
@@ -97,10 +104,10 @@ if (isset($_SESSION['maildata']['formdata']['subj'])) {
 
 // body
 if (isset($_POST['body'])) {
-    $_SESSION['maildata']['formdata']['body'] = xss($_POST['body']);
+    $_SESSION['maildata']['formdata']['body'] = xss_purifier($_POST['body']);
 }
 if (isset($_SESSION['maildata']['formdata']['body'])) {
-    echo "<input type='hidden' name='body' value='".xss($_SESSION['maildata']['formdata']['body'])."' />\n";
+    echo "<input type='hidden' name='body' value='".xss_purifier($_SESSION['maildata']['formdata']['body'])."' />\n";
 }
 
 // placehold
@@ -260,10 +267,10 @@ if (isset($_SESSION['maildata']['formdata']['parent'])) {
 
 // remark
 if (isset($_POST['remark'])) {
-    $_SESSION['maildata']['formdata']['remark'] = xss($_POST['remark']);
+    $_SESSION['maildata']['formdata']['remark'] = xss_purifier($_POST['remark']);
 }
 if (isset($_SESSION['maildata']['formdata']['remark'])) {
-    echo "<input type='hidden' name='remark' value='".xss($_SESSION['maildata']['formdata']['remark'])."' />\n";
+    echo "<input type='hidden' name='remark' value='".xss_purifier($_SESSION['maildata']['formdata']['remark'])."' />\n";
 }
 
 // kat

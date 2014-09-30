@@ -2,12 +2,12 @@
 /**
  * Sortbox for module designer
  *
- * @package    sortbox
- * @module     main
- * @author     Gustavo Solt
- * @licence    GPL, see www.gnu.org/copyleft/gpl.html
- * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
- * @version    $Id: 
+ * @package    	sortbox
+ * @subpackage	main
+ * @author     	Gustavo Solt
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id:
  */
 
 if (!defined('lib_included')) die('Please use index.php!');
@@ -18,12 +18,12 @@ if (!defined('lib_included')) die('Please use index.php!');
  *
  * @author Gustavo solt
  * @copyright (c) 2004 Mayflower GmbH
- * @package PHProjekt
+ * @package lib
  * @access public
  */
 class Sortbox_designer {
 
-    /** 
+    /**
      * Name: Formular identifier
      *
      * @access private
@@ -37,7 +37,7 @@ class Sortbox_designer {
      */
     var $options = array ();
 
-    /** 
+    /**
      * Constructor
      *
      * @param $options    options for this class
@@ -46,10 +46,12 @@ class Sortbox_designer {
     function Sortbox_designer ($options) {
         $this->options = $options;
     }
-                                
-    /** 
-     * fetch_fields() - Query the data source 
+
+    /**
+     * Query the data source
      *
+     * @param array $preselect 	- Selected items
+     * @return array					- Array with found hits
      * @access public
      */
     function fetch_fields($preselect) {
@@ -83,10 +85,11 @@ class Sortbox_designer {
         return array($hits,$preselect);
     }
 
-    /** 
-     * save_fields() - Update the data source 
+    /**
+     * Update the data source
      *
-     * @param selected - Array containing selected options
+     * @param array	$selected 	- Array containing selected options
+     * @return void
      * @access public
      */
     function save_fields($selected) {

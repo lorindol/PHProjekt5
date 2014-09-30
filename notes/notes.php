@@ -1,10 +1,12 @@
 <?php
-
-// notes.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: thorsten $
-// $Id: notes.php,v 1.29.2.2 2007/02/13 16:16:49 thorsten Exp $
+/**
+ * @package    notes
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: notes.php,v 1.33 2008-01-03 22:26:36 gustavo Exp $
+ */
 
 $module = 'notes';
 $contextmenu = 1;
@@ -48,7 +50,7 @@ if (!isset($_GET['projekt_ID'])) {
     }
 }
 if (isset($formdata['persons']) && $mode == "forms") {
-    $persons = xss($formdata['persons']);
+    $persons = $formdata['persons'];
 }
 
 define('MODE',$mode);

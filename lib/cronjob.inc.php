@@ -1,16 +1,21 @@
 <?php
-
-// cronjob.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2006 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Nina Schmitt
+/**
+ * Crontab functions
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Nina Schmitt, $Author: nina $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id:
+ */
 
 $ip = getenv ("REMOTE_ADDR"); // get the ip number of the user
 
 include_once('../config.inc.php');
 
 // usual authorization not needed
-if($ip==PHPR_SERVER_IP){   
+if($ip==PHPR_SERVER_IP){
   define('avoid_auth','1');
 }
 
@@ -37,27 +42,31 @@ foreach($mod_arr as $key => $mod){
 
 /**
  * This function calls all global functions for the cronjob
- * 
- * @author Nina Schmitt
+ *
  * @param void
  * @return void
- *
  */
-function global_cronjob(){
+function global_cronjob() {
     $emails = get_new_mails();
-    if(is_array($emails['reply'])){
+    if(is_array($emails['reply'])) {
         insert_replies($emails['reply']);
     }
-    if(is_array($emails['remark'])){
+    if(is_array($emails['remark'])) {
         insert_remarks($emails['remark']);
     }
     //next call module inserts at the moment only helpdesk!
-    if(is_array($emails['helpdesk'])){
+    if(is_array($emails['helpdesk'])) {
         insert_new_helpdesk_tickets($emails['helpdesk']);
     }
 }
 
-function get_new_mails(){
+/**
+ * Check Mails
+ *
+ * @param void
+ * @return array 	All the mails
+ */
+function get_new_mails() {
     //first get all emails
     // fetch all mails
     // Include the lib
@@ -65,37 +74,37 @@ function get_new_mails(){
     // first: get all email accounts which belong to a categorie(later this will be separated for different account
     // types - at the moment only mail is possible)!
     $query = "SELECT module, accountname, hostname, type, username, password, name, users, gruppe, cat.ID
-                FROM ".DB_PREFIX."db_accounts as cat 
+                FROM ".DB_PREFIX."db_accounts as cat
            LEFT JOIN ".DB_PREFIX."global_mail_account as acc
-                  ON cat.account_ID= acc.ID 
+                  ON cat.account_ID= acc.ID
                WHERE cat.account_type='mail'";
-    $result = db_query(xss($query)) or db_die();
+    $result = db_query($query) or db_die();
 
     //now get all emails and return them
     $email_array = array();
     while ($row = db_fetch_row($result)) {
         // New object
         // host,pop_user,pop_pass,boolean: delete mail or not, type: pop3 is default)
-        if($row[2]<>'' and $row[4]<>'' and $row[5]<>''){
+        if($row[2]<>'' and $row[4]<>'' and $row[5]<>'') {
             $mail_obj = new fetchmail( $row[2],$row[4],$row[5],$row[3]);
             $mail_obj->get_mail('all','all',PHPR_DOC_PATH);
             foreach ($mail_obj->email as $val) {
                 //first of all delete mails, in case sender isn't known
                 $ID=slookup('users','ID','email',$val['senderemail']);
-                if($ID>0){
+                if($ID>0) {
                     $arr = explode('@', $val['parent']);
                     // if messagedID refers to ticket:
                     $email_data=array('sender'=>$ID,'subject'=>$val['subject'],'body'=>parse_body($val['body_text'].$val['body_html']),
                     'date'=>$val['date'],'attachment'=>$val['attachment']);
                     //mark emails which are replies/remarks
-                    if ($arr[1] == PHPR_SERVER_IP){
+                    if ($arr[1] == PHPR_SERVER_IP) {
                         $tmp=explode('|',$arr[0]);
                         if($tmp[0]=="remark"){
                             $email_data['ticket_ID']=$tmp[1];
                             $email_data['module']=$row[0];
                             $email_array['remark'][]=$email_data;
                         }
-                        else if($tmp[0]=="reply"){
+                        else if($tmp[0]=="reply") {
                             $email_data['parent']=$tmp[1];
                             $email_data['module']=$row[0];
                             $email_array['reply'][]=$email_data;
@@ -116,18 +125,18 @@ function get_new_mails(){
     }
     return $email_array;
 }
+
 /**
  * This functions inserts replies (parent >0) into db_remarks table
- * 
- * @author Nina Schmitt
- * @param array $replies array with new replies
+ *
+ * @param array $replies 	- Array with new replies
  * @return void
  */
-function insert_replies($replies){
+function insert_replies($replies) {
     global $dbTSnull;
-    foreach ($replies as $value){
+    foreach ($replies as $value) {
         $file=array();
-        foreach ($value['attachment'] as $val){
+        foreach ($value['attachment'] as $val) {
             $file[]=$val['att_name'].'|'.$val['att_tempname'];
         }
         $files=implode("#",$file);
@@ -135,15 +144,15 @@ function insert_replies($replies){
         $query="SELECT ID,module_ID FROM ".DB_PREFIX."db_remarks
                  WHERE module='$value[module]'
                    AND ID = ".(int)$value[parent];
-        $result=db_query(xss($query))or db_die();
+        $result=db_query($query)or db_die();
         $row=db_fetch_row($result);
 
         // if data exists  insert new Reply
-        if($row[0]>0){
+        if($row[0]>0) {
             $query = "INSERT INTO ".DB_PREFIX."db_remarks
                              (        module             ,        module_ID, date    ,        remark           ,    author            ,          parent            ,    upload  )
-                      VALUES ('".qss($value['module'])."',".(int)$row[1]." ,$dbTSnull,'".xss($value['body'])."','".$value['sender']."', '".(int)$value['parent']."','".$files."')";
-            $result = db_query(xss($query)) or db_die();
+                      VALUES ('".qss($value['module'])."',".(int)$row[1]." ,$dbTSnull,'".xss_purifier($value['body'])."','".$value['sender']."', '".(int)$value['parent']."','".$files."')";
+            $result = db_query($query) or db_die();
 
         }
     }
@@ -151,16 +160,15 @@ function insert_replies($replies){
 
 /**
  * This functions inserts remarks (parent=0) into db_remarks table
- * 
- * @author Nina Schmitt
- * @param array $remarks array with new remarks
+ *
+ * @param array $remarks 	- Array with new remarks
  * @return void
  */
-function insert_remarks($remarks){
+function insert_remarks($remarks) {
     global $dbTSnull, $tablename;
-    foreach ($remarks as $value){
+    foreach ($remarks as $value) {
         $file=array();
-        foreach ($value['attachment'] as $val){
+        foreach ($value['attachment'] as $val) {
             $file[]=$val['att_name'].'|'.$val['att_tempname'];
         }
         $files=implode("#",$file);
@@ -168,63 +176,61 @@ function insert_remarks($remarks){
         $query="SELECT ID
                   FROM ".DB_PREFIX.$tablename[$value['module']]."
                  WHERE ID = ".(int)$value[ticket_ID];
-        $result=db_query(xss($query))or db_die();
+        $result=db_query($query)or db_die();
         $row=db_fetch_row($result);
         // if data exists insert new Reply
-        if($row[0] > 0){
+        if($row[0] > 0) {
             $query = "INSERT INTO ".DB_PREFIX."db_remarks
-                            (        module             ,        module_ID         , date    ,        remark           ,    author            ,parent,    upload  )
-                     VALUES ('".qss($value['module'])."',".(int)$value[ticket_ID].",$dbTSnull,'".xss($value['body'])."','".$value['sender']."',0     ,'".$files."')";        
+                             (        module             ,        module_ID         , date    ,        remark           ,    author            ,parent,    upload  )
+                      VALUES ('".qss($value['module'])."',".(int)$value[ticket_ID].",$dbTSnull,'".xss_purifier($value['body'])."','".$value['sender']."',0     ,'".$files."')";
             $result = db_query(xss($query)) or db_die();
-
         }
     }
 }
 
 /**
  * This functions inserts new helpdesk tickets into rts tables
- * 
- * @author Nina Schmitt
- * @param array $tickets array with new tickets data
+ *
+ * @param array $tickets 	- Array with new tickets data
  * @return void
  */
-function insert_new_helpdesk_tickets($tickets){
+function insert_new_helpdesk_tickets($tickets) {
     global $dbTSnull, $tablename;
-    foreach ($tickets as $ticket){
+    foreach ($tickets as $ticket) {
         $file=array();
         if (is_array($ticket['attachment'])) {
-            foreach ($ticket['attachment'] as $value){
+            foreach ($ticket['attachment'] as $value) {
                 $file[]=$value['att_name'].'|'.$value['att_tempname'];
             }
         }
         $files=implode("#",$file);
         $query="INSERT INTO ".DB_PREFIX.$tablename['helpdesk']."
-                       (    submit           ,    name                ,    note             , acc_read, acc_write,        von               ,        gruppe            ,  filename  ,    category           )
-                VALUES ('".$ticket['date']."','".$ticket['subject']."','".$ticket['body']."', 'group' , 'w'      ,".(int)$ticket['sender'].",".(int)$ticket['gruppe'].",'$files','".$ticket['cat_ID']."')";
-        $result = db_query(xss($query)) or db_die();
+                       (    submit           ,    name                ,    note             , acc_read, acc_write,        von               ,        gruppe            ,  filename  ,    category ,status          )
+                VALUES ('".$ticket['date']."','".$ticket['subject']."','".$ticket['body']."', 'group' , 'w'      ,".(int)$ticket['sender'].",".(int)$ticket['gruppe'].",'$files','".$ticket['cat_ID']."', '1')";
+        $result = db_query($query) or db_die();
         $recipients = array(0 => $ticket['sender']);
-        $query = "SELECT MAX(ID) 
+        $query = "SELECT MAX(ID)
                     FROM ".DB_PREFIX.$tablename['helpdesk']."
                    WHERE von = ".(int)$ticket[sender];
-        $result = db_query(xss($query)) or db_die();
+        $result = db_query($query) or db_die();
         $row = db_fetch_row($result);
 	    $remark = slookup('db_accounts','message','ID',$ticket['cat_ID'],'1');
-	    $remark= str_replace('{TICKETID}',$row[0],$remark);	
+	    $remark= str_replace('{TICKETID}',$row[0],$remark);
 	  	$remark= str_replace('{TICKETBODY}',$ticket['body'],$remark);
-        remark_notification($remark,0,$row[0],'helpdesk',$recipients);
+        remark_notification($remark,0,$row[0],'helpdesk',$recipients,$ticket['subject']);
     }
 }
 
 /**
  * Prepares Email body for database
  *
- * @author Nina Schmitt
- * @param string $body emailbody
- * @return string $parsed_body 
+ * @param string $body 	- Email body
+ * @return string 			Parsed body
  */
-function parse_body($body){
+function parse_body($body) {
     $parsed_body = addslashes(ereg_replace("\r","",$body));
     $parsed_body = strip_tags($parsed_body);
-    $parsed_body = xss($parsed_body);
+    $parsed_body = xss_purifier($parsed_body);
     return $parsed_body;
 }
+?>

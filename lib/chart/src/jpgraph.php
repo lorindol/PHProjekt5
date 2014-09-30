@@ -4,7 +4,7 @@
 // Description:	PHP4 Graph Plotting library. Base module.
 // Created: 	2001-01-08
 // Author:	Johan Persson (johanp@aditus.nu)
-// Ver:		$Id: jpgraph.php,v 1.10 2006/11/07 00:28:28 gustavo Exp $
+// Ver:		$Id: jpgraph.php,v 1.11 2007-04-24 11:35:38 albrecht Exp $
 //
 // License:	This code is released under QPL 1.0
 // Copyright (C) 2001,2002,2003,2004 Johan Persson Aditus Consulting
@@ -381,7 +381,7 @@ class JpGraphErrObjectImg extends JpGraphErrObject {
 	$w=400; 	
 	$h=100 + 15*max(0,$lines-3);
 
-	$img = new Image($w,$h);
+	$img = new Image_gd($w,$h);
 
 	// Drop shadow
 	$img->SetColor("gray");
@@ -5425,7 +5425,7 @@ class RGB {
 // Description: Wrapper class with some goodies to form the
 // Interface to low level image drawing routines.
 //===================================================
-class Image {
+class Image_gd {
     var $img_format;
     var $expired=true;
     var $img=null;
@@ -5450,7 +5450,7 @@ class Image {
 
     //---------------
     // CONSTRUCTOR
-    function Image($aWidth,$aHeight,$aFormat=DEFAULT_GFORMAT) {
+    function Image_gd($aWidth,$aHeight,$aFormat=DEFAULT_GFORMAT) {
 	$this->CreateImgCanvas($aWidth,$aHeight);
 	$this->SetAutoMargin();		
 
@@ -7031,13 +7031,13 @@ HTTP headers have already been sent.</font></td></tr><tr><td><b>Explanation:</b>
 // Description: Exactly as Image but draws the image at
 // a specified angle around a specified rotation point.
 //===================================================
-class RotImage extends Image {
+class RotImage extends Image_gd {
     var $m=array();
     var $a=0;
     var $dx=0,$dy=0,$transx=0,$transy=0; 
 	
     function RotImage($aWidth,$aHeight,$a=0,$aFormat=DEFAULT_GFORMAT) {
-	$this->Image($aWidth,$aHeight,$aFormat);
+	$this->Image_gd($aWidth,$aHeight,$aFormat);
 	$this->dx=$this->left_margin+$this->plotwidth/2;
 	$this->dy=$this->top_margin+$this->plotheight/2;
 	$this->SetAngle($a);	

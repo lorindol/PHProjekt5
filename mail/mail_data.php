@@ -1,10 +1,12 @@
 <?php
-
-// mail_data.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: nina $
-// $Id: mail_data.php,v 1.41 2006/11/16 13:13:11 nina Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_data.php,v 1.44 2008-01-14 02:45:05 polidor Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -44,9 +46,10 @@ if ($delete_c <> '' || $delete_b <>'') {
 if ($action == "showhtml") {
   // fetch original data
   if ($ID) {
-    $result = db_query("select ID, von, body_html
-                          from ".DB_PREFIX."mail_client
-                         where ID = ".(int)$ID) or db_die();
+    $result = db_query("SELECT ID, von, body_html
+                          FROM ".DB_PREFIX."mail_client
+                         WHERE ID = ".(int)$ID."
+                          AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     // check permission
     if ($row[0] == 0) { die("no entry found."); }
@@ -86,10 +89,11 @@ if ($action == "showhtml") {
 else if ($copy){
     if($typ == "d")$formdata['dirname']=__('copy')." ".$_POST['dirname'];
     else{
-        $result = db_query("select ID,von,subject,body,sender,recipient,cc,kat,remark,date_received,touched,typ,
-                               parent,date_sent,header,replyto,acc,body_html
-                          from ".DB_PREFIX."mail_client
-                         where ID = ".(int)$ID) or db_die(); // fetch missing values from old record
+        $result = db_query("SELECT ID,von,subject,body,sender,recipient,cc,kat,remark,date_received,touched,typ,
+                                   parent,date_sent,header,replyto,acc,body_html
+                              FROM ".DB_PREFIX."mail_client
+                             WHERE ID = ".(int)$ID."
+                               AND is_deleted is NULL") or db_die(); // fetch missing values from old record
         $row = quote_runtime(db_fetch_row($result));
         $accessstring = insert_access('mail_client');
         sqlstrings_create();
@@ -107,9 +111,10 @@ else if ($copy){
 
 elseif (($modify_b <> '' || $modify_update_b <> '') and $ID > 0) {
   // check for same record name
-  $result = db_query("select ID, subject
-                        from ".DB_PREFIX."mail_client
-                       where typ like 'd'") or db_die();
+  $result = db_query("SELECT ID, subject
+                        FROM ".DB_PREFIX."mail_client
+                       WHERE typ like 'd'
+                         AND is_deleted is NULL") or db_die();
   while ($row = db_fetch_row($result)) {
     if ($row[0] <> $ID and $row[1] == $subject) die(__('This name already exists')."!<br /><a href='mail.php?mode=view&action=form&amp;csrftoken=".make_csrftoken()."'>".__('back')."</a>");
   }
@@ -140,9 +145,10 @@ elseif ($create_b <> '') {
     echo __('Please select a file');
   }
   // check for same record name
-  $result = db_query("select subject
-                        from ".DB_PREFIX."mail_client
-                       where typ like 'd'") or db_die();
+  $result = db_query("SELECT subject
+                        FROM ".DB_PREFIX."mail_client
+                       WHERE typ like 'd'
+                         AND is_deleted is NULL") or db_die();
   while ($row = db_fetch_row($result)) {
     if ($row[0] == $subject) {
       echo __('This name already exists')."!";
@@ -204,9 +210,10 @@ function delete_record($delete_ID) {
   }
   else {
   
-      $result = db_query("select ID, von, typ, trash_can 
-                            from ".DB_PREFIX."mail_client
-                           where ID = ".(int)$delete_ID) or db_die();
+      $result = db_query("SELECT ID, von, typ, trash_can 
+                            FROM ".DB_PREFIX."mail_client
+                           WHERE ID = ".(int)$delete_ID."
+                             AND is_deleted is NULL") or db_die();
       $row = db_fetch_row($result);
       // check permission
       if ($row[0] == 0) { die("no entry found."); }
@@ -233,8 +240,7 @@ function delete_record($delete_ID) {
                               where parent = ".(int)$delete_ID) or db_die();
       }
       // delete record itself
-      $result2 = db_query("delete from ".DB_PREFIX."mail_client
-                            where ID = ".(int)$delete_ID) or db_die();
+      delete_record_id('mail_client',"where ID = ".(int)$delete_ID);
       // delete corresponding entry from db_record
       $result = db_query("delete from ".DB_PREFIX."db_records
                                 where t_record = ".(int)$delete_ID." and t_module = 'mail'") or db_die();
@@ -246,9 +252,10 @@ function delete_record($delete_ID) {
 
 function del($delete_ID) {
 
-  $result = db_query("select ID, von, typ
-                        from ".DB_PREFIX."mail_client
-                       where parent = ".(int)$delete_ID) or db_die();
+  $result = db_query("SELECT ID, von, typ
+                        FROM ".DB_PREFIX."mail_client
+                       WHERE parent = ".(int)$delete_ID."
+                         AND is_deleted is NULL") or db_die();
   while ($row = db_fetch_row($result)) {
     // delete attachments if it's not a directory
     if ($row[2] <> "d") {
@@ -270,44 +277,19 @@ function del($delete_ID) {
                                  where parent = ".(int)$delete_ID) or db_die(); }
 
     // for all types: delete record itself
-    $result2 = db_query("delete from ".DB_PREFIX."mail_client
-                          where ID = ".(int)$row[0]) or db_die();
+    delete_record_id('mail_client',"where ID = ".(int)$row[0]);
     if ($row[2] == "d") del($row[0]); // look for mails etc. in the subdirectory
   }
 }
 
-function copy_attachments($ID) {
-  global $user_ID, $row, $dbTSnull;
 
-  // 1. fetch the ID of the new record
-  $result2 = db_query("select ID
-                         from ".DB_PREFIX."mail_client
-                        where date_received = '$dbTSnull' and
-                              von = ".(int)$user_ID." and
-                              subject = '".__('copy')." $row[2]'") or db_die(); // fetch missing values from old record
-  $row2 = db_fetch_row($result2);
-  // now fetch all attachments from the previous mail
-  $result3 = db_query("select filename, filesize, tempname
-                         from ".DB_PREFIX."mail_attach
-                        where parent = ".(int)$ID) or db_die();
-  while ($row3 = db_fetch_row($result3)) {
-    // add extension to random name
-    $att_tempname = rnd_string().substr($row3[0],-4,4);
-    // copy file
-    copy(PATH_PRE.PHPR_ATT_PATH."/".$row3[2],PATH_PRE.PHPR_ATT_PATH."/".$att_tempname);
-    // write record to db
-    $result4 = db_query("insert into ".DB_PREFIX."mail_attach
-                                (parent,   filename,        tempname,  filesize )
-                         values (".(int)$row2[0].",'$row3[0]','$att_tempname',".(int)$row3[1].")") or db_die();
-  }
-  return $row2[0];
-}
 
 function empty_trash_can ($trash_can_ID = 0) {
     global $trash_can_ID;
     
     $query = "SELECT ID FROM ".DB_PREFIX."mail_client 
-              WHERE parent = ".(int)$trash_can_ID;
+               WHERE parent = ".(int)$trash_can_ID."
+                 AND is_deleted is NULL";
     
     $result = db_query($query) or db_die();
     

@@ -457,7 +457,7 @@ function o_outlines($id,$action,$options=''){
     case 'out':
       if (count($o['info']['outlines'])){
         $res="\n".$id." 0 obj\n<< /Type /Outlines /Kids [";
-        foreach($o['info']['outlines'] as $k=>$v){
+        foreach($o['info']['outlines'] as $v){
           $res.=$v." 0 R ";
         }
         $res.="] /Count ".count($o['info']['outlines'])." >>\nendobj";
@@ -1919,7 +1919,7 @@ function stream($options=''){
   header("Content-Disposition: inline; filename=".$fileName);
   if (isset($options['Accept-Ranges']) && $options['Accept-Ranges']==1){
     header("Accept-Ranges: ".strlen(ltrim($tmp))); 
-  }
+  } 
   echo ltrim($tmp);
 }
 
@@ -2672,7 +2672,7 @@ function addPngFromFile($file,$x,$y,$w=0,$h=0){
     while ($p<$len){
       $chunkLen = $this->PRVT_getBytes($data,$p,4);
       $chunkType = substr($data,$p+4,4);
-//      echo $chunkType.' - '.$chunkLen.'<br>';
+//      echo $chunkType.' - '.$chunkLen.'<br />';
     
       switch($chunkType){
         case 'IHDR':
@@ -2703,7 +2703,7 @@ function addPngFromFile($file,$x,$y,$w=0,$h=0){
           break;
         case 'tRNS': 
           //this chunk can only occur once and it must occur after the PLTE chunk and before IDAT chunk 
-          //print "tRNS found, color type = ".$info['colorType']."<BR>"; 
+          //print "tRNS found, color type = ".$info['colorType']."<br />"; 
           $transparency = array();
           if ($info['colorType'] == 3) { // indexed color, rbg 
           /* corresponding to entries in the plte chunk 

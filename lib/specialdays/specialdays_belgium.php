@@ -1,14 +1,14 @@
 <?php
 /**
-* holiday file for belgium
-*
-* @package    calendar
-* @module     main
-* @author     Alex Reil, David Soria Parra, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: specialdays_belgium.php,v 1.2 2006/08/22 08:05:49 albrecht Exp $
-*/
+ * holiday file for belgium
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Alex Reil, David Soria Parra, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: specialdays_belgium.php,v 1.5 2007-05-31 08:12:02 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
  
 class SpecialDays_Belgium
@@ -134,3 +134,4 @@ class SpecialDays_Belgium
 		return $data;
 	}
 }
+?>

@@ -1,10 +1,12 @@
 <?php
-
-// notes_view.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: thorsten $
-// $Id: notes_view.php,v 1.61.2.6 2007/02/14 13:10:16 thorsten Exp $
+/**
+ * @package    notes
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: notes_view.php,v 1.68 2008-02-04 15:09:32 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) { die("Please use index.php!"); }
@@ -13,6 +15,7 @@ if (!defined("lib_included")) { die("Please use index.php!"); }
 if (check_role("notes") < 1) { die("You are not allowed to do this!"); }
 
 //diropen_mode($element_mode,$element_ID);
+filter_mode($filter_ID);
 sort_mode($module,'name');
 read_mode($module);
 archive_mode($module);
@@ -30,7 +33,7 @@ $tree_mode = isset($tree_mode) ? qss($tree_mode) : '';
 $is_related_obj = isset($is_related_obj) ? (bool) $is_related_obj : false;
 $rule = isset($rule) ? check_rule($rule) : '';
 $filter_ID = isset($filter_ID) ? (int) $filter_ID : null;
-$operator = isset($operator) && $operator == 'OR' ? $operator : ' AND ';
+$operator = isset($operator) ? qss($operator) : '';
 $sort = isset($sort) ? qss($sort) : '';
 
 // ************
@@ -62,9 +65,9 @@ $where = main_filter($filter,$rule,$keyword,$filter_ID,'notes','',$operator);
 $query = "select ID
             from ".DB_PREFIX."notes
                  ".sql_filter_flags($module, array('archive', 'read'))."
-                 where (acc = 'system' or ((von = ".(int)$user_ID." or acc = 'group' or acc like '%\"$user_kurz\"%')".group_string($module)."))
+                 where is_deleted is NULL and (acc = 'system' or ((von = ".(int)$user_ID." or acc = 'group' or acc like '%\"$user_kurz\"%')".group_string($module)."))
                  $where ".sql_filter_flags($module, array('archive', 'read'), false);
-$result = db_query(xss($query)) or db_die();
+$result = db_query($query) or db_die();
 
 $liste= make_list($result);
 
@@ -72,8 +75,6 @@ $liste= make_list($result);
 $exp = get_export_link_data('notes');
 $tabs = array();
 $tabs[] = array('href' => $exp['href'], 'active' => $exp['active'], 'id' => 'export', 'target' => '_self', 'text' => $exp['text'], 'position' => 'right');
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
 $output .= breadcrumb($module);
 $output .= '</div>';
 $output .= $content_div;
@@ -83,11 +84,11 @@ $buttons = array();
 if ( check_role("notes") > 1 ) {
     $buttons[] = array('type' => 'link', 'href' => $_SERVER['SCRIPT_NAME'].'?mode=forms&amp;new_note=1&amp;'.$sid, 'text' => __('New'), 'active' => false);
 }
-$output .= get_buttons_area($buttons, 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');
+$output .= get_module_tabs($tabs,$buttons, 'oncontextmenu="startMenu(\''.$menu3->menusysID.'\',\'\',this)"');
 
 // get all filter bars
 if (!$sort) { $sort = "div2"; }
-$where =   " where  (acc = 'system' or ((von = $user_ID or acc = 'group' or acc like '%\"$user_kurz\"%')".group_string($module)."))
+$where =   " where is_deleted is NULL and (acc = 'system' or ((von = $user_ID or acc = 'group' or acc like '%\"$user_kurz\"%')".group_string($module)."))
                   $where
                   ".sql_filter_flags($module, array('archive', 'read'), false)."
                   ".sort_string();

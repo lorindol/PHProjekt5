@@ -1,8 +1,13 @@
 <?php
-
-/*
+/**
  * This file is used for make the otions and show the sor box
- * Author: Gustavo Solt gustavo.solt@gmail.com
+ *
+ * @package    admin
+ * @subpackage sortbox
+ * @author     Gustavo Solt
+ * @licence    	GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: 
  */
  
 define('PATH_PRE','../');

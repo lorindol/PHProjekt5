@@ -1,14 +1,15 @@
 <?php
 /**
-* forum db data script
-*
-* @package    forum
-* @module     main
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: forum_data.php,v 1.29.2.1 2007/01/13 15:00:44 gustavo Exp $
-*/
+ * forum db data script
+ *
+ * @package    forum
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: forum_data.php,v 1.35 2007-12-12 11:20:20 nina Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
@@ -36,7 +37,7 @@ function insert($fID="", $ID="") {
     // database action - insert record
     $result = db_query("INSERT INTO ".DB_PREFIX."forum
                                (        von      ,        titel    ,        remark    ,  datum    ,        gruppe       ,        parent ,        antwort,        lastchange    ,        notify       ,  acc    ,  acc_write )
-                        VALUES (".(int)$user_ID.",'".xss($titel)."','".xss($remark)."','$dbTSnull',".(int)$user_group." ,".(int)$fID."  ,".(int)$ID."   ,'".xss($lastchange)."','".xss($notify_me)."','$access','$acc_write')") or db_die();
+                        VALUES (".(int)$user_ID.",'".xss($titel)."','".xss_purifier($remark)."','$dbTSnull',".(int)$user_group." ,".(int)$fID."  ,".(int)$ID."   ,'".xss($lastchange)."','".xss($notify_me)."','$access','$acc_write')") or db_die();
     // update root posting to the current date
     if ($ID > 0) { update_root($ID); }
     if ($fID > 0) { update_root($fID); }
@@ -51,9 +52,8 @@ function insert($fID="", $ID="") {
         // include the library from lib
         include_once(LIB_PATH."/notification.inc.php");
         // call routine to send mails with notification about the new record
-        $notify = new Notification($user_ID, $user_group , "forum", "all",
-        "&mode=forms&ID=$row[0]&fID=$fID",
-        __('Module')." ".__('Forum').": ".__('New Thread'));
+        $notify = new Notification($user_ID, $user_group , "forum", "all", $row[0],
+        "&mode=forms&ID=$row[0]&fID=$fID", '', __('New Thread'));
         $notify->text_body[] = $remark;
         $notify->notify();
     }
@@ -64,6 +64,8 @@ function insert($fID="", $ID="") {
         $result = db_query("SELECT titel, notify, email
                               FROM ".DB_PREFIX."forum, ".DB_PREFIX."users
                              WHERE ".DB_PREFIX."forum.ID = ".(int)$bei."
+                               AND ".DB_PREFIX."forum.is_deleted is NULL  
+                               AND ".DB_PREFIX."users.is_deleted is NULL  
                                AND ".DB_PREFIX."forum.von = ".DB_PREFIX."users.ID") or db_die();
         $row = db_fetch_row($result);
         if ($row[1] == "on" and $row[2] <> "" ) {
@@ -82,7 +84,8 @@ function update_root($antwort) {
     while ($antwort > 0) {
         $result = db_query("SELECT id, antwort
                               FROM ".DB_PREFIX."forum
-                             WHERE ID = ".(int)$antwort) or db_die();
+                             WHERE ID = ".(int)$antwort."
+                               AND is_deleted is NULL") or db_die();
         $row = db_fetch_row($result);
         $antwort = $row[1];
     }

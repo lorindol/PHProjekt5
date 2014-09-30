@@ -1,5 +1,4 @@
 <?php
-
 include_once('class.pdf.php');
 
 class Cezpdf extends Cpdf {
@@ -206,9 +205,9 @@ function ezNewPage(){
   if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
     // check if this is just going to a new column
     // increment the column number
-//echo 'HERE<br>';
+//echo 'HERE<br />';
     $this->ez['columns']['colNum']++;
-//echo $this->ez['columns']['colNum'].'<br>';
+//echo $this->ez['columns']['colNum'].'<br />';
     if ($this->ez['columns']['colNum'] <= $this->ez['columns']['options']['num']){
       // then just reset to the top of the next column
       $pageRequired=0;
@@ -221,7 +220,7 @@ function ezNewPage(){
     $this->ez['leftMargin']=$this->ez['columns']['margins'][0]+($this->ez['columns']['colNum']-1)*($this->ez['columns']['options']['gap']+$width);
     $this->ez['rightMargin']=$this->ez['pageWidth']-$this->ez['leftMargin']-$width;
   }
-//echo 'left='.$this->ez['leftMargin'].'   right='.$this->ez['rightMargin'].'<br>';
+//echo 'left='.$this->ez['leftMargin'].'   right='.$this->ez['rightMargin'].'<br />';
 
   if ($pageRequired){
     // make a new page, setting the writing point back to the top
@@ -380,7 +379,7 @@ function ezPRVTaddPageNumbers(){
     $totalPages1 = $this->ezPageCount;
     $tmp1=$this->ez['pageNumbering'];
     $status=0;
-    foreach($tmp1 as $i=>$tmp){
+    foreach($tmp1 as $tmp){
       // do each of the page numbering systems
       // firstly, find the total pages for this one
       $k = $this->ezPRVTpageNumberSearch('stopt',$tmp);
@@ -741,17 +740,17 @@ function ezTable(&$data,$cols='',$title='',$options=''){
     $cols1 = array();
     $xq=0;
     $presentWidth=0;
-    $last='';
+    $next='';
     foreach($pos as $colName=>$p){
-      if (!isset($options['cols'][$last]) || !isset($options['cols'][$last]['width']) || $options['cols'][$last]['width']<=0){
-        if (strlen($last)){
-          $cols0[$last]=$p-$xq -$options['gap'];
+      if (!isset($options['cols'][$next]) || !isset($options['cols'][$next]['width']) || $options['cols'][$next]['width']<=0){
+        if (strlen($next)){
+          $cols0[$next]=$p-$xq -$options['gap'];
           $presentWidth += ($p-$xq - $options['gap']);
         }
       } else {
-        $cols1[$last]=$p-$xq;
+        $cols1[$next]=$p-$xq;
       }
-      $last=$colName;
+      $next=$colName;
       $xq=$p;
     }
     // $cols0 contains the widths of all the columns which are not set
@@ -1462,7 +1461,7 @@ function execTemplate($id,$data=array(),$options=array()){
   if (!isset($this->ez['templates'][$id])){
     return;
   }
-  eval($this->ez['templates'][$id]['code']);
+  //eval($this->ez['templates'][$id]['code']);
 }
 
 // ------------------------------------------------------------------------------

@@ -1,22 +1,18 @@
 <?php
 /**
-* helpdesk selector script
-*
-* @package    helpdesk
-* @module     selector
-* @author     Gustavo Solt, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: helpdesk_selector.php,v 1.13 2006/11/10 04:50:46 polidor Exp $
-*/
+ * helpdesk selector script
+ *
+ * @package    helpdesk
+ * @subpackage selector
+ * @author     Gustavo Solt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: helpdesk_selector.php,v 1.17 2008-01-03 22:26:35 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(LIB_PATH.'/selector/selector.inc.php');
 
-$tabs = array();
-// form start
-echo '<div id="global-header">';
-echo get_tabs_area($tabs);
-echo '</div>';
 echo '<div id="global-content">'."\n";
 
 // --------- Selektor config ---------
@@ -61,7 +57,8 @@ switch ($_SESSION['helpdeskdata']['formdata']['_selector_type']) {
 $sel->finishFormSubmitName = 'finishForm.'.$_SESSION['helpdeskdata']['formdata']['_return'];
 $sel->set_hidden_fields(array(  'ID' => $_SESSION['helpdeskdata']['formdata']['_ID'],
                                 'mode' => $_SESSION['helpdeskdata']['formdata']['_mode'],
-                                'view' => $_SESSION['helpdeskdata']['formdata']['_view']));
+                                'view' => $_SESSION['helpdeskdata']['formdata']['_view'],
+                                'justform'  => $justform));
 
 // get the selected values
 if (!isset($stuff['preselect'])) {
@@ -94,6 +91,12 @@ echo "
 // values of the form
 if (SID) {
     echo "    <input type='hidden' name='".session_name()."' value='".session_id()."' />\n";
+}
+
+// justform
+if ($justform) $_SESSION['helpdeskdata']['formdata']['justform'] = $justform;
+if (isset($_SESSION['helpdeskdata']['formdata']['justform']) && ($_SESSION['helpdeskdata']['formdata']['justform'])) {
+    echo "    <input type='hidden' name='justform' value='1' />\n";
 }
 
 // all form fields

@@ -1,14 +1,15 @@
 <?php
 /**
-* helpdesk db data script
-*
-* @package    helpdesk
-* @module     main
-* @author     Albrecht Guenther, Nina Schmitt, $Author: thorsten $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: helpdesk_data.php,v 1.80.2.2 2007/02/26 15:06:40 thorsten Exp $
-*/
+ * helpdesk db data script
+ *
+ * @package    helpdesk
+ * @subpackage main
+ * @author     Albrecht Guenther, Nina Schmitt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: helpdesk_data.php,v 1.90 2008-01-03 22:26:35 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 // check role
 if (check_role("helpdesk") < 2) die("You are not allowed to do this!");
@@ -30,17 +31,7 @@ if ($delete_b) {
 else if ($copy){
     $fields = change_fields_for_copy($fields,'name');
 }
-else if(isset($new_remark)){
-    $remark_ID =add_remark($new_remark,$parent_remark,$ID,'helpdesk');
-    //notify recipient
-    if($notify_recipient=="on"){
-        $recipients = get_recipients($ID);
-        $ticket_title = get_title($ID);
-        remark_notification($new_remark,$remark_ID,$ID,'helpdesk',$recipients, $ticket_title);
-    }
-    $query_str = "helpdesk.php?mode=forms&submode=discussion&ID=".$ID."#discussion";
-    header('Location: '.$query_str);
-}
+
 // delete a file attached to a record
 else if ($delete_file) delete_attached_file($file_field_name, $ID, 'helpdesk');
 
@@ -68,17 +59,17 @@ else if (!$ID && isset($_REQUEST['name'])) {
 
     // inform the receiver about his new ticket
     if ($notify_recipient <> '' and $assigned <> '') {
-        $notify = new Notification($user_ID, $user_group, "helpdesk", array($assigned),
-        "&mode=forms&ID=".$ID,
-        slookup('users','nachname,vorname','ID',$user_ID,'1')." ".__("has created the following request").": ".$name."\n ".
-        stripslashes(strip_tags(html_entity_decode($note))),'',__("Helpdesk Ticket Nr.")." $ID: ".$name,1);
+        $emailbody = slookup('users','nachname,vorname','ID',$user_ID,'1')." ".__("has created the following request").": ".$name."\n ".
+        stripslashes(strip_tags(html_entity_decode($note)));
+        $notify = new Notification($user_ID, $user_group, "helpdesk", array($assigned, $row[2]),$ID,
+        "&mode=forms&ID=".$ID,$emailbody,$name,'changed','',1);
 
         $notify->notify();
         unset($notify);
     }
 
     if ($create_update_b) {
-        $query_str = "helpdesk.php?mode=forms&ID=".$ID;
+        $query_str = "helpdesk.php?mode=forms&ID=".$ID."&justform=".$justform;
         header('Location: '.$query_str);
     }
 }
@@ -92,7 +83,8 @@ else if ($ID > 0 && isset($_REQUEST['name'])) {
     // check permission
     $result = db_query("SELECT ID, note,assigned, acc_write, von, status, lock_user
                           FROM ".DB_PREFIX."rts
-                         WHERE ID = ".(int)$ID."
+                         WHERE ID = ".(int)$ID." 
+                           AND is_deleted is NULL
                            AND (acc_read LIKE 'system'
                                 OR ((von = ".(int)$user_ID."
                                      OR assigned = '$user_ID'
@@ -139,10 +131,9 @@ else if ($ID > 0 && isset($_REQUEST['name'])) {
         if($notify_recipient <> '') {
 
             // notify the author, the old and new assigned user
-
-            $notify = new Notification($user_ID, $user_group, "helpdesk", array($assigned, $row[2]),
-            "&mode=forms&ID=".$ID,
-            slookup('users','nachname,vorname','ID',$user_ID,'1')." ".__("has reassigned the following request").": ".$name,"",__("Helpdesk Ticket Nr.")."  $ID: ".$name);
+            $emailbody = slookup('users','nachname,vorname','ID',$user_ID,'1')." ".__("has reassigned the following request").": ".$name;
+            $notify = new Notification($user_ID, $user_group, "helpdesk", array($assigned, $row[2]),$ID,
+            "&mode=forms&ID=".$ID,$emailbody,$name,'changed','',1);
             $notify->notify();
             unset($notify);
 
@@ -153,9 +144,9 @@ else if ($ID > 0 && isset($_REQUEST['name'])) {
     if ($status <> $row[5]) {
         if( $notify_recipient <> ''){
             // notify author and assigned user
-            $notify = new Notification($user_ID, $user_group, "helpdesk", array($assigned),
-            "&mode=forms&ID=".$ID,
-            $name.": ".html_entity_decode(__("Ticket status changed")."(".$helpdesk_states[$status-1]["label"].")"),"",__("Helpdesk Ticket Nr.")." $ID: ".$name);
+            $emailbody = $name.": ".html_entity_decode(__("Ticket status changed")."(".$helpdesk_states[$status-1]["label"].")");
+            $notify = new Notification($user_ID, $user_group, "helpdesk", array($assigned, $row[2]),$ID,
+            "&mode=forms&ID=".$ID,$emailbody,$name,'changed','',1);
             $notify->notify();
             unset($notify);
         }
@@ -198,11 +189,13 @@ else if ($ID > 0 && isset($_REQUEST['name'])) {
     else if ($action == 'moveto') {
         $result = db_query("SELECT ID, name, note, remark
                               FROM ".DB_PREFIX."rts
-                             WHERE ID = ".(int)$ID) or db_die();
+                             WHERE ID = ".(int)$ID."
+                               AND is_deleted is NULL") or db_die();
         $row = db_fetch_row($result);
         $result2 = db_query("SELECT ID, name, note, remark
                                FROM ".DB_PREFIX."rts
-                              WHERE ID = ".(int)$moveto) or db_die();
+                              WHERE ID = ".(int)$moveto."
+                                AND is_deleted is NULL") or db_die();
         $row2 = db_fetch_row($result2);
 
         $name   = quote_runtime($row2[1]."\n+ Nr. $row[0]:\n ".$row[1]);
@@ -210,8 +203,8 @@ else if ($ID > 0 && isset($_REQUEST['name'])) {
         $remark = quote_runtime($row2[3]."\n+ Nr. $row[0]:\n ".$row[3]);
         // update new record
         $result = db_query("UPDATE ".DB_PREFIX."rts
-                                   SET remark = '".strip_tags($remark)."',
-                                       note   = '".xss($note)."',
+                                   SET remark = '".xss_purifier($remark)."',
+                                       note   = '".xss_purifier($note)."',
                                        name   = '".strip_tags($name)."'
                                  WHERE ID = ".(int)$moveto) or db_die();
 
@@ -222,7 +215,7 @@ else if ($ID > 0 && isset($_REQUEST['name'])) {
     }
 
     if ($modify_update_b) {
-        $query_str = "helpdesk.php?mode=forms&ID=".$ID;
+        $query_str = "helpdesk.php?mode=forms&ID=".$ID."&justform=".$justform;
         header('Location: '.$query_str);
     }
 
@@ -233,17 +226,31 @@ if (isset($timeproj_add) || isset($timeproj_delete)) {
     timeproj_insert_record($user_ID, $ID, $proj, 'helpdesk', $timeproj_add);
     timeproj_delete_record($timeproj_delete);
 }
+if($new_remark<>'' && !$read_o_discussion){
+    $remark_ID =add_remark($new_remark,$parent_remark,$ID,'helpdesk');
+    //notify recipient
+    if($notify_recipient=="on"){
+        $recipients = get_recipients($ID);
+        $ticket_title = get_title($ID);
+        remark_notification($new_remark,$remark_ID,$ID,'helpdesk',$recipients, $ticket_title);
+    }
+    $query_str = "helpdesk.php?mode=forms&submode=discussion&ID=".$ID."&justform=".$justform."#discussion";
+    header('Location: '.$query_str);
+}
 
 //After copying the form should be displayed again
 if ($copy){
     include_once("./helpdesk_forms.php");
 }
 else{
-    // show the helpdesk list :-)
-    $fields = build_array('helpdesk', $ID, 'view');
-    include_once("./helpdesk_view.php");
+	if (!$justform) {
+        // show the helpdesk list :-)
+        $fields = build_array('helpdesk', $ID, 'view');
+        include_once("./helpdesk_view.php");
+    } else {
+        echo '<script type="text/javascript">ReloadParentAndClose();</script>';
+    }
 }
-
 
 function delete_record($ID) {
     global $fields, $user_ID;
@@ -251,7 +258,8 @@ function delete_record($ID) {
     // check permission
     $result = db_query("SELECT assigned, acc_write, ID, von
                           FROM ".DB_PREFIX."rts
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     if ($row[2] == 0) die("no entry found.");
     if(!check_locked("rts","lock_user",$ID))die("You are not privileged to do this!");
@@ -268,9 +276,7 @@ function delete_record($ID) {
     timeproj_unlink_moduletimes($ID, 'helpdesk');
 
     // delete record in db
-    $result = db_query("DELETE
-                          FROM ".DB_PREFIX."rts
-                         WHERE ID = ".(int)$ID) or db_die();
+    delete_record_id('rts',"WHERE ID = ".(int)$ID);
     // delete corresponding entry from db_record
     remove_link($ID,'helpdesk');
     remove_link($ID,'rts');
@@ -291,7 +297,8 @@ function get_recipients($ID){
     $recipients=array();
     $result = db_query("SELECT von,assigned,lock_user
                           FROM ".DB_PREFIX."rts
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row=db_fetch_row($result);
     if($row[0]!=$user_ID)$recipients[]=$row[0];
     if($row[1]!=$user_ID)$recipients[]=$row[1];
@@ -309,8 +316,9 @@ function get_title($ID){
     $title = '';
 
     $result = db_query("SELECT name
-                          FROM ".DB_PREFIX."rts
-                         WHERE ID = ".(int)$ID) or db_die();
+                          FROM ".DB_PREFIX."rts 
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     if ($row = db_fetch_row($result)) {
         $title = $row[0];
     }

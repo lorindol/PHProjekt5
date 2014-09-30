@@ -1,14 +1,15 @@
 <?php
 /**
-* calendar form handler
-*
-* @package    calendar
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_forms.php,v 1.167.2.3 2007/04/28 15:01:27 polidor Exp $
-*/
+ * calendar form handler
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_forms.php,v 1.177 2008-02-21 21:22:38 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // functions for date-checking if invitees are present
@@ -91,6 +92,7 @@ function calendar_forms_get_view() {
         $read_o = 0;
         $only_readable = false;
     }
+
     if (empty($formdata['datum'])) {
         $formdata['datum'] = "$year-$month-$day";
     }
@@ -98,7 +100,7 @@ function calendar_forms_get_view() {
         $formdata['datum'] = date('Y-m-d');
     }
     $serial_events = calendar_forms_get_serial_event_links();
-
+    
     $day   = (int) substr($formdata['datum'], -2);
     $month = (int) substr($formdata['datum'], 5, 2);
     $year  = (int) substr($formdata['datum'], 0, 4);
@@ -157,7 +159,7 @@ function calendar_forms_get_view() {
  * @return string
  */
 function calendar_forms_show_main_header($buttons='') {
-    global $ID, $day, $month, $year, $view, $act_for, $formdata, $date_format_object;
+    global $ID, $day, $month, $year, $view, $act_for, $formdata, $date_format_object, $justform;
 
     $create_by = '';
     if ($ID) {
@@ -177,10 +179,11 @@ function calendar_forms_show_main_header($buttons='') {
                             'month' => $month,
                             'year'  => $year,
                             'view'  => $view,
+                            'justform' => $justform,
                             'mode'  => 'data');
-    
+
     if (empty($buttons)) $buttons = '<br class="clearboth" />';
-    
+
     $ret = '
     <form enctype="multipart/form-data" action="./calendar.php" method="post" name="frm" onsubmit="return checkUserDateFormat(\'formdata[datum]\',\''.__('Date').': '.$date_format_text.'\') &amp;&amp; checkCalendarTimeFormat(\'frm\',\'formdata[anfang]\',\''.__('From').': '.__('Please check the start time! ').'\') &amp;&amp; checkCalendarTimeFormat(\'frm\',\'formdata[ende]\',\''.__('Until').': '.__('Please check the end time! ').'\') &amp;&amp; checkUserDateFormat(\'formdata[serie_bis]\',\''.__('multiple events').'\n'.__('Until').': '.$date_format_text.'\');">
         '.hidden_fields($hidden_fields).'
@@ -227,7 +230,11 @@ function calendar_forms_show_main_form() {
     $date_format_len   = $date_format_object->get_maxlength_attribute();
     $date_format_title = $date_format_object->get_title_attribute();
     $duration_vals     = array('30'=>'0,5', '60'=>'1', '90'=>'1,5', '120'=>'2', '180'=>'3', '240'=>'4');
-    
+
+    if($formdata['anfang'] == '----'){
+		$allday_checked = ' checked="checked" ';
+	}
+
     $ret .= calendar_forms_show_main_header(calendar_forms_get_buttons_area($only_readable));
     $ret .= '
 <table>
@@ -252,6 +259,10 @@ function calendar_forms_show_main_form() {
                     $ret .= '<option value="'.$k.'"'.($k==$formdata['duration'] ? ' selected="selected"' : '').'>'.$v.'</option>'."\n";
                 }
                 $ret .= '</select></td>
+        </tr>
+        <tr>
+            <td><label class="label_block" for="allday">'.__('All Day').'</label></td>
+            <td><input type="checkbox" maxlength="128" id="allday" name="formdata[allday]" value="yes" '.$allday_checked.' '.$readonly.' /></td>
         </tr>
         <tr>
             <td><label class="label_block" for="event">'.__('Text').'</label></td>
@@ -323,13 +334,13 @@ function calendar_forms_show_main_form() {
             $tmp      = explode('|', $upload);
             $filename = $tmp[0];
             $realname = $tmp[1];
-            
-            
+
+
             // creating random value for file download
             $rnd = rnd_string(9);
             $file_ID[$rnd] = $upload;
             $_SESSION['file_ID'] =& $file_ID;
-            
+
             $ret .= '
         <tr>
             <td colspan="2">'.$filename.'&nbsp;&nbsp;&nbsp;
@@ -344,7 +355,7 @@ function calendar_forms_show_main_form() {
             $ret .= '
         <tr>
             <td><label class="label_block" for="contact">'.__('Contacts').'</label></td>
-            <td>'.selector_create_select_contacts('formdata[contact]', $formdata['contact'], 'action_form_to_contact_selector', '0', 'style="width:120px;" class="calendar"').'</td>
+            <td>'.selector_create_select_contacts('formdata[contact]', $formdata['contact'], 'action_form_to_contact_selector', '0', 'id="contact" style="width:120px;" class="calendar"').'</td>
         </tr>'."\n";
         }
         // select projekt (only if module is active)
@@ -352,7 +363,7 @@ function calendar_forms_show_main_form() {
             $ret .= '
         <tr>
             <td><label class="label_block" for="projekt">'.__('Project').'</label></td>
-            <td>'.selector_create_select_projects('formdata[projekt]', $formdata['projekt'], 'action_form_to_project_selector', '0', 'style="width:120px;" class="calendar"').'</td>
+            <td>'.selector_create_select_projects('formdata[projekt]', $formdata['projekt'], 'action_form_to_project_selector', '0', 'id="projekt" style="width:120px;" class="calendar"').'</td>
         </tr>'."\n";
         }
         $ret .= '
@@ -368,7 +379,7 @@ function calendar_forms_show_main_form() {
     <tbody>
         <tr>
             <td><label class="label_block" for="serie_typ">&nbsp;'.__('multiple events').'</label>
-                <select class="halfsize" style="width:120px;" id="serie_typ" name="formdata[serie_typ]"'.$disabled.'>
+                <select class="halfsize" style="width:120px;" id="serie_typ" name="formdata[serie_typ]"'.$disabled.' onchange="if(this.value == \'w1\' || this.value == \'w2\' || this.value == \'w3\' || this.value == \'w4\') { document.getElementById(\'weekdays\').style.display = \'inline\'; } else { document.getElementById(\'weekdays\').style.display = \'none\'; }">
                 <option value="" title="'.__('Once').'">'.__('Once').'</option>
                 <option value="d1"'.($formdata['serie_typ']=='d1' ? ' selected="selected"' : '').' title="'.__('Daily').'">'.__('Daily').'</option>
                 <option value="w1"'.($formdata['serie_typ']=='w1' ? ' selected="selected"' : '').' title="'.__('weekly').'">'.__('weekly').'</option>
@@ -383,8 +394,18 @@ function calendar_forms_show_main_form() {
                 <input class="halfsize" type="text" '.$date_format_len.' '.$date_format_title.' id="serie_bis" name="formdata[serie_bis]" '.dojoDatepicker('formdata[serie_bis]', $formdata[serie_bis]).' '.$readonly.' />
             </td>
         </tr>
+        </table>
+        ';
+
+        if (isset($formdata['serie_typ']) && $formdata['serie_typ']{0} == 'w') {
+            $weekdays_display = 'inline';
+        } else {
+            $weekdays_display = 'none';
+        }
+        $ret .= '
+        <div id="weekdays" style="display:'.$weekdays_display.'">
+        <table>
         <tr>
-     
         <td colspan="2">
         <fieldset><legend>'.__('Days').'</legend>'."\n";
         foreach ($name_day2 as $k=>$v) {
@@ -394,7 +415,11 @@ function calendar_forms_show_main_form() {
         }
         $ret .= '</fieldset>
             </td>
-        </tr>';
+        </tr>
+        </table>
+        </div>';
+
+        $ret .= '<table>';
         // event is canceled..
         if ($ID) {
             $checked = ($formdata['status']) ? ' checked="checked"' : '';
@@ -407,7 +432,11 @@ function calendar_forms_show_main_form() {
         $ret .= '</tbody></table></fieldset>';
         // show this only on write access
         if (!$read_o) {
-            $checked = ($formdata['send_emailnotification']) ? ' checked="checked"' : '';
+        	if (!$ID || $formdata['send_emailnotification']) {
+                $checked = ' checked="checked"';
+        	} else {
+        		$checked = '';
+        	}
             $ret .= '
         <fieldset><legend>'.__('Send email notification').'</legend><table><tbody>
         <tr>
@@ -418,8 +447,14 @@ function calendar_forms_show_main_form() {
         </tbody></table></fieldset>
         <fieldset><legend>'.__('Member selection').'</legend><table><tbody>
         <tr>
-            <td colspan="2"><label class="label_block" for="choose_invitees">&nbsp;'.__('Participants').'</label>
-            '.selector_create_select_users("invitees[]", $formdata['invitees'], 'action_form_to_selector', '0','id="choose_invitees" class="halfsize"').'
+            <td><label class="label_block" for="choose_invitees">&nbsp;'.__('Participants').'</label></td>
+            <td>
+                '.selector_create_select_users("invitees[]", $formdata['invitees'], 'action_form_to_selector', '0','id="choose_invitees" class="halfsize"').'
+            </td>
+        </tr>
+        <tr>
+            <td><label class="label_block" for="mailnotify">&nbsp;'.__('Other Participants').'</label></td>
+            <td><textarea class="halfsize" id="mailnotify" name="formdata[mailnotify]" '.$readonly.'>'.html_out(is_array($formdata['mailnotify'])?implode("\n", $formdata['mailnotify']):'').'</textarea></td>
         </tr>
         <tr>
             <td><input type="submit" name="action_check_dateconflict" value="'.__('Collision check').'" /></td>
@@ -438,7 +473,7 @@ function calendar_forms_show_main_form() {
     </fieldset>
 
 ';
-    
+
     $ret .= calendar_forms_get_buttons_area($only_readable);
     $ret .= calendar_forms_show_main_footer();
     return $ret;
@@ -451,7 +486,7 @@ function calendar_forms_show_main_form() {
  * @return string
  */
 function calendar_forms_show_delete_event_form($type) {
-    global $date_format_object;
+    global $date_format_object, $justform;
 
     if ($type == 'event') {
         $del_name  = 'action_remove_event_yes';
@@ -463,41 +498,42 @@ function calendar_forms_show_delete_event_form($type) {
     }
 
     $ret  = calendar_forms_show_main_header();
-    
+
     $readonly = 'readonly="readonly"';
     $date_format_len   = $date_format_object->get_maxlength_attribute();
     $date_format_title = $date_format_object->get_title_attribute();
 
     $ret .= '
+    <input type="hidden" name="justform" value="'.$justform.'" />
     <input type="hidden" name="send_emailnotification" value="'.(empty($GLOBALS['formdata']['send_emailnotification'])?0:1).'" />
-    
+
         <fieldset class="calendar" style="height:auto">
             <legend></legend>
             <table>
             <tbody>
             <tr>
                 <td><label class="label_block" for="datum">'.__('Date').'</label></td>
-                <td><input class="halfsize" id="datum" name="datum" value="'. $date_format_object->convert_db2user($_SESSION['calendardata']['current_event']['datum']) .'" '.$readonly.' /></td>
+                <td><div class="form_div">'. $date_format_object->convert_db2user($_SESSION['calendardata']['current_event']['datum']) .'</div></td>
             </tr>
-            
+
             <tr>
                 <td><label class="label_block" for="anfang">'.__('From').'</label></td>
-                <td><input class="halfsize" type="text" maxlength="5" id="anfang" name="formdata[anfang]" value="'.$_SESSION['calendardata']['current_event']['anfang'].'" '.$readonly.' /></td>
+                <td><div class="form_div">'.$_SESSION['calendardata']['current_event']['anfang'].'</div></td>
             </tr>
-            
+
             <tr>
                 <td><label class="label_block" for="ende">'.__('Until').'</label></td>
-                <td><input class="halfsize" type="text" maxlength="5" id="ende" name="formdata[ende]" value="'.$_SESSION['calendardata']['current_event']['ende'].'" '.$readonly.' /></td>
+                <td><div class="form_div">'.$_SESSION['calendardata']['current_event']['ende'].'</div></td>
             </tr>
 
             <tr>
                 <td><label class="label_block" for="event">'.__('Text').'</label></td>
-                <td><input class="halfsize" type="text"  maxlength="128" id="event" name="event" value="'.htmlspecialchars($_SESSION['calendardata']['current_event']['event']).'" '.$readonly.' /></td>
+                <td><div class="form_div">'.htmlspecialchars($_SESSION['calendardata']['current_event']['event']).'</div></td>
             </tr>
 
             <tr>
                 <td><label class="label_block" for="ort">'.__('Location').'</label></td>
-                <td><input class="halfsize" type="text" maxlength="128" id="ort" name="ort" value="'.$_SESSION['calendardata']['current_event']['ort'].'" '.$readonly.' /></td>
+                <td><div class="form_div">'.$_SESSION['calendardata']['current_event']['ort'].'</div></td>
             <tr>
 
             <tr>
@@ -777,11 +813,11 @@ function calendar_forms_show_dateproposals(&$colliding_invitees) {
  * @return string
  */
 function calendar_forms_get_buttons_area($only_readable=false) {
-    global $ID, $sid, $view, $axis, $dist, $year, $month, $day, $act_as, $act_for;
-    
+    global $ID, $sid, $view, $axis, $dist, $year, $month, $day, $act_as, $act_for, $justform;
+
     $archive = null;
     $buttons = array();
-    
+
     if (!$only_readable) {
         if ($ID) {
             // update/remove buttons
@@ -790,18 +826,20 @@ function calendar_forms_get_buttons_area($only_readable=false) {
             if (!$_SESSION['calendardata']['current_event']['parent']) {
                 $buttons[] = array('type'=>'submit', 'name'=>'action_remove_event', 'value'=>__('Delete'), 'active'=>false);
             }
-            
-            // archive actions
-            $_act = ($act_as) ? '&amp;act_as='.$act_as : (($act_for) ? '&amp;act_for='.$act_for : '');
-            $_params = ($view == 3) ? '&amp;axis='.$axis.'&amp;dist='.$dist : '';
-            $_params = '&amp;view='.$view.'&amp;year='.$year.'&amp;month='.((int) $month).
-                       '&amp;day='.((int) $day).$_params.$_act.$sid;#.'" class="';
-            $_class = 'navbutton navbutton_inactive';
-            if (check_archiv_flag($ID.$sid, 'calendar')) {
-                $archive = array('type'=>'link', 'href'=>'./calendar.php?mode=view&amp;set_archiv_flag=0&amp;ID_s='.$ID.$sid.$_params, 'text'=>__('Take back from Archive'), 'active'=>false);
-            }
-            else {
-                $archive = array('type'=>'link', 'href'=>'./calendar.php?mode=view&amp;set_archiv_flag=1&amp;ID_s='.$ID.$sid.$_params, 'text'=>__('Move to archive'), 'active'=>false);
+
+            if (!$justform) {
+                // archive actions
+                $_act = ($act_as) ? '&amp;act_as='.$act_as : (($act_for) ? '&amp;act_for='.$act_for : '');
+                $_params = ($view == 3) ? '&amp;axis='.$axis.'&amp;dist='.$dist : '';
+                $_params = '&amp;view='.$view.'&amp;year='.$year.'&amp;month='.((int) $month).
+                           '&amp;day='.((int) $day).$_params.$_act.$sid;
+                $_class = 'navbutton navbutton_inactive';
+                if (check_archiv_flag($ID.$sid, 'calendar')) {
+                    $archive = array('type'=>'link', 'href'=>'./calendar.php?mode=view&amp;set_archiv_flag=0&amp;ID_s='.$ID.$sid.$_params, 'text'=>__('Take back from Archive'), 'active'=>false);
+                }
+                else {
+                    $archive = array('type'=>'link', 'href'=>'./calendar.php?mode=view&amp;set_archiv_flag=1&amp;ID_s='.$ID.$sid.$_params, 'text'=>__('Move to archive'), 'active'=>false);
+                }
             }
         }
         else {
@@ -811,22 +849,22 @@ function calendar_forms_get_buttons_area($only_readable=false) {
         }
     }
     $buttons[] = array('type'=>'submit', 'name'=>'action_cancel_event', 'value'=>__('List View'), 'active'=>false);
-    
+
     // delete a serial event completely?
     if ($ID && !$_SESSION['calendardata']['current_event']['parent'] &&
         ($_SESSION['calendardata']['current_event']['serie_id'] ||
          $_SESSION['calendardata']['current_event']['serie_typ'])) {
         $buttons[] = array('type'=>'submit', 'name'=>'action_remove_serial', 'value'=>__('Delete multiple event completely'), 'active'=>false);
     }
-    
+
     if (!empty($archive)) {
         $buttons[] = $archive;
     }
-    
+
     $ret = '<br class="clearboth" /><div class="hline"></div>'.
            get_buttons_area($buttons).
            '<div class="hline"></div><br class="clearboth" />';
-    
+
     return $ret;
 }
 

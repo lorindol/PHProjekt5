@@ -1,14 +1,17 @@
 <?php
-
-// auth.inc.php - PHProjekt Version 5.2
-// copyright    2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: nina $
-// $Id: auth.inc.php,v 1.65.2.12 2007/06/26 10:47:50 nina Exp $
+/**
+ * Authorization rutine
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: polidor $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: auth.inc.php,v 1.84 2008-01-20 15:19:00 polidor Exp $
+ */
 
 // check whether lib.inc.php has been included
 if (!defined('lib_included')) die('Please use index.php!');
-
 
 include(LIB_PATH.'/languages.inc.php');
 
@@ -53,102 +56,66 @@ if (!isset($langua)) {
     }
 }
 
-// set default skin
-if (!isset($skin)) {
-    $skin = PHPR_SKIN;
-}
 
-// check for the appropiate login field ...
-if (!PHPR_LOGIN_SHORT) {
-    $label      = __('Last name');
-    $field_name = 'nachname';
-}
-else if (PHPR_LOGIN_SHORT == '1') {
-    $label      = __('Short name');
-    $field_name = 'kurz';
-}
-else if ((PHPR_LOGIN_SHORT == '2') || (PHPR_LDAP == '1')) {
-    $label      = __('Login name');
-    $field_name = 'loginname';
-}
+// 1. Get login field name (and label)
+list($label, $field_name) = auth_get_fieldname();
 
-
+// initializing remote user
+if (PHPR_NTLM_AUTH_ENABLED==1) {
+    if(!isset($remote_user)) $remote_user = '';
+    
+    $login_via_get = (isset($_GET['loginstring']) && isset($_GET['user_pw']));
+    $login_via_post = (isset($_POST['loginstring']) && isset($_POST['user_pw']));
+    if(!isset($_SESSION['login_mode']) && !$login_via_post && !$login_via_get && !isset($_SESSION['user_authenticated_via_NTML']) && $_SESSION['user_loginname'] != 'root' &&
+    strpos($_SERVER['QUERY_STRING'], 'module=logout') === false){
+            $_SESSION['myurl']=$_SERVER['SCRIPT_NAME'];
+        	header('location: '.PATH_PRE.'login/ntlm.inc.php');
+        	die();
+    }
+}
+// 2. check if there is an existing user logged
 // no values from the session or the login form?-> show login form
 if (!$user_pw and !$_SESSION['logged_in']) {
     set_style();
-    
-    // Remember Me: We will check if there are a remember me token
-    if (isset($_COOKIE['remember_me_token']) && is_md5($_COOKIE['remember_me_token'])) {
-        
-        // Getting the token from cookie
-        $logintoken = qss($_COOKIE['remember_me_token']);
-        
-        // The login token based on remember me cookie will not take care about the expiration date on database
-        $do_not_expire_token = true;
-        
-        // update cookie token expiration time to keep it alive one more week
-        setcookie('remember_me_token', $logintoken, time()+60*60*24*7,'/'); // 7 days
-        $_SESSION['do_not_expire_login'] = true;
+
+    // 2.a check logintoken
+    list ($logintoken_user_ID, $logintoken) = auth_check_logintoken($logintoken);
+    if ($logintoken_user_ID > 0) {
+        $fetch_uservalues = $logintoken_user_ID;
     }
     
-    if (!empty($logintoken) && is_md5($logintoken)) {
-        $query = "SELECT l.user_ID, l.valid, l.used, l.ID, u.status, u.settings 
-                    FROM ".DB_PREFIX."logintoken l, ".DB_PREFIX."users u
-                   WHERE l.token = '$logintoken'
-                     AND l.user_ID = u.ID
-                     AND u.status = 0";
+    if ((!empty($remote_user)) && empty($fetch_uservalues) && $_SESSION['user_authenticated_via_NTML'] == 'true') {
+        $query = "SELECT ID, status 
+                    FROM ".DB_PREFIX."users  
+                   WHERE loginname = '$remote_user' 
+                     AND is_deleted is NULL
+                     AND status = 0";
         $result = db_query($query) or db_die();
         $row = db_fetch_row($result);
+
+        $fetch_uservalues = $row[0];
         
-        if (isset($row[5]) && strlen($row[5]) > 0 ) {
-            $temp_settings = unserialize($row[5]);
-            $temp_allow_logintoken = (isset($temp_settings['allow_logintoken']))? $temp_settings['allow_logintoken']:'';
+        if (PHPR_ERROR_REPORTING_LEVEL == 1 && $fetch_uservalues == 0) {
+            echo "No user found on database based on loginname = '$remote_user' <br />";
         }
         
-        //if ($now > mktime(substr($row[1], 8, 2), substr($row[1], 10, 2), substr($row[1], 12, 2), substr($row[1], 4, 2), substr($row[1], 6, 2), substr($row[1], 0, 4))) {
-        if ($row[4] == '1') {
-            // append return path to redirect the user to where he wanted to go
-            // the return path might already be encoded
-            $return_path = urldecode(xss($_REQUEST['return_path']));
-            $return_path = '?return_path='.urlencode($return_path);
-            die(set_page_header().__('Sorry you are not allowed to enter.')."!<br /><a href='index.php".$return_path."'>".__('back')."</a> ...\n</div>\n</body>\n</html>\n");
-        }
-        if ($temp_allow_logintoken <> 1 && (!$do_not_expire_token)) {
-            $return_path = urldecode(xss($_REQUEST['return_path']));
-            $return_path = '?return_path='.urlencode($return_path);
-            die(set_page_header().__('Your user do not allow login with logintoken. To change this setting enable it on Settings section.')."!<br /><a href='index.php".$return_path."'>".__('back')."</a> ...\n</div>\n</body>\n</html>\n");
-        }
-        else if (($dbTSnull > $row[1]) && (!$do_not_expire_token)) { // remember me token will not expire
-            die(__('Your token has already been expired.'));
-        }
-        else if ($row[2] <> '') {
-            die(__('Your token has already been used.<br />If it wasnt you, who used the token please contact your administrator.'));
-        }
-        else {
-            $fetch_uservalues = $row[0];
-            
-            // Setting token as used. For remember me token we will not set the used value because we can use it several times
-            if (!$do_not_expire_token) {
-                $query = "UPDATE ".DB_PREFIX."logintoken
-                                 SET used = '".date('YmdHis', time() + PHPR_TIMEZONE * 3600)."'
-                               WHERE ID = ".(int)$row[3];
-                $result = db_query($query) or db_die();
-            }
-        }
+        //$_SESSION['user_authenticated_via_NTML'] == 'false';
+
         // end check for &pw
-        
     }
+    
     if (empty($fetch_uservalues)) {
         // show form
         require_once(LIB_PATH.'/authform.inc.php');
         exit();
     }
+    
 }
 // values exist -> check authentication
 else {
     // add additional condition if logged to the admin section
     $admin_login = '';
-    if (isset($file) && $file == 'admin') {
+    if (FILE == 'admin') {
         $admin_login = "AND usertype = 3";
     }
     // custom authentication system (if available)
@@ -179,20 +146,22 @@ else {
             $_SESSION[PHPR_CUSTOM_SESSION_ARRAY]['can_login'] = true;
         }
     }
-    
+
     $enc_pw_enhanced = '';
 
     // normal authentication system
     if ( $fetch_uservalues === null && PHPR_LDAP != '1' && (!PHPR_CUSTOM_ACTIVE ||
     (PHPR_CUSTOM_ACTIVE && PHPR_CUSTOM_AUTH_PHPR_DB)) ) {
         $query = "SELECT ID, pw
-                    FROM ".DB_PREFIX."users 
+                    FROM ".DB_PREFIX."users
                    WHERE ".qss($field_name)." = '$loginstring'
+                     AND is_deleted is NULL
                      AND status = 0 $admin_login";
-        
         $result = db_query($query);
         // loop through all names in the table users and check password
         while ($row = db_fetch_row($result)) {
+            
+            
             // check for password encryption and if yes, crypt the value from the form
             if (isset($user_pwenc) && !empty($user_pwenc)) {
                 if (strlen($user_pwenc) == 32) {
@@ -200,15 +169,15 @@ else {
                     $enc_pw_enhanced = $user_pwenc;
                 } else {
                     $enc_pw = md5($user_pw);
-                    $enc_pw_enhanced = md5('phprojektmd5'.$user_pw);
+                    $enc_pw_enhanced = $user_pw;
                 }
             }
-            else if (PHPR_PW_CRYPT == 1 && !isset($_SESSION['user_pw'])) {
+            else if (PHPR_PW_CRYPT && !isset($_SESSION['user_pw'])) {
                 // Use MD5
                 if (strlen($row[1]) == 32) {
                     $enc_pw = md5($user_pw);
                     $enc_pw_enhanced = md5('phprojektmd5'.$user_pw);
-                    
+
                 } else {
                     $enc_pw = encrypt($user_pw, $row[1]);
                     $enc_pw_enhanced = md5('phprojektmd5'.$user_pw);
@@ -217,18 +186,18 @@ else {
             // just the unencrypted password
             else {
                 $enc_pw = $user_pw;
-                $enc_pw_enhanced = $user_pw;
+                $enc_pw_enhanced = $user_pw; //md5('phprojektmd5'.$user_pw);
             }
             // great! I found an entry for you!
-            
+
             if (($row[1] == $enc_pw) || (($row[1] == $enc_pw_enhanced) && ($enc_pw_enhanced != ''))) {
 
                 // Is not md5? update to md5+prefix encryption
-                if (($row[1] != $enc_pw_enhanced) && (!isset($_SESSION['user_pw'])) && ($enc_pw_enhanced <> '') && PHPR_PW_CRYPT == 1) {
+                if (($row[1] != $enc_pw_enhanced) && (!isset($_SESSION['user_pw'])) && ($enc_pw_enhanced <> '') && PHPR_PW_CRYPT) {
                     $enc_pw = update_users_pw ($row[0], $user_pw, $admin_login);
-                    
+
                 }
-                
+
                 $enc_pw = $enc_pw_enhanced;
 
                 // store the found user_ID
@@ -240,10 +209,9 @@ else {
                     $_SESSION[PHPR_CUSTOM_SESSION_ARRAY]['can_login'] = true;
                 }
             }
-            
-            
+           
         }
-        
+
     }
 }
 
@@ -272,16 +240,19 @@ if (empty($fetch_uservalues)) {
 }
 // fetch the user values and store them in the session!
 else {
+    
     //needs to be done only at login
     if(!$_SESSION['logged_in']) {
+        
         // fetch the data ...
         $result = db_query("SELECT ID, vorname, nachname, kurz, email, loginname,
                                    sms, gruppe, settings, usertype, sprache, pw
                               FROM ".DB_PREFIX."users
-                             WHERE ID =".(int)$fetch_uservalues) or db_die();
+                             WHERE ID =".(int)$fetch_uservalues."
+                               AND is_deleted is NULL") or db_die();
         $row = db_fetch_row($result);
         // fill the user data into variables
-        if (!empty($logintoken)) {
+        if ((!empty($logintoken) || !empty($remote_user))) {
             $loginstring = $row[5];
             $user_pwenc  = $row[11];
         }
@@ -307,7 +278,7 @@ else {
         $members = array();
         $all_groups = array();
         $query_grup1 = "SELECT DISTINCT grup_ID
-                          FROM ".DB_PREFIX."grup_user 
+                          FROM ".DB_PREFIX."grup_user
                          WHERE user_ID=".(int)$user_ID;
         $result_grup1 = db_query($query_grup1) or db_die();
         while ($row_grup1=db_fetch_row($result_grup1)) {
@@ -325,37 +296,38 @@ else {
                                     FROM ".DB_PREFIX."grup_user, ".DB_PREFIX."users
                                    WHERE grup_ID = ".(int)$row_grup2[0]."
                                      AND ".DB_PREFIX."grup_user.user_ID = ".DB_PREFIX."users.ID
+                                     AND ".DB_PREFIX."users.is_deleted is NULL
                                 ORDER BY nachname";
                 $result_members = db_query($query_members) or db_die();
                 while($row_members=db_fetch_row($result_members)){
-                     $members[] = $row_members[0];
-                     $members_data[$row_members[0]] = array('name'=>$row_members[1], 'firstname'=>$row_members[2], 'type' => $row_members[3],
+                    $members[] = $row_members[0];
+                    $members_data[$row_members[0]] = array('name'=>$row_members[1], 'firstname'=>$row_members[2], 'type' => $row_members[3],
                     'email' => $row_members[4]);
                 }
                 $user_all_groups[$row_grup2[0]] =array('kurz' => $row_grup2[1], 'name' => $row_grup2[2], 'members'=>$members);
             }
         }
-        
-        
-        
-        // fetch access
+
+
+
+        // fetch access: first character is for the user status, second one for the visibility of his calendar
         $user_type = $row[9];
-        
+
         $settings=unserialize($row[8]);
-        
+
         //settings overrule admin
         if(isset($settings['preferred_group']) and $user_group){
             if($settings['preferred_group']==0)$user_group=$settings['last_group'];
             else $user_group=$settings['preferred_group'];
         }
-        
+
         //if neither settings nor adminsettings were applied:
-        $groups_tmp = array_keys($user_all_groups);        
+        $groups_tmp = array_keys($user_all_groups);
         if($user_group==0 and ($groups_tmp[0]>0) ){
             if($settings['last_group']>0)$user_group=$settings['last_group'];
-            else $user_group = $groups_tmp[0];            
+            else $user_group = $groups_tmp[0];
         }
-         // have a look into the group table: maybe he's the leader of the group _-> declare him as chief ;-)
+        // have a look into the group table: maybe he's the leader of the group _-> declare him as chief ;-)
         if ($user_group > 0 and $user_type==0) {
             $result2 = db_query("SELECT chef
                                    FROM ".DB_PREFIX."gruppen
@@ -380,15 +352,13 @@ else {
             // store logID for the logout
             $result2 = db_query("SELECT ID
                                    FROM ".DB_PREFIX."logs
-                                  WHERE von = ".(int)$user_ID." 
+                                  WHERE von = ".(int)$user_ID."
                                     AND login = '$dbTSnull'") or db_die();
             $row2 = db_fetch_row($result2);
             $logID = $row2[0];
         }
         // crypt password in session
-        if ($enc_pw != '') {
-            $user_pw = $enc_pw;
-        }
+        $user_pw = $enc_pw;
 
         // register user variables in session
         $_SESSION['user_ID']        =& $user_ID;
@@ -409,41 +379,42 @@ else {
         $_SESSION['members_data']   =& $members_data;
         $_SESSION['logged_in']      = true;
         $_SESSION['settings']       = $settings;
-        
-        
+        get_module_data();
+
+
         // Remember me: after login, if the login page was displayed, we wll update the login token stored on database
         if (isset($_REQUEST['remember_me']) && isset($_REQUEST['user_pw'])) {
-            
+
             // 1st, deleting old token (just cleaning the database)
             $query = "DELETE
                         FROM ".DB_PREFIX."logintoken
                       WHERE user_ID = ".(int)$user_ID."
                         AND url LIKE '".PHPR_HOST_PATH.PHPR_INSTALL_DIR."index.php?&logintoken=%'";
-            db_query(xss($query)) or db_die();
-           
+            db_query($query) or db_die();
+
             // Including notification lib because there are the token stuff
             include_once(LIB_PATH."/notification.inc.php");
-            
+
             // Creating a token
             $remember_me_token = Notification::create_logintoken(PHPR_HOST_PATH.PHPR_INSTALL_DIR."index.php",$user_ID,$user_ID, 7);
-            
+
             // We will get only the md5 part of the token
             $remember_me_token = substr($remember_me_token,strpos($remember_me_token, '=')+1);
-            
+
             // Setting the token on a cookie to remember the user across sessions
             setcookie('remember_me_token',$remember_me_token, time()+60*60*24*7,'/'); // 7 days
             $_SESSION['do_not_expire_login'] = true;
-            
+
         }
         elseif (isset($_REQUEST['user_pw']) && isset($_REQUEST['loginstring'])) {
-            
-           // If the remember me checkbox was not checked, it that case we will delete all the old tokens
+
+            // If the remember me checkbox was not checked, it that case we will delete all the old tokens
             $query = "DELETE
                         FROM ".DB_PREFIX."logintoken
                        WHERE user_ID = ".(int)$user_ID."
                          AND url LIKE '".PHPR_HOST_PATH.PHPR_INSTALL_DIR."index.php?&logintoken=%'";
-           db_query($query) or db_die();
-           
+            db_query($query) or db_die();
+
         }
 
     }
@@ -457,6 +428,18 @@ else {
             }
         }
     }
+
+    // special check for expert filter
+    if (PHPR_EXPERT_FILTERS == 1) {
+        if (is_array($flist)) {
+            foreach ($flist as $key => $value) {
+                if (is_string($value)) {
+                    $flist[$key] = stripslashes($value);
+                }
+            }
+        }
+    }
+
     // do the date format stuff
     require_once(LIB_PATH.'/date_format.php');
     $date_format_object = new Date_Format($date_format);

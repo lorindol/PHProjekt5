@@ -1,10 +1,12 @@
 <?php
-
-// timecard_forms.php - PHProjekt Version 5.2
-// copyright  ©  2004-2005 Nina Schmitt
-// www.phprojekt.com
-// Author: Nina Schmitt, $Author: alexander $
-// $Id: timecard_forms.php,v 1.41.2.1 2007/01/22 12:11:56 alexander Exp $
+/**
+ * @package    timecard
+ * @subpackage main
+ * @author     Nina Schmitt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: timecard_forms.php,v 1.43 2007-05-31 08:13:09 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined('lib_included')) die('Please use index.php!');
@@ -52,7 +54,7 @@ function show_leftbox($date){
     $hidden_fields = array ( "submode"     => "days",
                              "date"     => $date,
                              "action"   => "add",
-                             "ID"       => '');
+                             "ID"       => $ID);
 	$anf=$timestart;
 	$end=$timestop;
 	$netto= ((substr($end,0,2) - substr($anf,0,2))*60 + substr($end,2,4) - substr($anf,2,4));
@@ -68,7 +70,7 @@ onblur="getNetto(document.nachtragen1.timestart,document.nachtragen1.timestop)"/
                             "date"     => $date,
                             "action"   => "worktime_insert_after");
     $output.= hidden_fields($hidden_fields);
-	$output.= "<table>
+	$output.= "<table summary=\"$tc_sum\">
 	<thead>
     	<tr>
     	    <th scope=\"col\" title=\"".__('Start')."\">".__('Start')."</th>
@@ -167,7 +169,7 @@ function show_rightbox($month,$year){
     </fieldset></form><br />';
 
 	//table with detailed worktime entries
-	$output.="<table>
+	$output.="<table summary=\"$tc_sum\">
     <thead>
         <tr>
             <th scope=\"col\" title=\"".__('Weekday')."\">".__('Weekday')."</th>

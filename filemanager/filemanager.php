@@ -1,14 +1,14 @@
 <?php
 /**
-* filemanager controller script
-*
-* @package    filemanager
-* @module     main
-* @author     Albrecht Guenther, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: filemanager.php,v 1.38.2.1 2007/01/22 09:03:04 alexander Exp $
-*/
+ * filemanager controller script
+ *
+ * @package    filemanager
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: filemanager.php,v 1.41 2007-05-31 08:10:58 gustavo Exp $
+ */
 
 $module = 'filemanager';
 define('PATH_PRE','../');

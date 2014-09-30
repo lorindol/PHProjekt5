@@ -1,14 +1,14 @@
 <?php
 /**
-* contacts controller script
-*
-* @package    contacts
-* @module     main
-* @author     Albrecht Guenther, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: contacts.php,v 1.49.2.1 2007/01/17 12:57:09 alexander Exp $
-*/
+ * contacts controller script
+ *
+ * @package    contacts
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: contacts.php,v 1.57 2007-11-09 10:28:55 nina Exp $
+ */
 
 $module = 'contacts';
 define('PATH_PRE','../');
@@ -66,20 +66,22 @@ $fields_temp = $fields;
 foreach($fields_temp as $field_name => $field_array) {
     if (isset($_REQUEST[$field_name])) $fields[$field_name]['value'] = xss($_REQUEST[$field_name]);
 }
-if (isset($formdata['persons']) && $mode == "forms")                 $persons = $formdata['persons'];
-if (isset($formdata['parent']) && $mode == "forms")                   $parent = $formdata['parent'];
-if (isset($formdata['project_personen']))                   $project_personen = $formdata['project_personen'];
+if (isset($formdata['persons']) && $mode == "forms")$persons            = $formdata['persons'];
+if (isset($formdata['parent']) && $mode == "forms") $parent             = $formdata['parent'];
+if (isset($formdata['project_personen']))           $project_personen   = $formdata['project_personen'];
+if (isset($formdata['organisations']))              $organisations      = $formdata['organisations'];
 if (isset($_POST['project_personen']) && $mode == "data")   $project_personen = xss_array($_POST['project_personen']);
 
 if (isset($formdata['contact_personen'])) $contact_personen = $formdata['contact_personen'];
 if (isset($_POST['name']))      $remark = xss($_POST['name']);
-if (isset($_POST['remark']))    $remark = xss($_POST['remark']);
+if (isset($_POST['remark']))    $remark = xss_purifier($_POST['remark']);
 
 if (isset($_REQUEST['action_form_to_project_selector_x']) && ($_REQUEST['action_form_to_project_selector_x'] < 1)) {
     $modify_contact_roles = true;
 }
 
 if ($justform != 1) {
+    define('SUBNAV',true);
     include_once(LIB_PATH.'/navigation.inc.php');
     $content_div = '<div id="global-content">';
 }
@@ -92,19 +94,17 @@ if ($justform != 1) echo '</div>';
 
 echo "\n</div>\n</body>\n</html>\n";
 
-
 /**
  * initialize the contacts stuff and make some security checks
  *
+ * @param void
  * @return void
  */
 function contacts_init() {
     global $ID, $mode, $mode2, $output;
 
     $output = '';
-
     $ID = $_REQUEST['ID'] = isset($_REQUEST['ID']) ?(int) $_REQUEST['ID'] : 0;
-
     if (!isset($_REQUEST['mode']) || !in_array($_REQUEST['mode'], array('view', 'forms', 'data', 'import_data', 'import_forms', 'import_patterns', 'profiles_data', 'profiles_forms', 'selector'))) {
         $_REQUEST['mode'] = 'view';
     }
@@ -121,13 +121,10 @@ function contacts_init() {
 function breadcrumb_data($action, $last='') {
     $tuples = array();
     $url = "contacts.php?action=$action";
-
     $tuples[] = array('title'=>__('External contacts'), 'url'=>$url);
 
     if ( 'new' == $action ) { $tuples[] = array('title'=>__('New'), 'url'=>$url); }
-
     if (!empty($last)) { $tuples[] = array('title'=>__($last)); }
-
     return $tuples;
 }
 ?>

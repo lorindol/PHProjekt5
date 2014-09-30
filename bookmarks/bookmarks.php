@@ -1,17 +1,17 @@
 <?php
 /**
-* bookmarks controller script
-*
-* @package    bookmarks
-* @module     main
-* @author     Albrecht Guenther, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: bookmarks.php,v 1.27.2.1 2007/01/23 09:06:35 alexander Exp $
-*/
+ * bookmarks controller script
+ *
+ * @package    bookmarks
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: bookmarks.php,v 1.32 2008-01-03 15:48:42 gustavo Exp $
+ */
 
-define('PATH_PRE','../');
 $module = 'bookmarks';
+define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');
 $_SESSION['common']['module'] = 'bookmarks';
 
@@ -34,8 +34,6 @@ include_once(LIB_PATH.'/navigation.inc.php');
 
 include_once('./bookmarks_'.MODE.'.php');
 echo '
-</div>
-
 </div>
 </body>
 </html>

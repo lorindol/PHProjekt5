@@ -1,10 +1,12 @@
 <?php
-
-// mail_accounts.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: mail_accounts.php,v 1.38.2.1 2007/01/15 18:34:36 polidor Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_accounts.php,v 1.43 2008-01-14 02:45:05 polidor Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -67,11 +69,16 @@ if ($make <> '') {
             $action = '';
         }
     }
-    include_once('./mail_options.php');
+    $query_str = "mail.php?mode=options&csrftoken=".make_csrftoken();
+    header('Location: '.$query_str);
+    die();
+    
 } else if ($loeschen) {
     $result = db_query("delete from ".DB_PREFIX."mail_account
                               where ID = ".(int)$ID) or db_die();
-    include_once('./mail_options.php');
+    $query_str = "mail.php?mode=options&csrftoken=".make_csrftoken();
+    header('Location: '.$query_str);
+    die();
 }
 
 // form
@@ -89,7 +96,6 @@ if (!$make) {
     
     $buttons[] = array('type' => 'form_start', 'name' => 'frm', 'hidden' => $hidden, 'enctype' => 'multipart/form-data',
                        'onsubmit' => $chkForm);
-    $output = '<div id="global-header">'.get_tabs_area($tabs).'</div>';
     $output .= '<div id="global-content">';
     $output .= get_buttons($buttons);
     // button bar
@@ -140,7 +146,7 @@ if (!$make) {
                 '.$create_message_fields.'
                 </fieldset>';
     if (PHPR_MAIL_MODE) {
-        $output.='<fieldset><legend>'.__('send mailss').'</legend>
+        $output.='<fieldset><legend>'.__('send mails').'</legend>
                   <div class="boxContent">';
         $send_fields[] = array('type' => 'text',     'name' => 'csmtp_hostname', 'label' => __('the real address of the SMTP mail server, you have access to (maybe localhost)'),'value' =>$row[11]);
         $send_fields[] = array('type' => 'password_confirm', 'name' => 'csmtp_password', 'label' => __('password for this account'),'value' =>$row[13]);

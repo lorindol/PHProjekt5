@@ -59,7 +59,7 @@ body {
     border-bottom: 1px solid #222222;
     background: url(img/logo.png) no-repeat;
     background-color: #eeeeee;
-    z-index: 1;
+    z-index: 2;
 }
 
 #global-navigation {
@@ -67,13 +67,13 @@ body {
     position: absolute;
     overflow: auto;
     left: 0px;
-    top: 40px;
     background-color: #eeeeee;
     width: 130px;
     height:100%;
     border-right: 1px solid #222222;
+    padding-top: 40px;
     padding: 5px;
-    z-index: 2;   
+    z-index: 1;
 }
 
 
@@ -110,6 +110,8 @@ a:hover {
 
 #global-content.popup {
     left: 0;
+    margin-left: 5px;
+    margin-top: 5px
 }
 #global-main #global-navigation ul {
     padding-left: 0;
@@ -494,10 +496,30 @@ table.contextmenu a:hover {
     text-align: right;
 }
 
+#global-content fieldset label.label_block_setup {
+    clear: both;
+    display: block;
+    float: left;
+    width: 270px;
+    padding: 0 5px 0 0;
+    text-align: right;
+}
+
 /* normal half-size input element */
 #global-content fieldset input.halfsize,
 #global-content fieldset textarea.halfsize {
     width: 210px;
+    display: inline;
+    padding-top: 1px;
+    padding-right: 3px;
+    padding-left: 3px;
+    padding-bottom: 1px;
+}
+
+/* normal small-size input element */
+#global-content fieldset input.smallsize,
+#global-content fieldset textarea.smallsize {
+    width: 105px;
     display: inline;
     padding-top: 1px;
     padding-right: 3px;
@@ -515,7 +537,17 @@ table.contextmenu a:hover {
     padding-bottom: 1px;
 }
 
+/* normal small-size input element */
+#global-content fieldset select.smallsize {
+    width: 105px;
+    display: inline;
+    padding-top: 1px;
+    padding-right: 3px;
+    padding-left: 3px;
+    padding-bottom: 1px;
+}
 #global-content fieldset input.halfsize:focus,
+#global-content fieldset input.smallsize:focus,
 #global-content fieldset input.fullsize:focus,
 #global-content fieldset textarea:focus, 
 #global-content fieldset select:focus {
@@ -641,7 +673,7 @@ tfoot,
 #right_container {
     margin-right: 20px;
     float: left;
-    width: 400px;
+    width: 500px;
 }
 #chatContent {
     overflow:auto;

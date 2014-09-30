@@ -1,10 +1,12 @@
 <?php
-
-// settings_forms.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: settings_forms.php,v 1.131.2.5 2007/02/22 04:31:50 polidor Exp $
+/**
+ * @package    settings
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: settings_forms.php,v 1.139 2008-01-08 01:50:08 polidor Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -44,9 +46,11 @@ $chat_direction_values      = array('top' => __('Newest messages on top'), 'bott
 $date_format_values         = $date_format_object->get_date_formats(true);
 $cal_mail_notify_values     = array('0' => __('Members only'), '1' => __('Members and me'));
 $summary_perpage_values     = array('5','10','20','100');
+$related_objects_values     = array('5','10','20','100');
 $summary_show_last_login_values = array('0' => __('No'), '1' => __('Yes'));
 $accessibility_mode_values       = array('0' => __('Disabled'), '1' => __('Enabled'));
 $allow_logintoken_values          = array('0' => __('Disabled'), '1' => __('Enabled'));
+$output_type_values         = array('0' => __('Normal'), '1' => __('Tabs'), '2' => __('Accordion'));
 
 $output = get_status_bar();
 
@@ -221,6 +225,12 @@ foreach ($perpage_values as $i) {
     ($i == $start_perpage ? ' selected="selected"' : '').
     '>'.$i."</option>\n";
 }
+// related objects
+foreach ($related_objects_values as $i) {
+    $out['related_objects'] .= '        <option value="'.$i.'"'.
+    ($i == $related_objects ? ' selected="selected"' : '').
+    '>'.$i."</option>\n";
+}
 foreach ($accessibility_mode_values as $s_value => $s_text) {
     $out['accessibility_mode'] .= '        <option value="'.$s_value.'"'.
     ($s_value == $accessibility_mode ? ' selected="selected"' : '').
@@ -238,7 +248,14 @@ foreach ($allow_logintoken_values as $s_value => $s_text) {
     ($s_value == $allow_logintoken ? ' selected="selected"' : '').
     '>'.$s_text."</option>\n";
 }
-
+if ((!isset($output_type)) || (empty($output_type))) {
+    $output_type = 0;
+}
+foreach ($output_type_values as $s_value => $s_text) {
+    $out['output_type'] .= '        <option value="'.$s_value.'"'.
+    ($s_value == $output_type ? ' selected="selected"' : '').
+    '>'.$s_text."</option>\n";
+}
 $hidden_fields = array ( "mode" => "data");
 $settings_html = '
     <a name="settings"></a>
@@ -323,6 +340,13 @@ $settings_html = '
     </select>
     <br /><br />
     
+    <label for="setting_related_objects" class="label_block">'.__('Elements displayed on related objects').':</label>
+    <select class="settings_options" name="setting_related_objects" id="setting_related_objects">
+        <option value=""></option>
+        '.$out['related_objects'].'
+    </select>
+    <br /><br />
+    
     <label for="setting_accessibility_mode" class="label_block">'.__('Accessibility mode').':</label>
     <select class="settings_options" name="setting_accessibility_mode" id="setting_accessibility_mode">
         <option value=""></option>
@@ -334,6 +358,13 @@ $settings_html = '
     <select class="settings_options" name="setting_allow_logintoken" id="setting_allow_logintoken">
         <option value=""></option>
         '.$out['allow_logintoken'].'
+    </select>
+    <br /><br />
+    
+    <label for="setting_output_type" class="label_block">'.__('Output Form').':</label>
+    <select class="settings_options" name="setting_output_type" id="setting_output_type">
+        <option value=""></option>
+        '.$out['output_type'].'
     </select>
     <br /><br />
     </fieldset>
@@ -557,7 +588,7 @@ if (PHPR_CALENDAR) {
     <br /><br />
 
     <label for="setting_cal_reader" class="label_block">'.__('Users, who can read my normal events').':</label>
-    '.selector_create_select_users("setting_cal_reader[]", $setting_cal_reader, 'action_related_reader_to_selector',  $user_ID, 'id="setting_cal_reader" style="vertical-align:top;"').'
+    '.selector_create_select_users("setting_cal_reader[]", $setting_cal_reader, 'action_related_reader_to_selector', $user_ID, 'id="setting_cal_reader" style="vertical-align:top;"').'
     <br /><br />
 
     <label for="setting_cal_proxy" class="label_block">'.__('Users, who can represent me').':</label>
@@ -631,7 +662,7 @@ if (PHPR_CONTACTS) {
 
 // Group View
 $out=array();
-$show_all_groups_selected = isset($_REQUEST['setting_show_all_groups']) ? xss($_REQUEST['setting_show_all_groups']) : (isset($settings['show_all_groups']) ? $settings['show_all_groups'] : 0);
+$show_all_groups_selected = isset($_REQUEST['setting_show_all_groups']) ? xss($_REQUEST['setting_show_all_groups']) : (isset($settings['show_all_groups_settings']) ? $settings['show_all_groups_settings'] : 0);
 $out['show_all_groups'] = '        <option value="0"';
 $out['show_all_groups'] .=(0 == $show_all_groups_selected ? ' selected="selected"' : '').
 '>'.__('Show current group only')."</option>\n";
@@ -888,7 +919,7 @@ function show_profile_edit_form() {
     require_once(LIB_PATH."/access_form.inc.php");
     $form_fields = array();
 
-    $form_fields[] = array('type' => 'parsed_html', 'html' => access_form2($formdata['persons'], 1, 0, 0, 0));
+    $form_fields[] = array('type' => 'parsed_html', 'html' => access_form($formdata['persons'], 1, 0, 0, 0));
     $assignment_fields = get_form_content($form_fields);
 
     // now build the form

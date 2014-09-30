@@ -2,7 +2,7 @@
 /**
  * @package    cost
  * @subpackage main
- * @author     Gustavo Solt, $Author: polidor $
+ * @author     Gustavo Solt, $Author: gustavo $
  * @licence    GPL, see www.gnu.org/copyleft/gpl.html
  * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
  * @version    $Id: cost_forms.php
@@ -36,7 +36,7 @@ if ($ID > 0) {
                WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%')".group_string()."))
                  AND ".DB_PREFIX."costs.ID = ".(int)$ID."
                  AND is_deleted is NULL";
-    $result = db_query(xss($query)) or db_die();
+    $result = db_query($query) or db_die();
     $row = db_fetch_row($result);
     if (!$row[0]) die("You are not privileged to do this!");
     if (($row[1] <> $user_ID and $row[10] <> 'w') or check_role("costs") < 2) $read_o = 1;
@@ -46,7 +46,7 @@ if ($ID > 0) {
     change_group($row[12]);      
 }
 //unset ID when copying project
-$ID=prepare_ID_for_copy($ID,$copy);
+$ID=prepare_ID_for_copy($ID,$copyform);
 if ($ID) $head = slookup('costs', 'name', 'ID', $ID, true);
 else     $head = __('New cost');
 if (!$head) $head = __('New cost');
@@ -62,12 +62,12 @@ $buttons = array();
 if (SID) $hidden[session_name()] = session_id();
 
 // form start
-$buttons[] = array('type' => 'form_start', 'name' => 'frm', 'hidden' => $hidden, 'onsubmit' => 'return chkForm(\'frm\',\'name\',\''.__('Please insert a name').'\');');
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
+$buttons[] = array('type' => 'form_start', 'name' => 'frm', 'hidden' => $hidden, 'enctype' => 'multipart/form-data', 'onsubmit' => 'return chkForm(\'frm\',\'name\',\''.__('Please insert a name').'\');');
 $output .= breadcrumb($module, array(array('title' => htmlentities($head))));
 $output .= '</div>';
 $output .= get_buttons($buttons);
+
+$buttons = array();
 
 if (!$read_o) {
     if (!$ID) {
@@ -89,7 +89,7 @@ if (!$read_o) {
         // modify cost
         $buttons[] = array('type' => 'submit', 'name' => 'modify_b', 'value' => __('OK'), 'active' => false);
         $buttons[] = array('type' => 'submit', 'name' => 'modify_update_b', 'value' => __('Apply'), 'active' => false);
-        $buttons[]  = array('type' => 'submit', 'name' => 'copy', 'value' => __('copy'), 'active' => false);
+        $buttons[]  = array('type' => 'link', 'href' => "costs.php?mode=forms&ID=".$ID."&copyform=1&justform=".$justform, 'text' => __('copy'), 'active' => false);        
 
         // cancel
         if ($justform > 0) {
@@ -130,7 +130,7 @@ $out_array=array();
 *       basic fields
 *******************************/
 
-$basic_fields  = build_costs_form($fields);
+$basic_fields  = build_form($fields);
 
 /*******************************
 *    categorization fields
@@ -145,7 +145,7 @@ $select_field .= show_elements_of_tree("costs",
                         " ORDER BY name", $row[11], "parent", $ID);
 $select_field .= '</select>';
 $form_fields[] = array('type' => 'parsed_html', 'html' => $select_field);
-$categorization_fields = get_form_content($form_fields);
+$categorization_fields = '<br />'.get_form_content($form_fields).'<br /><br />';
 
 /*******************************
 *     assignment fields

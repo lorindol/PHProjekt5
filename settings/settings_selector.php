@@ -1,10 +1,12 @@
 <?php
-
-// settings_selector.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Authors: Albrecht Guenther, Franz Graf, $Author: nina $
-// $Id: settings_selector.php,v 1.33 2006/10/18 11:31:00 nina Exp $
+/**
+ * @package    settings
+ * @subpackage main
+ * @author     Albrecht Guenther, Franz Graf, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: settings_selector.php,v 1.34 2007-05-31 08:13:46 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");

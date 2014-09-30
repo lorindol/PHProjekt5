@@ -1,10 +1,12 @@
 <?php
-
-// settings.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: alexander $
-// $Id: settings.php,v 1.53.2.2 2007/01/23 11:53:07 alexander Exp $
+/**
+ * @package    settings
+ * @subpackage main
+ * @author     Franz Graf, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: settings.php,v 1.56 2007-05-31 08:13:46 gustavo Exp $
+ */
 
 $module = 'settings';
 define('PATH_PRE','../');
@@ -74,11 +76,6 @@ if (!isset($setting_cal_proxy))  $setting_cal_proxy  = calendar_get_related_user
 include_once(LIB_PATH.'/navigation.inc.php');
 
 
-
-// tabs
-$tabs = array();
-echo '<div id="global-header">';
-echo get_tabs_area($tabs);
 echo breadcrumb($module, array());
 echo '</div>';
 

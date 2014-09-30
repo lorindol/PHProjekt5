@@ -1,14 +1,24 @@
 <?php
-
-// $Id: sendmail.inc.php,v 1.10 2006/11/07 00:28:28 gustavo Exp $
+/**
+ * Search form
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $auth$
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: sendmail.inc.php,v 1.14 2008-01-14 02:45:05 polidor Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
 
-//  several methodes to send mail
+/**
+ * Several methodes to send mail
+ *@package lib
+ */
 class send_mail
 {
-
     var $mode;
     var $header_linebreak;
     var $body_linebreak;
@@ -22,15 +32,31 @@ class send_mail
     var $pop_acc;
     var $pop_pass;
 
+    /**
+     * Construct class
+     *
+     * @param unknown_type $m				-
+     * @param unknown_type $mail_eoh		-
+     * @param unknown_type $mail_eol		-
+     * @param unknown_type $a				-
+     * @param unknown_type $lh				-
+     * @param unknown_type $sh				-
+     * @param unknown_type $sa				-
+     * @param unknown_type $sp				-
+     * @param unknown_type $ph				-
+     * @param unknown_type $pa				-
+     * @param unknown_type $pp				-
+     * @return void
+     */
     function send_mail($m=0, $mail_eoh="\r\n", $mail_eol="\r\n", $a=0, $lh='', $sh='', $sa='', $sp='', $ph='', $pa='', $pp='') {
 
         if ($a == 2 and $m < 1) die("<b>Error:  SMTP authentication needs socket!</b>");
         if ($m ==1) {
-            if ($lh == '') die("<b>Error: localhost name needed!</b>");
-            if ($sh == '') die("<b>Error: SMTP hostname needed!</b>");
-            if ($a == 2 and ($sa == '' or $sp == '')) die("<b>Error: SMTP username and password needed!</b>");
+            if ($lh == '') die("</div><div id='global-content'>"."<b>Error: localhost name needed!</b>");
+            if ($sh == '') die("</div><div id='global-content'>"."<b>Error: SMTP hostname needed!</b>");
+            if ($a == 2 and ($sa == '' or $sp == '')) die("</div><div id='global-content'>"."<b>Error: SMTP username and password needed!</b>");
         }
-        if ($a == 1 and ($ph == '' or $pa == '' or $pp == '')) die("<b>Error: POP hostname, username and password needed!</b>");
+        if ($a == 1 and ($ph == '' or $pa == '' or $pp == '')) die("</div><div id='global-content'>"."<b>Error: POP hostname, username and password needed!</b>");
         $this->mode = $m;
         $this->header_linebreak = $mail_eoh;
         $this->body_linebreak = $mail_eol;
@@ -45,13 +71,20 @@ class send_mail
         $this->win_srv = ($_SERVER['WINDIR'] or $_SERVER['windir']);
     }
 
+    /**
+     * Send the mail
+     *
+     * @param string		$to		- Recipient mail addresses, single or comma separated lists
+     * @param string		$subj		- Subject value
+     * @param string		$body		- Plain text or multipart message, both ready to send sliced into lines
+     * @param string		$from		- Senders mail adress
+     * @param string		$head		- Additional headers (may contain a multipart message too, if $body is empty)
+     * @param string		$cc		- Recipient mail addresses, single or comma separated lists
+     * @param string		$bcc		- Recipient mail addresses, single or comma separated lists
+     * @param string		$arg		- Flag to put envelope-from to sendmail
+     * @return void
+     */
     function go($to='', $subj='', $body='', $from='', $head='', $cc='',$bcc='', $arg='') {
-        // $to, $cc, $bcc: recipient mail addresses, single or comma separated lists
-        // $subj: subjekt
-        // $from: senders mail adress
-        // $body: plain text or multipart message, both ready to send sliced into lines
-        // $head: additional headers (may contain a multipart message too, if $body is empty)
-        // $arg: flag to put envelope-from to sendmail
         $lb = $this->header_linebreak;
         // enforce preset line delimiter
         $body = preg_replace("/\\r\\n|\\n|\\r/i",$this->body_linebreak,$body);
@@ -110,6 +143,16 @@ class send_mail
         }
     }
 
+    /**
+     * Send the mail
+     *
+     * @param string		$to		- Recipient mail addresses, single or comma separated lists
+     * @param string		$subj		- Subject value
+     * @param string		$body		- Plain text or multipart message, both ready to send sliced into lines
+     * @param string		$head		- Additional headers (may contain a multipart message too, if $body is empty)
+     * @param string		$from		- Senders mail adress
+     * @return void
+     */
     function sock_mail($to, $subj, $body, $head, $from) {
         $lb = $this->header_linebreak;
         $adr = explode(',', $to);
@@ -179,6 +222,16 @@ class send_mail
         return 1;
     }
 
+    /**
+     * Debug send
+     *
+     * @param string		$to		- Recipient mail addresses, single or comma separated lists
+     * @param string		$subj		- Subject value
+     * @param string		$body		- Plain text or multipart message, both ready to send sliced into lines
+     * @param string		$head		- Additional headers (may contain a multipart message too, if $body is empty)
+     * @param string		$from		- Senders mail adress
+     * @return void
+     */
     function debug_sock_mail($to, $subj, $body, $head, $from) {
         $lb = $this->header_linebreak;
         $adr = explode(',', $to);
@@ -255,5 +308,4 @@ class send_mail
         return 1;
     }
 }
-
 ?>

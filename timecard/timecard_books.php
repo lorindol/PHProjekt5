@@ -1,19 +1,18 @@
 <?php
-// timecard_forms.php - PHProjekt Version 5.2
-// copyright  ©  2004 Nina Schmitt
-// www.phprojekt.com
-
-// Author: Nina Schmitt, $Author: gustavo $
-// $Id: timecard_books.php,v 1.81.2.9 2007/10/01 16:58:25 gustavo Exp $
-
+/**
+ * @package    timecard
+ * @subpackage main
+ * @author     Nina Schmitt, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: timecard_books.php,v 1.93 2007-12-12 09:48:48 nina Exp $
+ */
 
 $css_void_background_image = true;
 
 // check whether the lib has been included - authentication!
 $module = 'timecard';
-if(!defined('PATH_PRE')){
-    define('PATH_PRE','../');
-}
+define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');
 include_once("./timecard_date.inc.php");
 include_once("./timecard.inc.php");
@@ -25,7 +24,10 @@ if (check_role("timecard") < 1) { die("You are not allowed to do this!"); }
 if($action == "clockin") {
     // Projekt lists
     $my_projekts = array();
-    $result_projects = db_query("SELECT project_ID FROM ".DB_PREFIX."project_users_rel where user_ID = ".(int)$user_ID);
+    $result_projects = db_query("SELECT project_ID
+                                   FROM ".DB_PREFIX."project_users_rel
+                                  WHERE user_ID = ".(int)$user_ID."
+                                    AND is_deleted is NULL");
 
     while ($row_projekts = db_fetch_row($result_projects)) {
         $my_projekts[] = $row_projekts[0];
@@ -43,7 +45,7 @@ else{
 }
 ?>
 <?php
-function show_rightbox($month,$year){
+function show_rightbox($month, $year){
     global $name_day, $name_month, $user_ID, $submode;
     $output = '<h1>'.__('My project bookings overview').' '.$name_month[intval($month)]." ".$year.'</h1>';
     //main content
@@ -83,7 +85,7 @@ function show_rightbox($month,$year){
         </tr>
     </thead>";
     $outbody="<tbody>";
-    //get start end end time of each workday
+    //get start and end time of each workday
     $query="SELECT MAX(ID), datum, MIN(anfang) as anf, MAX(ende) as max
                         FROM ".DB_PREFIX."timecard
                         WHERE users = ".(int)$user_ID." AND datum like '$year-$month-%'
@@ -96,15 +98,15 @@ function show_rightbox($month,$year){
     while($row_tmp = db_fetch_row($result)){
         $date_row[$row_tmp[1]]= $row_tmp;
     }
-   $query="SELECT  datum
+    $query="SELECT  datum
                         FROM ".DB_PREFIX."timeproj
-                        WHERE users = ".(int)$user_ID." AND datum like '$year-$month-%'                        
+                        WHERE
+                            users = ".(int)$user_ID."
+                            AND datum like '$year-$month-%'
                         GROUP by datum ORDER BY datum DESC";
-    $result = db_query($query)
-    or db_die();
+    $result = db_query($query) or db_die();
     while($row_tmp = db_fetch_row($result)){
         if(!isset($date_row[$row_tmp[0]]))$date_row[$row_tmp[0]]= array(0=>'',1=>$row_tmp[0],2=>'',3=>'');
-        
     }
     krsort($date_row);
     foreach ($date_row as $row){
@@ -114,7 +116,9 @@ function show_rightbox($month,$year){
         if (($row[2] or $row[2]==0) and $row[3]) {
             $result2= db_query("SELECT anfang, ende
 								FROM ".DB_PREFIX."timecard
-								WHERE users = ".(int)$user_ID." AND  datum like '$row[1]'
+								WHERE
+								    users = ".(int)$user_ID."
+                                    AND  datum like '$row[1]'
 								ORDER BY datum desc")
             or db_die();
             while($row2 = db_fetch_row($result2)){
@@ -133,17 +137,22 @@ function show_rightbox($month,$year){
         if($int%2==1){
             $outbody.= " class=\"unev\" ";
         }
-        $href = "timecard.php?submode=proj&amp;year=$year&amp;date=$row[1]&amp;month=$month";
+        $proj_array = show_prbookings($row[1]);
+        if ($proj_array[1] < $dsum) {
+        	$style = 'border: 1px solid red;';
+        } else {
+        	$style = '';
+        }
+        $href = "timecard.php?submode=$submode&amp;year=$year&amp;date=$row[1]&amp;month=$month";
         $outbody.="> <td scope='row' class='timecard_day' style='padding-left:3px'><a class='navLink' href='$href'>$name_day[$week_day]</a></td>
         <td class='timecard_day'>$row[1]</td>
         <td class='timecard_day' style='text-align:right;'>".check_4d($row[2])."</td>
         <td class='timecard_day' style='text-align:right;'>".check_4d($row[3])."</td>
-        <td class='timecard_day' style='text-align:right;'>$h1</td>
-        <td class='timecard_day' style='text-align:right;'>$m1</td>
+        <td class='timecard_day' style='text-align:right; $style'>$h1</td>
+        <td class='timecard_day' style='text-align:right; $style'>$m1</td>
         </tr>";
-        $proj_array= show_prbookings($row[1], $booked_time);
         $outbody.=$proj_array[0];
-        $booked_time= $proj_array[1];
+        $booked_time += $proj_array[1];
     }
     if($int==0)$outbody.="<tr><td></td><td></td><td></td><td></td><td></td></tr>";
     $outbody.="</tbody>";
@@ -178,7 +187,7 @@ function show_rightbox($month,$year){
  * @return string $output
  */
 function show_leftbox($date) {
-    global $sql_user_group, $sort, $timecard_submode, $name_day, $user_ID;
+    global $sql_user_group, $sort, $timecard_submode, $name_day, $user_ID, $submode;
     $result=db_query("SELECT anfang,ende from ".DB_PREFIX."timecard WHERE users = ".(int)$user_ID." AND datum = '$date'")or db_die();
     while($row2 = db_fetch_row($result)){
         $row2[0] = check_4d($row2[0]);
@@ -200,7 +209,7 @@ function show_leftbox($date) {
         <fieldset style="width:500px">
         <legend>'.__('choose day').'</legend>
         '. $name_day[$week_day].', '.$date
-        .hidden_fields(array( "submode" => "proj")).'
+        .hidden_fields(array( "submode" => $submode)).'
         <input type="text" id="date"  name="date" '.dojoDatepicker('date', $date).' />
         '.get_buttons(array(array('type' => 'button', 'name' => 'day_back', 'value' =>'&lt;', 'active' => false, 'onclick' => 'lM(dojo.widget.byId(\'picker_date\'), \''.$user_separator.'\', \''.$seq['y'].'\', \''.$seq['m'].'\', \''.$seq['d'].'\'); document.forms[\'pickdate\'].submit();'))).'
         '.get_buttons(array(array('type' => 'button', 'name' => 'day_forward', 'value' => '>', 'active' => false, 'onclick' => 'nM(dojo.widget.byId(\'picker_date\'), \''.$user_separator.'\', \''.$seq['y'].'\', \''.$seq['m'].'\', \''.$seq['d'].'\'); document.forms[\'pickdate\'].submit();'))).'
@@ -209,9 +218,9 @@ function show_leftbox($date) {
         </form>
 
 <div><br /><b>'.__('Sum working time').':</b> '.$ho.' h '.$mo.' m ';
-    $output.=" <a href='timecard.php?mode=view&amp;tree2_mode=open&amp;ID=$row2[0]&amp;PHPSESSID=$PHPSESSID&amp;date=$date&amp;day=$day&amp;submode=proj&amp;month=$month&amp;year=$year'>
+    $output.=" <a href='timecard.php?mode=view&amp;tree2_mode=open&amp;ID=$row2[0]&amp;PHPSESSID=$PHPSESSID&amp;date=$date&amp;day=$day&amp;submode=$submode&amp;month=$month&amp;year=$year'>
     <img src='../img/open.gif' alt=''/></a>
-    <a href='timecard.php?mode=view&amp;tree2_mode=close&amp;ID=$row2[0]&amp;PHPSESSID=$PHPSESSID&amp;day=$day&amp;submode=proj&amp;month=$month&amp;year=$year'>
+    <a href='timecard.php?mode=view&amp;tree2_mode=close&amp;ID=$row2[0]&amp;PHPSESSID=$PHPSESSID&amp;day=$day&amp;submode=$submode&amp;month=$month&amp;year=$year'>
     <img src='../img/close.gif'/></a>";
     $output.="</div><br />";
 
@@ -219,13 +228,16 @@ function show_leftbox($date) {
     __(':').' '.$name_day[$week_day].', '.$date.'</legend>';
     $hidden_fields = array ( "mode"     => "data",
     "action"   => "proj",
-    "submode"     => "proj",
+    "submode"     => $submode,
     "datum"    => $date);
     $output.= hidden_fields($hidden_fields);
+    
+    $col1_span = 'colspan="2"';
+    
     $output.="<table summary=\"$tc_sum\" style='width:500px'>
     <thead>
         <tr>
-            <th scope=\"col\" title=\"".__('Project')."\">".__('Project')." </th>
+            <th scope=\"col\" title=\"".__('Project')."\" $col1_span>".__('Project')." </th>
             <th scope=\"col\" title=\"".__('Comment')."\">".__('Comment')."</th>
             <th scope=\"col\" title=\"".__('Hours')."\">".__('Hours')." h/m </th>
             <th scope=\"col\" title='".__('Delete')."'>".__('Delete')."</th>
@@ -233,18 +245,24 @@ function show_leftbox($date) {
     </thead>";
     $outbody="<tbody>";
     // Projekt lists
-    $my_projekts = array();
-    $result_projects = db_query("SELECT project_ID FROM ".DB_PREFIX."project_users_rel where user_ID = ".(int)$user_ID);
+    $my_projekts = get_my_projects();
 
-    while ($row_projekts = db_fetch_row($result_projects)) {
-        $my_projekts[] = $row_projekts[0];
+    if ($submode == 'favorites') {
+    	$sql_user_group = 'TRUE';
+    	$outbody .= list_projects($my_projekts);
+    	$filter = ' projekt IN ('.implode(',', $my_projekts).') AND ';
+    } else {
+        $outbody .= list_projects_tree( 0 , $my_projekts);
+        $filter = '';
     }
 
-    $outbody.=list_projects_tree( 0 , $my_projekts);
-    $result4 = db_query("select SUM(h), SUM(m)
-                      from ".DB_PREFIX."timeproj
-                      where datum = '$date' and
+    $result4 = db_query("SELECT SUM(h), SUM(m)
+                      FROM ".DB_PREFIX."timeproj
+                      WHERE
+                          $filter
+                          datum = '$date' AND
                           users = ".(int)$user_ID) or db_die();
+
     $row4 = db_fetch_row($result4);
     $gesh =$row4[0];
     $gesm =$row4[1];
@@ -262,7 +280,7 @@ function show_leftbox($date) {
     $outbody.="</tbody>";
     $output.="<tfoot>
     <tr>
-        <td></td>";
+        <td $col1_span></td>";
     if($negative) $output.="    <td>".__('still to allocate:')."<font color='red'> - $rh h  $rm m</font> </td>";
     else $output.="    <td>".__('still to allocate:')." $rh h $rm m </td>";
     $output.=" <td>$hg h $mg m</td>
@@ -294,279 +312,169 @@ function list_projects_tree($parent, $my_projekts = array(), $treedata = array()
 
     if ((int)$parent == 0) {
 
-        $query="SELECT p.ID, p.chef, p.kategorie, p.anfang, p.ende, p.name, p.parent, p.personen, rel.user_ID
-
-                       FROM ".DB_PREFIX."projekte p
-
-                       LEFT JOIN ".DB_PREFIX."project_users_rel rel ON rel.project_ID = p.ID and rel.user_ID = ".(int)$user_ID."
-
-                       WHERE $sql_user_group AND p.anfang <= '$date'
-
-                             AND p.ende >='$date'
-                             AND rel.user_Id = ". (int)$user_ID ."
-                             ORDER BY p.next_proj, p.name ";
-
-
+        $query="SELECT p.ID, p.chef, p.kategorie, p.anfang, p.ende, p.name, p.parent, p.personen, rel.user_ID, rel.favorite
+                  FROM ".DB_PREFIX."projekte p
+                  LEFT JOIN ".DB_PREFIX."project_users_rel rel ON rel.project_ID = p.ID and rel.user_ID = ".(int)$user_ID."
+                 WHERE $sql_user_group AND p.anfang <= '$date'
+                   AND p.ende >='$date' 
+                   AND p.is_deleted IS NULL 
+              ORDER BY p.next_proj, p.name ";
 
         $result = db_query($query) or db_die();
-
-
-
         if ($result) {
-
             while ($row = db_fetch_row($result)) {
-
                 $tmpParentID = $row[6];
-
-
-
                 if (!isset($treedata[$tmpParentID])) {
-
                     $treedata[$tmpParentID] = array();
-
                 }
-
-
-
                 $treedata[$tmpParentID][] = $row;
-
             }
-
         }
-
     }
 
     if (isset($treedata[$parent]) && is_array($treedata[$parent])) {
-
         foreach ($treedata[$parent] as $row2) {
-
-
-
-            $is_participant = ($row[8] != '');
-
-
-
+            $is_participant = ($row2[8] != '');
             if (in_array($row2[0], $my_projekts)) {
-
                 $is_part = true;
-
-            }
-
-            else {
-
+            } else {
                 $is_part = false;
-
             }
 
-
-
+            $favoritecol = '
+            <td width="1">
+                <a href="timecard.php?submode='.$submode.'&amp;year='.$year.'&amp;date='.$date.'&amp;month='.$month.'&amp;set_favorite='.($row2[9]=='1'?'0':'1').'&amp;ID_s='.$row2[0].'"
+                    title="'.__($row2[9]=='1'?'Remove from favorites':'Add to favorites').'">
+                    <img src="'.IMG_PATH.'/'.($row2[9]=='1'?'stop':'start').'.gif">
+                </a>
+            </td>';
+            
             // $is_part=user_is_part($row2[0], $user_ID);
-
             if
-
             // 1. the user has access to it: be a member or the project leader
-
             ((($is_part==true) or $row2[1] == $user_ID) and
-
             // 2. aditional check: status of the project must be active
-
             $row2[2] == '3') {
-
                 $display=true;
-
+            } else {
+                $display=false;
             }
-
-            else $display=false;
 
             $par_obj[$row2[0]]="";
-
             $subpro="false";
-
-
-
             //suche nach subprojekt:
-
             // find out whether there is at at least 1 subproject
-
             $in=0;
-
             //only show + - if subrojects exits
+            if (isset($treedata[$row2[0]])){
+                $subpro=false;
+                $subpro=is_subpro($treedata[$row2[0]],$user_ID, $my_projekts, $treedata);
 
-            if (isset($treedata[$row2[0]]) ) {
+                if($subpro==true){
 
+                    $subpro="true";
+                    $outputlat .= "<tr";
+                    if($i%2==1){
+                        $output1 .= " class=\"unev\" ";
+                    }
 
-
-                $subpro="true";
-
-                $outputlat .= "<tr";
-
-                if($i%2==1){
-
-                    $output1 .= " class=\"unev\" ";
-
-                }
-
-
-
-                $outputlat .= "> <td scope='row'>";
-
-                // indent
-
-                for ($i=0; $i < $indent; $i++) { $outputlat.= "&nbsp;&nbsp;&nbsp;&nbsp;"; }
-
-                $in=1;
-
-                // show button 'open'
-
-                if (!$arrproj1[$row2[0]]) {
-
-                    $no = "open".$row2[0];
-
-                    $outputlat.="<input type='hidden' name='bID[]' value='$row2[0]' />
-
-             			<a href='timecard.php?submode=proj&date=$date&element2_mode=open&element2_ID=$row2[0]'>
-
+                    $outputlat .= "> <td scope='row'>";
+                    // indent
+                    for ($i=0; $i < $indent; $i++) { $outputlat.= "&nbsp;&nbsp;&nbsp;&nbsp;"; }
+                    $in=1;
+                    // show button 'open'
+                    if (!$arrproj1[$row2[0]]) {
+                        $no = "open".$row2[0];
+                        $outputlat.="<input type='hidden' name='bID[]' value='$row2[0]' />
+             			<a href='timecard.php?submode=$submode&date=$date&element2_mode=open&element2_ID=$row2[0]'>
              			".tree_icon("open","name='$no' style='border-style:none;'")."</a>&nbsp; ";
 
-                }
-
-                // show button 'close'
-
-                else {
-
-                    $nc= "close".$row2[0];
-
-                    $outputlat.= "<input type='hidden' name='bID[]' value='$row2[0]' />
-
-              			<a href='timecard.php?submode=proj&date=$date&element2_mode=close&element2_ID=$row2[0]'>
-
+                    }
+                    // show button 'close'
+                    else {
+                        $nc= "close".$row2[0];
+                        $outputlat.= "<input type='hidden' name='bID[]' value='$row2[0]' />
+              			<a href='timecard.php?submode=$submode&date=$date&element2_mode=close&element2_ID=$row2[0]'>
              			".tree_icon("close","name='$no' style='border-style:none;'")."</a>&nbsp; ";
 
+                    }
+                    $outputlat.= html_out($row2[5]);
+                    $outputlat.="</td>\n";
+                    $outputlat.=$favoritecol;
                 }
-
-                $outputlat.= html_out($row2[5]);
-
-                $outputlat.="</td>\n";
-
+                elseif($display==true){
+                    $outputlat .= "<tr";
+                    if($i%2==1){
+                        $output1 .= " class=\"unev\" ";
+                    }
+                    $outputlat .= "> <td scope='row'>";
+                    // indent
+                    for ($i=0; $i < $indent; $i++) { $outputlat.= "&nbsp;&nbsp;&nbsp;&nbsp;"; }
+                    $outputlat.= "<img src='".IMG_PATH."/t.gif' width='9' height='9' />&nbsp;".html_out($row2[5]);{
+                    }
+                    $outputlat.= "</td>\n";
+                    $outputlat .= $favoritecol;
+                }
             }
 
-            else{
-
+            elseif($display==true){
                 $outputlat .= "<tr";
-
                 if($i%2==1){
-
                     $output1 .= " class=\"unev\" ";
-
                 }
-
                 $outputlat .= "> <td scope='row'>";
-
                 // indent
-
                 for ($i=0; $i < $indent; $i++) { $outputlat.= "&nbsp;&nbsp;&nbsp;&nbsp;"; }
-
                 $outputlat.= "<img src='".IMG_PATH."/t.gif' width='9' height='9' />&nbsp;".html_out($row2[5]);{
-
-
-
                 }
-
                 $outputlat.= "</td>\n";
-
+                $outputlat .= $favoritecol;
             }
-
             // name of the project
-
             // show input fields for hour and minute
 
             if ($display==true){
-
-
-
                 $id = $row2[0];
- $outputlat.= "<td><textarea name='note[]' style='height:18px'></textarea></td>
+                $outputlat.= "<td><textarea name='note[]' style='height:18px'></textarea></td>
         	<td style='white-space:nowrap;text-align:right;'><input type='text' name='h[]' id='h_$id' size='2' maxlength='2' onchange=\"chktime('h_$id','0 - 23!',/[2][0-3]|[0-1]?\d?/)\" />
         	<input type='text' name='m[]' id='m_$id' size='2' maxlength='2' onchange=\"chktime('m_$id','0 - 59!',/[0-5]?\d?/)\" />  </td>\n";
-            $outputlat.="<td>";
-
+                $outputlat.="<td>";
                 $outputlat.= "<input type='hidden' name='module_id[]'   value=''>
-
     			<input type='hidden' name='module_name[]' value=''>";
-
                 $outputlat.= "<input type='hidden' name='nr[]' value='$id' /></td></tr>\n";
-
-            }
-
-            else{
-
+                $outputlat.= show_bookings1($date, $row2[0]);
+                $mod_arr= get_additional_mod_bookings($date, $row2[0]);
+                $outputlat .= timecard_project_related_moduletimes($user_ID, $date, $row2[0], 'todo', $fld_nr,$indent,$mod_arr['todo']);
+                $outputlat .= timecard_project_related_moduletimes($user_ID, $date, $row2[0], 'helpdesk', $fld_nr,$indent,$mod_arr['helpdesk']);
+            } elseif($subpro=="true");{
                 $outputlat.= "<td></td><td></td><td></td></tr>\n";
 
             }
-
-            $outputlat.= show_bookings1($date, $row2[0]);
-
-            $mod_arr= get_additional_mod_bookings($date, $row2[0]);
-
-            $outputlat .= timecard_project_related_moduletimes($user_ID, $date, $row2[0], 'todo', $fld_nr,$indent,$mod_arr['todo']);
-
-            $outputlat .= timecard_project_related_moduletimes($user_ID, $date, $row2[0], 'helpdesk', $fld_nr,$indent,$mod_arr['helpdesk']);
-
-
-
             $fld_nr += 5;
 
-
-
             $indent++;
-
-            if((($arrproj1[$row2[0]]==1))){
-
+            if((($arrproj1[$row2[0]]==1) and $subpro=="true")){
                 $outputlat.= list_projects_tree($row2[0], $my_projekts, $treedata);
-
             }
-
             $indent--;
-
         }
-
+    }
+    // summarize all work time of a day
+    if (empty($outputlat)) {
+        $outputlat="<tr><td></td><td></td><td></td><td></td></tr>";
     }
 
-    // summarize all work time of a day
-
-    /*
-
-    $result4 = db_query("select SUM(h), SUM(m)
-
-    from ".DB_PREFIX."timeproj
-
-    where datum = '$date' and
-
-    users = ".(int)$user_ID) or db_die();
-
-    $row4 = db_fetch_row($result4);
-
-    $h_sum =$row4[0];
-
-    $m_sum =$row4[1];
-
-    */
-
-    if (empty($outputlat))$outputlat="<tr><td></td><td></td><td></td><td></td></tr>";
-
     return $outputlat;
-
-
-
 }
-
-
 
 /**
  * Show project related times that do not belong to a module
  */
-function show_bookings1($day,$proj) {
-    global $user_ID;
+function show_bookings1($day, $proj) {
+    global $user_ID, $submode;
+    
+    $order = " ".sort_string('projects');
+    
     $query = "SELECT p.name, t.h, t.m, t.note, t.ID, t.module
                 FROM ".DB_PREFIX."timeproj t, ".DB_PREFIX."projekte p
                WHERE projekt = p.ID and
@@ -574,11 +482,12 @@ function show_bookings1($day,$proj) {
                      projekt= ".(int)$proj." and
                      datum like '$day' and
                      (t.module = '' OR t.module IS NULL)
-            ORDER BY name";
+                 AND p.is_deleted is NULL
+                     $order";
 
     $result3 = db_query($query) or db_die();
     while ($row3 = db_fetch_row($result3)) {
-        $output1 .= "<tr class='book2'><td class='book2' style='text-align:right;'></td>";
+        $output1 .= "<tr class='book2'><td class='book2' style='text-align:right;' colspan='2'></td>";
         $output1 .= "<td class='book2' >".html_out($row3[3])."</td>";
         (!$row3[1]) ? $h=0 : $h=$row3[1];
         (!$row3[2]) ? $m=0 : $m=$row3[2];
@@ -590,6 +499,9 @@ function show_bookings1($day,$proj) {
 
 function show_project_clock($my_projekts = array()){
     global $sql_user_group, $user_kurz,$user_ID, $module;
+    
+    $order = sort_string('projects');
+    
     $tabs = array();
     $output = '<div id="global-header">';
     $output .= get_tabs_area($tabs);
@@ -598,10 +510,15 @@ function show_project_clock($my_projekts = array()){
     $form_fields = array();
     $form_fields[] = array('type' => 'hidden', 'name' => 'action', 'value' => 'clock_in');
     $options = array();
+    
     $set_timezone      = isset($settings['timezone'])    ? $settings['timezone']    : PHPR_TIMEZONE;
     $date = date("Y-m-d", mktime(date("H")+$set_timezone,date("i"),date("s"),date("m"),date("d"),date("Y")));
     $time  = date("H:i", mktime(date("H")+$set_timezone,date("i"),date("s"),date("m"),date("d"),date("Y")));
-    $query="select ID,personen,chef,kategorie,anfang,ende,name   from ".DB_PREFIX."projekte where $sql_user_group";
+    $query="SELECT ID,personen,chef,kategorie,anfang,ende,name
+              FROM ".DB_PREFIX."projekte
+             WHERE $sql_user_group
+               AND is_deleted is NULL
+                   $order";
     $result= db_query($query);
     while ($row2 = db_fetch_row($result)) {
         if (in_array($row2[0], $my_projekts)) {
@@ -642,14 +559,18 @@ function show_project_clock($my_projekts = array()){
     </div>';
     echo $output;
 }
-function show_prbookings($day, $booked_time) {
+function show_prbookings($day) {
     global $user_ID;
-    $result2 = db_query("select name, h, m, ".DB_PREFIX."timeproj.note, ".DB_PREFIX."timeproj.module, ".DB_PREFIX."timeproj.module_id
-                         from ".DB_PREFIX."timeproj, ".DB_PREFIX."projekte
-                        where projekt = ".DB_PREFIX."projekte.ID and
-                              users = ".(int)$user_ID." and
-                              datum like '$day'
-                     order by name") or db_die();
+    $booked_time = 0;
+    $order = sort_string('projects');
+    
+    $result2 = db_query("SELECT name, h, m, ".DB_PREFIX."timeproj.note, ".DB_PREFIX."timeproj.module, ".DB_PREFIX."timeproj.module_id
+                           FROM ".DB_PREFIX."timeproj, ".DB_PREFIX."projekte
+                          WHERE projekt = ".DB_PREFIX."projekte.ID
+                            AND users = ".(int)$user_ID."
+                            AND datum like '$day'
+                            AND is_deleted is NULL
+                                $order") or db_die();
     while ($row2 = db_fetch_row($result2)) {
         $mod_name='';
         switch($row2[4]){
@@ -683,8 +604,11 @@ function show_prbookings($day, $booked_time) {
  * @param ID $proj
  * @return array $mod_arr
  */
-function get_additional_mod_bookings($day,$proj){
+function get_additional_mod_bookings($day,$proj) {
     global $user_ID;
+    
+    $order = sort_string('projects');
+    
     $mod_arr=array();
     $query = "SELECT  t.module, t.module_ID
                 FROM ".DB_PREFIX."timeproj t, ".DB_PREFIX."projekte p
@@ -693,13 +617,132 @@ function get_additional_mod_bookings($day,$proj){
                      projekt= ".(int)$proj." and
                      datum like '$day' and
                      (t.module != '' AND t.module IS NOT NULL)
-            ORDER BY name";
+                 AND p.is_deleted is NULL
+                     $order";
 
     $result3 = db_query($query) or db_die();
     while ($row3 = db_fetch_row($result3)) {
         $mod_arr[$row3[0]][]=$row3[1];
     }
     return $mod_arr;
+}
+
+function is_subpro($subs,$user_ID, $my_projekts, $treedata){
+    $subpro = false;
+    foreach ($subs as $sub){
+        if($sub[1]==$user_ID or in_array($sub[0], $my_projekts)){
+            $subpro=true;
+            break;
+        }
+        else{
+            $subpro= is_subpro($treedata[$sub[0]],$user_ID, $my_projekts, $treedata);
+        }
+        
+        
+     }
+    return $subpro;
+}
+
+function list_projects($my_projekts = array()) {
+    global $sql_user_group,$par_obj,$user_ID, $date, $indent, $fld_nr, $submode;
+    $outputlat = '';
+    if (count($my_projekts) > 0) {
+        $query="SELECT p.ID, p.chef, p.kategorie, p.anfang, p.ende, p.name, p.parent, p.personen, rel.user_ID
+                  FROM ".DB_PREFIX."projekte p
+                  LEFT JOIN ".DB_PREFIX."project_users_rel rel ON rel.project_ID = p.ID and rel.user_ID = ".(int)$user_ID."
+                 WHERE
+                   `p`.`ID` IN (".implode(', ', $my_projekts).")
+                   AND $sql_user_group
+                   AND p.anfang <= '$date'
+                   AND p.ende >= '$date' 
+                   AND p.is_deleted IS NULL 
+              ORDER BY p.next_proj, p.name ";
+
+        $result = db_query($query) or db_die();
+
+        if ($result) {
+            while ($row = db_fetch_row($result)) {
+	            $is_participant = ($row[8] != '');
+	            if (in_array($row[0], $my_projekts)) {
+	                $is_part = true;
+	            } else {
+	                $is_part = false;
+	            }
+	
+	            // $is_part=user_is_part($row[0], $user_ID);
+	            if
+	            // 1. the user has access to it: be a member or the project leader
+	            ((($is_part==true) or $row[1] == $user_ID) and
+	            // 2. aditional check: status of the project must be active
+	            ($row[2] == '3' or $row[3] == 6)) {
+	                $display=true;
+	            } else {
+	                $display=false;
+	            }
+	
+	            $par_obj[$row[0]]="";
+	
+	            if ($display == true){
+	                $outputlat .= "<tr";
+	                if($i%2==1){
+	                    $output1 .= " class=\"unev\" ";
+	                }
+	                $outputlat .= "> <td scope='row'>";
+	                // name of the project
+	                for ($i=0; $i < $indent; $i++) { $outputlat.= "&nbsp;&nbsp;&nbsp;&nbsp;"; } {
+	                    $outputlat.= html_out($row[5]);
+	                }
+	                $outputlat .= "</td>";
+	                $outputlat .= '<td width="1"><a href="timecard.php?submode='.$submode.'&amp;year='.$year.'&amp;date='.$date.'&amp;month='.$month.'&amp;set_favorite=0&amp;ID_s='.$row[0].'" title="'.__('Remove from favorites').'"><img src="'.IMG_PATH.'/stop.gif"></a></td>';
+	                // show input fields for hour and minute
+	                $id = $row[0];
+	                $outputlat.= "<td><textarea name='note[]' style='height:18px'></textarea></td>
+			            <td style='white-space:nowrap;text-align:right;'><input type='text' name='h[]' id='h_$id' size='2' maxlength='2' onchange=\"chktime('h_$id','0 - 23!',/[2][0-3]|[0-1]?\d?/)\" />
+			            <input type='text' name='m[]' id='m_$id' size='2' maxlength='2' onchange=\"chktime('m_$id','0 - 59!',/[0-5]?\d?/)\" />  </td>\n";
+	                $outputlat.="<td>";
+	                $outputlat.= "<input type='hidden' name='module_id[]'   value=''>
+	                <input type='hidden' name='module_name[]' value=''>";
+	                $outputlat.= "<input type='hidden' name='nr[]' value='$id' /></td></tr>\n";
+	                $outputlat.= show_bookings1($date, $row[0]);
+	                $mod_arr= get_additional_mod_bookings($date, $row[0]);
+	                $outputlat .= timecard_project_related_moduletimes($user_ID, $date, $row[0], 'todo', $fld_nr,$indent,$mod_arr['todo']);
+	                $outputlat .= timecard_project_related_moduletimes($user_ID, $date, $row[0], 'helpdesk', $fld_nr,$indent,$mod_arr['helpdesk']);
+	            }
+	            $fld_nr += 5;
+            }
+        }
+    }
+
+    // summarize all work time of a day
+    if (empty($outputlat)) {
+        $outputlat="<tr><td></td><td></td><td></td><td></td></tr>";
+    }
+
+    return $outputlat;
+}
+
+/**
+ * Get a list of all my Projects. If submode is favorites then only
+ * return projects with the flag favorite
+ * @return Array
+ */
+function get_my_projects() {
+	global $submode, $user_ID;
+    $projects = array();
+    if ($submode == 'favorites') {
+        $filter = ' AND `favorite` = "1"';
+    } else  {
+        $filter = '';
+    }
+    $result = db_query("SELECT project_ID
+                                  FROM ".DB_PREFIX."project_users_rel
+                                  WHERE user_ID = ".(int)$user_ID."
+                                    $filter
+                                    AND is_deleted is NULL");	
+    while ($row = db_fetch_row($result)) {
+        $projects[] = $row[0];
+    }
+	return $projects;
 }
 
 ?>

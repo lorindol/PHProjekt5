@@ -1,6 +1,21 @@
 <?php
+/**
+ * Class for fetch a mail data
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: polidor $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: fechmail.php
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
-//  Method to get mail
+/**
+ * Method to get mail
+ *
+ * @package  lib
+ */
 class fetchmail
 {
     var $pop_host;
@@ -9,28 +24,32 @@ class fetchmail
     var $pop_pass;
     var $acc_string;
 
-    // number of emails in the server
+    /**
+     * Number of emails in the server
+     */
     var $numofmails;
 
-    // array email per each mail => (message_ID, date, header,
-    //                               sender, recipient, cc, reply_to,
-    //                               body_text, body_html,
-    //                               attachment=>(att_enc, att_size, att_name, att_file))
+    /**
+     *  array email per each mail => (message_ID, date, header,
+     * 						sender, recipient, cc, reply_to,
+     * 						body_text, body_html,
+     * 						attachment=>(att_enc, att_size, att_name, att_file))
+     */
     var $email;
 
 
     /**
      * Class constructor
-     * @author: Gustavo Solt
-     * @param string host   - POP Host of mail connection (it could be the access string complete)
-     * @param string user   - POP username
-     * @param string pass   - POP password
-     * @param string type   - Type of mail connection, for use with the var $port in lib.inc.php
-     * @param string folder - Folder to be open, default value INBOX
-     * @return class inicialized
+     *
+     * @param string		$host   	- POP Host of mail connection (it could be the access string complete)
+     * @param string		$user   	- POP username
+     * @param string		$pass   	- POP password
+     * @param string		$type		- Type of mail connection, for use with the var $port in lib.inc.php
+     * @param string		$folder	- Folder to be open, default value INBOX
+     * @return object				Class inicialized
      */
     function fetchmail($host, $user, $pass, $type = 'pop3', $folder = 'INBOX') {
-        
+
         // The param is directly the acess string
         if (strpos($host,":") > 0) {
             $this->acc_string = $host;
@@ -39,14 +58,14 @@ class fetchmail
             if (empty($host)) {
                 die("<b>The function need hostname or connection string</b>");
             }
-            
+
             $this->pop_host   = $host;
             $this->pop_type   = $type;
             $this->pop_folder = $folder;
-            
+
         }
         if (empty($user) && strpos($host,":") > 0) {
-            
+
             die("<b>The function need a username</b>");
         }
         if (empty($pass)) {
@@ -56,16 +75,15 @@ class fetchmail
         $this->pop_pass = $pass;
     }
 
-
     /**
      * Function to connect to mail server
-     * @author: Gustavo Solt
      *
+     * @param void
      * @return unknown
      */
     function connect() {
         global $port;
-        
+
         if (empty($this->acc_string)) {
             // connect to POP3
             if (version_compare(phpversion(),'5.0.0') < 0) {
@@ -78,25 +96,21 @@ class fetchmail
 
         // old version (without check for PHP4) ?
         // $acc_string = "{".$this->pop_host.":".$port[$this->pop_type]."}INBOX";
-        
+
         $mbox = imap_open ($this->acc_string, $this->pop_user, $this->pop_pass);
-        
-        
         if (!$mbox) {
-            echo "<b>".__('Access error for mailbox')." {$this->pop_host}!</b>:<br />".imap_last_error()."<br />";
+            echo "</div><div id='global-content'><b>".__('Access error for mailbox')." {$this->pop_host}!</b>:<br />".imap_last_error()."<br />";
         }
         return $mbox;
     }
 
     /**
      * Function to read the mails from mail server and return the mail list in an array
-     * @author: Gustavo Solt
      *
-     * @param boolean $get_body determine if the body needs to be downloaded or not
-     * @return array with the mail list
+     * @param boolean 	$get_body 	- Determine if the body needs to be downloaded or not
+     * @return array           				Array with the mail list
      */
     function get_mail_list($get_body = false) {
-
 
         // initialized return var
         $email = array();
@@ -114,7 +128,6 @@ class fetchmail
         // check if there are messages on server
         if (is_array($messages_detail) && count($messages_detail) > 0) {
 
-
             // foreach message we will add the necessary information on email array
             foreach ($messages_detail as $dummy => $one_message) {
 
@@ -124,30 +137,25 @@ class fetchmail
                 // calculating the message size
                 if ($one_message->size > 1000000)  {
                     $msize = floor($one_message->size/1000000)." M";
-                }
-                elseif ($one_message->size > 1000) {
+                } elseif ($one_message->size > 1000) {
                     $msize = floor($one_message->size/1000)." k";
-                }
-                else {
+                } else {
                     $msize = $one_message->size;
                 }
                 $email[$i]['message_ID'] = substr($one_message->message_id,1,-1);
 
                 // get subject
                 $email[$i]['subject'] = "";
-                
+
                 $subject_array = imap_mime_header_decode($one_message->subject);
-                
+
                 // get each part of the subject
                 for ($j=0; $j<count($subject_array); $j++) {
-                    
                     if (strpos($subject_array[$j]->charset, "TF-8") > 0) {
                         $subject_array[$j]->text = utf8_decode($subject_array[$j]->text);
                     }
-                    
                     $email[$i]['subject'] .= $subject_array[$j]->text;
                 }
-                
 
                 $email[$i]['from']       = $one_message->from;
                 $email[$i]['date']       = $one_message->date;
@@ -162,42 +170,21 @@ class fetchmail
                     $body_tmp = $this->get_part($mbox, $i, "TEXT/HTML");
                     $email[$i]['body_html'] = addslashes($body_tmp);
                 }
-
             }
         }
-
-        /*
-        for ($i = 1; $i <= $numofmails; $i++) {
-        // get the header
-        $head = imap_header ($mbox,$i);
-
-        // message ID
-        $email[$i]['message_ID'] = substr($head->message_id,1,-1);
-
-        // header information
-        $date = $head->date;
-        $email[$i]["date"] = strftime("%Y%m%d%H%M%S",$head->udate);
-
-        // get subject
-        $subject_array = imap_mime_header_decode($head->subject);
-        $email[$i]['subject'] = $subject_array[0]->text;
-        }
-        */
         // close access to mailbox
         imap_close($mbox);
-
         return $email;
     }
 
     /**
      * Function to read the mails form the mailserver and return an array with data
      * If have attach, stored to PHPR_DOC_PATH
-     * 
-     * @author: Gustavo Solt
-     * @param array $downloads array with emails ids to be downloaded from server. If is set to 'all' all emails will be download.
-     * @param array $deletes array with the emails ids to be deleted from server. If is set to 'all' all emails will be deleted.
-     * @param string $file_path path to save the attachments
-     * @return boolean true
+     *
+     * @param array 		$downloads  	- Array with emails ids to be downloaded from server. If is set to 'all' all emails will be download.
+     * @param array 		$deletes    	- Array with the emails ids to be deleted from server. If is set to 'all' all emails will be deleted.
+     * @param string		$file_path 	- Path to save the attachments
+     * @return boolean         				True
      */
     function get_mail($downloads = 'all', $deletes = 'all', $file_path = PHPR_ATT_PATH) {
 
@@ -235,8 +222,7 @@ class fetchmail
             // check whether this message is marked to download
             if (in_array($i,$downloads) || $downloads[0] == 'all') {
                 $skip_mail = false;
-            }
-            else {
+            } else {
                 $skip_mail = true;
             }
 
@@ -314,19 +300,19 @@ class fetchmail
                 // get subject
                 //$subject_array = imap_mime_header_decode($head->subject);
                 //$email[$i]['subject'] = addslashes($subject_array[0]->text);
-                
+
                 // get subject
                 $email[$i]['subject'] = "";
-                
+
                 $subject_array = imap_mime_header_decode($head->subject);
-                
+
                 // get each part of the subject
                 for ($j=0; $j<count($subject_array); $j++) {
-                    
+
                     if (strpos($subject_array[$j]->charset, "TF-8") > 0) {
                         $subject_array[$j]->text = utf8_decode($subject_array[$j]->text);
                     }
-                    
+
                     $email[$i]['subject'] .= addslashes($subject_array[$j]->text);
                 }
 
@@ -413,7 +399,6 @@ class fetchmail
 
                             // Number of attachment
                             $int++;
-
                         }
                     }
                 } // end loop over attachments
@@ -422,36 +407,33 @@ class fetchmail
             // mark mails for later deletion if $no_del is not set.
             if (in_array($i, $deletes)) {
                 $no_del = false;
-            }
-            elseif ($deletes[0] <> 'all') {
+            } elseif ($deletes[0] <> 'all') {
                 $no_del = true;
             }
 
             if (!$no_del)  {
                 imap_delete($mbox, $i);
             }
-
         } // end for each mail
 
         // delete marked mails in the mailbox
         imap_expunge($mbox);
-
         // close access to mailbox
         imap_close($mbox);
-
         $this->email = $email;
-
         return true;
     }
 
-    // return only one part of the mail
-    // @param int mbox         - imap_stream
-    // @param int msg          - number of the email
-    // @param string mime_type - mime_type to get
-    // @param string/bool      - structure od the mail
-    // @param int part_number  - part_number
-    // $return string          - a part of the email
-    // @author: Albrecht Guenther
+    /**
+     * Return only one part of the mail
+     *
+     * @param int				$mbox         		- Imap_stream
+     * @param int				$msg          		- Number of the email
+     * @param string			$mime_type 		- Mime_type to get
+     * @param string/bool    $structure  		- Structure od the mail
+     * @param int				$part_number  	- Part_number
+     * @return string          						A part of the email
+     */
     function get_part($mbox, $msg, $mime_type, $structure = false, $part_number = false) {
         if (!$structure) {
             $structure = imap_fetchstructure($mbox, $msg);
@@ -474,7 +456,7 @@ class fetchmail
                 }
             }
 
-            /* multipart */
+            // multipart
             if($structure->type == 1) {
                 while(list($index, $sub_structure) = each($structure->parts)) {
                     if($part_number) {
@@ -490,10 +472,12 @@ class fetchmail
         return false;
     }
 
-    // Get the mime type
-    // @param string structure - structure of the mail
-    // @return string          - mime_type
-    // @author: Albrecht Guenther
+    /**
+     * Get the mime type
+     *
+     * @param string		$structure 	- Structure of the mail
+     * @return string          				Mime_type
+     */
     function get_mime_type(&$structure) {
         $primary_mime_type = array("TEXT", "MULTIPART", "MESSAGE", "APPLICATION", "AUDIO", "IMAGE", "VIDEO", "OTHER");
         if($structure->subtype) {
@@ -502,10 +486,13 @@ class fetchmail
         return "TEXT/PLAIN";
     }
 
-    // Parse subject to obtain some values
-    // @param string module - Module to switch
-    // @param int mail      - Number of mail
-    // @return Array        - Array with mix data
+    /**
+     * Parse subject to obtain some values
+     *
+     * @param string		$module 	- Module to switch
+     * @param int  		$mail   	- Number of mail
+     * @return array        			Array with mix data
+     */
     function parse_subject($module, $mail) {
         $data = array();
         switch ($module) {
@@ -522,16 +509,17 @@ class fetchmail
     /**
      * Gets the list of emails on a server and displais it on a table
      *
-     * @return string with a table with mail subject, body, sender, date and size
+     * @param void
+     * @return string   	String with a table with mail subject, body, sender, date and size
      */
     function get_mail_table() {
-        
+
         // getting the mail list (the true parameter is to get the bodies)
         $mails_on_server = $this->get_mail_list(true);
-        
+
         // if there are emails we will display the table
         if (is_array($mails_on_server) && count($mails_on_server) > 0) {
-            
+
             // Table head
             $list = "<table 'width=100%'>
                          <thead>
@@ -543,7 +531,7 @@ class fetchmail
                                  <th align='center'>".__("Size")."</th>
                              </tr>
                          </thead>";
-            
+
             // foreach mail on list
             foreach ($mails_on_server as $msgno => $one_message) {
 
@@ -551,7 +539,7 @@ class fetchmail
                 $list .= "   <tr>
                                  <td>{$one_message['subject']}</td>
                                  <td>";
-                
+
                 // if there are a plain body we will use it, else we will use the html body
                 if (!empty($one_message['body_text'])) {
                     $list .= html_out($one_message['body_text']);
@@ -566,7 +554,7 @@ class fetchmail
                                  <td align='right'>{$one_message['size']}</td>
                              </tr>";
             }
-            
+
             // end of table
             $list .= "
                           </table>
@@ -579,5 +567,4 @@ class fetchmail
         return $list;
     }
 }
-
 ?>

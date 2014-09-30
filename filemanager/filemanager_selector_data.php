@@ -1,14 +1,15 @@
 <?php
 /**
-* filemanager selector data script
-*
-* @package    filemanager
-* @module     selector
-* @author     Gustavo Solt, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: filemanager_selector_data.php,v 1.5.2.2 2007/01/23 15:35:47 alexander Exp $
-*/
+ * filemanager selector data script
+ *
+ * @package    filemanager
+ * @subpackage selector
+ * @author     Gustavo Solt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: filemanager_selector_data.php,v 1.8 2007-05-31 08:10:58 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // Common values

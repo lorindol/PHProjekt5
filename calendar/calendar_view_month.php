@@ -1,14 +1,15 @@
 <?php
 /**
-* calendar month view
-*
-* @package    calendar
-* @module     view
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: calendar_view_month.php,v 1.56.2.1 2007/01/10 14:18:29 gustavo Exp $
-*/
+ * calendar month view
+ *
+ * @package    calendar
+ * @subpackage view
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: calendar_view_month.php,v 1.62 2008-02-28 04:47:29 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 require_once(PATH_PRE.'/lib/specialdays.php');
 
@@ -225,25 +226,17 @@ function calendar_view_month_next_month(&$user_params, $first_day_week) {
  * @return array  the collected events
  */
 function calendar_view_month_get_events(&$user_params) {
-    global $month, $year;
+    global $month, $year, $view;
 
     $ret   = array();
-    $viewer = array(0);
-    $reader = array(0);
-    $proxy  = array(0);
-    $viewer = array_merge($viewer,calendar_get_represented_users('viewer'));
-    $reader = array_merge($reader,calendar_get_represented_users('reader'));
-    $proxy  = array_merge($proxy, calendar_get_represented_users('proxy'));
+
     $datum = $year.'-'.substr('0'.$month, -2);
 
     $query = "SELECT ID, von, an, event, anfang, ende, visi, partstat, datum, status
-                FROM ".DB_PREFIX."termine
-               WHERE datum LIKE '$datum%'
-                 AND (    (an IN (".(int)$user_params['user_id'].") AND visi IN (0,1,2))
-                        OR (an IN (".implode($viewer,",").") AND visi IN (1))
-                        OR (an IN (".implode($reader,",").") AND visi IN (0,2))
-                        OR (an IN (".implode($proxy,",").") AND visi IN (0,1,2))  
-                      )
+                FROM ".DB_PREFIX."termine 
+               WHERE datum LIKE '$datum%' 
+                 ".calendar_get_permission_where($user_params['user_id'], $view)."  
+                AND is_deleted is NULL 
             ORDER BY anfang, event";
     $res = db_query($query) or db_die();
     while ($row = db_fetch_row($res)) {

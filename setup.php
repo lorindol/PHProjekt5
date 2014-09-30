@@ -1,16 +1,20 @@
 <?php
+/**
+ * @package    main
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: setup.php,v 1.65 2008-03-04 14:19:53 gustavo Exp $
+ */
 
-// setup.php - PHProjekt Version 5.2
-// copyright © 2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: setup.php,v 1.55.2.6 2007/06/07 04:33:36 polidor Exp $
 // set some variables
 error_reporting(0);
 
 /*
-Definition and include section
-*/
+ * Definition and include section
+ */
+
 // Previous definitions, I'll not touch this...
 // bypass lib authentication (will use it's own) ...
 define('avoid_auth','1');
@@ -53,7 +57,7 @@ function __($textid)
 // Check PHP version. Note: if php version < 3, please update
 if (substr(phpversion(),0,1) == '3')
 {
-    alert_message(__('<b>Sorry, PHP 4 or 5 required!</b><br /><br /> Please download the current version at <a href="http://www.php.net">www.php.net</a>'));
+    alert_message(__('<b>Sorry, PHP 4 or 5 required!</b><br /><br /> Please download the current version at').' <a href="http://www.php.net">www.php.net</a>');
 }
 
 // Check config.inc.php is writable
@@ -61,7 +65,7 @@ if (file_exists("config.inc.php") || file_exists("config.inc.php"))
 {
     if (!is_writable("config.inc.php") and !is_writable("../../config.inc.php"))
     {
-        alert_message(__("<br /><b>PANIC! config.inc.php can't be written! Please ensure that the webserver is able to write a new config"));
+        alert_message(__("<br /><b>PANIC! config.inc.php can't be written! Please ensure that the webserver is able to write a new config")."</b>", true, false);
         die();
     }
 }
@@ -74,7 +78,6 @@ else
     if (!$fp)
     {
         alert_message(__('Alert: Cannot create file config.inc.php!<br />The webserver needs the permission to write the file config.inc.php in the PHProjekt root directory.'));
-        die();
     }
     else
     {
@@ -274,7 +277,13 @@ if ($configure == true)
                     $cons_name = 'PHPR_'.strtoupper($oneName);
                     $old_config_array[$cons_name] = $$oneNameOld;
                 }
+                
             }
+            
+            if (!isset($old_config_array['PHPR_DB_PREFIX']) && ereg("4.0",$version)) {
+              $old_config_array['PHPR_DB_PREFIX'] = '';
+            }
+            
             $setupType = 'upgrade';
 
         }
@@ -455,7 +464,7 @@ if (isset($config_array))
                         // Echo the field label (separators and hidden fields haven't label)
                         if ($oneField['type']<> 'separator' && $oneField['type']<> 'hidden')
                         {
-                            echo "<label for='$oneValue' class='label_block'>{$oneField['label']}:</label>";
+                            echo "<label for='$oneValue' class='label_block_setup'>{$oneField['label']}:</label>";
                         }
 
                         // on summary page, all the fields are converted to text (you can't change any value)
@@ -608,7 +617,7 @@ if (isset($config_array))
                                 {
                                     $first_separator = false;
                                 }
-                                echo "<fieldset class='settings'>\n<legend>\n".$oneField['label']."</legend>\n";
+                                echo "<fieldset>\n<legend>\n".$oneField['label']."</legend>\n";
                                 break;
 
                         }

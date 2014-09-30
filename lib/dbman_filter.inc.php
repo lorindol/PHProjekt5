@@ -1,10 +1,14 @@
 <?php
-
-// dbman_filter.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: dbman_filter.inc.php,v 1.126.2.13 2007/08/30 04:08:58 polidor Exp $
+/**
+ * Manage filters functions
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: dbman_filter.inc.php,v 1.145 2008-02-04 15:09:31 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -12,10 +16,19 @@ if (!defined("lib_included")) die("Please use index.php!");
 // selector-tranformation stuff
 require_once(LIB_PATH.'/selector/selector.inc.php');
 
-// provides column name as input field
+/**
+ * Provides column name as input field for make the filters
+ *
+ * @param string 	$module   	- Module name
+ * @param string 	$col_name 	- Field name
+ * @param string 	$link     		- Special links for no standar modules
+ * @param int    		$cw       		-
+ * @return string          				HTML output
+ */
 function col_filter($module, $col_name, $link=null, $cw) {
-    global $field_name, $field, $f_sort, $getstring, $is_related_obj;
+    global $field_name, $field, $f_sort, $getstring;
     global $ID, $perpage, $mode;
+    global $is_related_obj;
 
     $sort       = (isset($f_sort[$module]['sort']) ? $f_sort[$module]['sort'] : '');
     $direction  = (isset($f_sort[$module]['direction']) ? $f_sort[$module]['direction'] : '');
@@ -44,6 +57,7 @@ function col_filter($module, $col_name, $link=null, $cw) {
 
     // related object?
     if ($mode == 'forms' && isset($ID) && $ID > 0) {
+        global $ID;
         $sort_link = basename($_SERVER['SCRIPT_NAME'])."?mode=forms&amp;ID=".$ID."&amp;sort_module=".$module."&amp;direction=".$new_direction."&amp;sort=".$col_name;
     } else {
         $sort_link = $link.".php?mode=view&amp;sort_module=".$module.$addon."&amp;direction=".$new_direction."&amp;sort=".$col_name;
@@ -54,6 +68,10 @@ function col_filter($module, $col_name, $link=null, $cw) {
     $sortstr2 = "</u></a>&nbsp;". $direction_img;
     unset($addon);
     unset($is_addon);
+
+    if (($module == 'organisations') && ($field_name == 'ID')) {
+        return $sortstr1.enable_vars($field['form_name']).$sortstr2."<br />";
+    }
 
     // start form
     $str = "
@@ -67,7 +85,7 @@ function col_filter($module, $col_name, $link=null, $cw) {
         $str .= $sortstr1.enable_vars($field['form_name']).$sortstr2."<br />";
         $str .= "<select class='filter_fields' name='keyword'";
         if ($field['form_tooltip'] <> '') $str .= " title='".$field['form_tooltip']."'";
-        $str .= " onchange='this.form.submit();'>\n";
+        $str .= read_o($read_o)." onchange='this.form.submit();'>\n";
         // blank value with name of field
         $str .= "<option value=''>--</option>\n";
         foreach (explode('|',$field['form_select']) as $select_value) {
@@ -90,7 +108,7 @@ function col_filter($module, $col_name, $link=null, $cw) {
         $str .= $sortstr1.enable_vars($field['form_name']).$sortstr2."<br />";
         $html = "class='filter_fields'";
         if ($field['form_tooltip'] <> '') $html .= " title='".$field['form_tooltip']."'";
-        $html .= " onchange='this.form.submit();'";
+        $html .= read_o($read_o)." onchange='this.form.submit();'";
         $str .= selector_create_select_projects('keyword', '', 'action_form_to_list_'.$field_name.'_selector', '0', $html);
     }
     // user value
@@ -99,7 +117,7 @@ function col_filter($module, $col_name, $link=null, $cw) {
         $str .= $sortstr1.enable_vars($field['form_name']).$sortstr2."<br />";
         $html = "class='filter_fields'";
         if ($field['form_tooltip'] <> '') $html .= " title='".$field['form_tooltip']."'";
-        $html .= " onchange='this.form.submit();'";
+        $html .= read_o($read_o)." onchange='this.form.submit();'";
         if($module != "todo") {
             $str .= selector_create_select_users('keyword','', 'action_form_to_list_'.$field_name.'_selector', '0', $html, '1', '');
         } else {
@@ -111,7 +129,7 @@ function col_filter($module, $col_name, $link=null, $cw) {
         $str .= $sortstr1.enable_vars($field['form_name']).$sortstr2."<br />";
         $str .= "<select class='filter_fields' name='keyword'";
         if ($field['form_tooltip'] <> '') $str .= " title='".$field['form_tooltip']."'";
-        $str .= " onchange='this.form.submit();'>";
+        $str .= read_o($read_o)." onchange='this.form.submit();'>";
         // blank value with name of field
         $str .= "<option value=''>--</option>\n";
         $result = db_query(enable_vars($field['form_select']));
@@ -128,8 +146,8 @@ function col_filter($module, $col_name, $link=null, $cw) {
         $str .= $sortstr1.enable_vars($field['form_name']).$sortstr2."<br />";
         $html = "class='filter_fields'";
         if ($field['form_tooltip'] <> '') $html .= " title='".$field['form_tooltip']."'";
-        $html .= " onchange='this.form.submit();'";
-        $str .= selector_create_select_contacts('keyword', '', 'action_form_to_list_'.$module.'_'.$field_name.'_selector', '0', $html, '1', '1');
+        $html .= read_o($read_o)." onchange='this.form.submit();'";
+        $str .= selector_create_select_contacts('keyword', '', 'action_form_to_list_'.$module.'_'.$field_name.'_selector', '0', $html);
     }
     // otherwise a simple input box
     else {
@@ -152,19 +170,31 @@ function col_filter($module, $col_name, $link=null, $cw) {
     return $str;
 }
 
-
+/**
+ * Manage the filters
+ * Create/update/delete the filters in the Session
+ * return the where clause
+ *
+ * @param string 	$filter    		- Field module
+ * @param string 	$rule      		- Rule to use
+ * @param string 	$keyword   	- Key to search
+ * @param int    		$filter_ID 	- ID of a exists filter
+ * @param string 	$module    	- Module name
+ * @param string 	$firstchar 	- Look for a first char?
+ * @param string 	$operator  	- OR/AND operator
+ * @return string           			WHERE clause
+ */
 function main_filter($filter, $rule, $keyword, $filter_ID, $module, $firstchar = '',$operator = '') {
     global $fields, $flist, $flist_store;
-    
+
     $all_fields = build_array($module, $ID, 'forms');
     if ((!is_array($all_fields)) || count($all_fields) == 0) {
         $all_fields = $fields;
-        
     }
     if ($module == 'mail' || $module == 'todo' || $module == 'helpdesk') {
         $all_fields = array_merge($all_fields, $fields);
     }
-    
+
     // Set operator value to last saved value if no new value is given
     if ($operator == '') {
         if (isset($_SESSION['flist']['operators'][$module])) {
@@ -190,11 +220,26 @@ function main_filter($filter, $rule, $keyword, $filter_ID, $module, $firstchar =
 
 
     // 1. action: check whether a filter element should be removed
-    if (isset($filter_ID) && isset($flist[$module][$filter_ID])) unset($flist[$module][$filter_ID]);
+    if (isset($filter_ID) && is_array($flist[$module])) {
+        unset($flist[$module][$filter_ID]);
+    }
+    elseif (isset($filter_ID) && is_string($flist[$module])) {
+        unset($flist[$module]);
+    }
 
     // 2. action: add the current filter to the filter list
     // 2/a special filter for contacts - select all records where the last name begins with this char
-    if (isset($flist[$module]) && is_string($flist[$module])) return 'AND '.$flist[$module];
+    if (is_string($flist[$module])) {
+
+        $_SESSION['flist']['operators'][$module] = $operator;
+        //if (substr($where,0,2) == "OR") $where = "AND (".substr($where,2).")";
+        //if (!$where) $where = ' AND 1=1 ';
+
+        $_SESSION['flist'] =& $flist;
+
+        return 'AND ('.$flist[$module].')';
+
+    }
     if ($firstchar <> '') {
         $flist[$module][] = array('nachname', 'begins', $firstchar);
     }
@@ -240,18 +285,23 @@ function main_filter($filter, $rule, $keyword, $filter_ID, $module, $firstchar =
     $_SESSION['flist']['operators'][$module] = $operator;
     if (isset($where) && substr($where,0,2) == "OR") $where = "AND (".substr($where,2).")";
     if (!isset($where)) {
-        $where = ' AND 1=1 ';
+        $where = ' AND 1 = 1 ';
     }
 
     $_SESSION['flist'] =& $flist;
     // one result of the whole thing: the where clause for the sql query
-
     return $where;
 }
 
-
+/**
+ * Display all the filters of a module
+ *
+ * @param string 	$module   - Module name
+ * @param string 	$link      	- Special link for no standar modules
+ * @return string           		HTML output
+ */
 function display_filters($module, $link=null) {
-    global $flist, $action, $sid, $ID, $getstring, $operator;
+    global $flist, $action, $sid, $ID, $getstring, $is_related_obj2;
     // avoid double save
     $mode = ($GLOBALS['mode'] != 'data') ? $GLOBALS['mode'] : 'view';
     // All fields
@@ -266,7 +316,7 @@ function display_filters($module, $link=null) {
     if (isset($flist[$module]) && is_string($flist[$module])) {
         return
         " <a href='".$link.".php?mode=$mode&amp;$getstring&amp;ID=$ID&amp;filter_module=$module&amp;action=$action&amp;filter_ID=2".$sid.
-        "' class='filter_active' title='".__('Delete')."'>".$flist[$module]."</a>\n";
+        "' class='filter_active' title='".__('Delete')."'>".expert_filter_translate($flist[$module],$fields,true)."</a>\n";
     }
     if (isset($flist[$module]) && is_array($flist[$module]) && count($flist[$module]) > 0) {
         $filter_list_arr = array();
@@ -307,21 +357,33 @@ function display_filters($module, $link=null) {
 
         }
 
-        //Assign the right display Symbol for logic operation
-        if($operator=='') $operator = $flist['operators'][$module];
+        // Set operator value to last saved value if no new value is given
+        if ($operator == '') {
+            if (isset($_SESSION['flist']['operators'][$module])) {
+                $operator = $_SESSION['flist']['operators'][$module];
+            } else {
+                $operator = $flist['operators'][$module];
+            }
+        }
 
+        if($operator != 'OR') $operator = " AND ";
+
+        //Assign the right display Symbol for logic operation
         if ($operator == "OR") {
             $op = __('or');
         }
         else $op = __('and');
 
-        $str='|&nbsp;<form action="'.xss($_SERVER['SCRIPT_NAME']).'?mode='.$mode.'" method="post" style="display:inline;" name="formOp">';
-        $str.="<input type='radio' name='operator' value='AND' ";
-        if($operator!="OR")$str.="checked='checked'";
-        $str.="onclick='document.formOp.submit()'/>".__('and')."&nbsp;
-     		<input type='radio' value='OR' name='operator'";
-        if($operator=="OR")$str.="checked='checked'";
-        $str.=" onclick='document.formOp.submit()'/>".__('or')."</form>&nbsp;&nbsp;";
+        if (!$is_related_obj2) {
+            $str='|&nbsp;<form action="'.$link.'.php?mode='.$mode.'&amp;'.$getstring.'" method="post" style="display:inline;" name="formOp">';
+            $str.="<input type='radio' name='operator' value='AND' ";
+            if($operator!="OR")$str.="checked='checked'";
+            $str.="onclick='document.formOp.submit()'/>".__('and')."&nbsp;
+     	    	<input type='radio' value='OR' name='operator'";
+            if($operator=="OR")$str.="checked='checked'";
+            $str.=" onclick='document.formOp.submit()'/>".__('or')."</form>&nbsp;&nbsp;";
+        }
+
         if(count($flist[$module])<2 or (is_string($flist[$module])))$str='';
         $filter_list_text = "<b>".__('Filtered').":</b> ".implode($op, $filter_list_arr).
         "&nbsp;&nbsp;$str|
@@ -334,26 +396,43 @@ function display_filters($module, $link=null) {
 }
 
 /**
-* Show the "Edit filters" Link
-* This function creates the required JavaScript function and Link
-* for every module.
-*
-* @param  string $filtermodule Name of the filtered module
-* @return string
-*/
+ * Show the "Edit filters" Link
+ * This function creates the required JavaScript function and Link
+ * for every module.
+ *
+ * @param string 	$filtermodule 	- Name of the filtered module
+ * @param string 	$color        		- Without use
+ * @return string              				HTML output
+ */
 function display_manage_filters($filtermodule, $color='') {
     global $module, $mode, $ID, $flist, $module;
 
     $ret = '';
-    if (isset($flist[$module]) && count($flist[$module]) > 0) $ret .= '&nbsp;&nbsp;|&nbsp;&nbsp;';
-    $ret .= '<a title="'.__('This link opens a popup window').'" href="#" onclick="manage_filters(\''.PATH_PRE.'\',\''.$filtermodule.'\',\''.$module.'\',\''.$mode.'\',\''.$ID.'\')">';
-    if ($color <> '') $ret .= __('Edit filter');
-    else              $ret .= __('Edit filter');
+    if (count($flist[$module]) > 0) $ret .= '&nbsp;&nbsp;|&nbsp;&nbsp;';
+
+    if (is_string($flist[$module]) && strlen($flist[$module]) > 0 && PHPR_EXPERT_FILTERS == 1) {
+        $expert = 1;
+    }
+    else {
+        $expert = 0;
+    }
+
+    $ret .= '<a title="'.__('This link opens a popup window').'" href="#" onclick="manage_filters(\''.PATH_PRE.'\',\''.$filtermodule.'\',\''.$module.'\',\''.$mode.'\',\''.$ID.'\',\''.$expert.'\')">';
+    $ret .= __('Edit filter');
     $ret .= '</a>';
     return $ret;
 }
 
-
+/**
+ * Create the where clause
+ *
+ * @param string 	$field      		- Field module
+ * @param string 	$rule       		- Rule to use
+ * @param string 	$keyword    	- Key to search
+ * @param string 	$module     	- Module name
+ * @param string 	$field_type 	- Type of the field: varchar/integer/decimal/numeric
+ * @return string            			WHERE clause
+ */
 function apply_filter($field, $rule, $keyword, $module, $field_type = 'varchar') {
 
     $table = get_table_by_module($module);
@@ -412,11 +491,12 @@ function apply_filter($field, $rule, $keyword, $module, $field_type = 'varchar')
             }
             switch ($rule) {
                 case 'begins':
-                    
                     $w .= "$table.$field LIKE '$k%'";
+                    $added = true;
                     break;
                 case 'ends':
                     $w .= "$table.$field LIKE '%$k'";
+                    $added = true;
                     break;
                 case 'exact':
                     if ($quote == "'" || is_numeric($keyword)) {
@@ -450,11 +530,12 @@ function apply_filter($field, $rule, $keyword, $module, $field_type = 'varchar')
                     break;
                 case 'not like':
                     $w .= "$table.$field NOT LIKE '%$k%'";
-                    
+                    $added = true;
                     break;
                     // default rule: like
                 default:
                     $w .= "$table.$field LIKE '%$k%'";
+                    $added = true;
             }
             $i++;
         }
@@ -462,7 +543,14 @@ function apply_filter($field, $rule, $keyword, $module, $field_type = 'varchar')
     return $w;
 }
 
-
+/**
+ * Create the where clause for all the fields
+ *
+ * @param string 	$rule       		- Rule to use
+ * @param string 	$keyword    	- Key to search
+ * @param string 	$module     	- Module name
+ * @return string            			WHERE clause
+ */
 function apply_full_filter($rule, $keyword, $module) {
     global $fields;
     foreach ($fields as $field_name => $field) {
@@ -483,7 +571,25 @@ function apply_full_filter($rule, $keyword, $module) {
     return $w;
 }
 
-// Filter in navigation bar
+/**
+ * Checks whether a filter element in the list should be removed
+ *
+ * @param int $filter_ID  	- ID of the filter in the SESSION
+ * @return void
+ */
+function filter_mode($filter_ID) {
+    if (isset($filter_ID)) {
+        $_SESSION['flist'] =& $flist;
+    }
+}
+
+/**
+ * Filter in navigation bar
+ * Make the select of fields, rules and input for keywords
+ *
+ * @param array $fields   	- Array with all the field data
+ * @return string         		HTML output
+ */
 function nav_filter($fields) {
     global $operator;
     $filter_rules = get_filter_rules_array();
@@ -500,6 +606,7 @@ function nav_filter($fields) {
     reset($filter_list);
     foreach($filter_list as $filter_field => $filter_formname) {
         $str .= "<option value='".$filter_field ."'";
+        if ($filter_field == $filter) $str .= ' selected="selected"';
         $str .= '>'.$filter_formname."</option>\n";
     }
     $str .= "</select>";
@@ -514,25 +621,31 @@ function nav_filter($fields) {
     return $str;
 }
 
-// show all users of a group
+/**
+ * Show all users of a group
+ *
+ * @param int 	$user_group 	- Value of the group_ID of the user
+ * @param int 	$value      		- Selected group
+ * @return string         				HTML output
+ */
 function show_filter_group_users($user_group,$value) {
-
     $str = "";
-
     // group system, fetch ID's from the other users
     if ($user_group) {
         $query = "SELECT DISTINCT user_ID, u.nachname, u.vorname
-                             FROM ".DB_PREFIX."grup_user g, ".DB_PREFIX."users u
-                              WHERE grup_ID = ".(int)$user_group."
-                                AND g.user_ID = u.ID
-                                   ORDER BY u.nachname";
+                    FROM ".DB_PREFIX."grup_user g, ".DB_PREFIX."users u
+                   WHERE grup_ID = ".(int)$user_group."
+                     AND g.user_ID = u.ID
+                     AND u.is_deleted is NULL
+                ORDER BY u.nachname";
         $result3 = db_query($query) or db_die();
     }
     // if user is not assigned to a group or group system is not activated
     else {
         $result3 = db_query("SELECT ID, nachname
                                FROM ".DB_PREFIX."users
-                               ORDER BY nachname") or db_die();
+                              WHERE is_deleted is NULL
+                           ORDER BY nachname") or db_die();
     }
 
     // loop over all user ID's of this group, fetch names and display them
@@ -546,7 +659,13 @@ function show_filter_group_users($user_group,$value) {
     return $str;
 }
 
-// convert special user inputs
+/**
+ * Convert special user inputs
+ *
+ * @param string 	$module   	- Module name
+ * @param array  	$p_filter 		- Data of the filter to change
+ * @return array           				Modified p_filter array
+ */
 function rebuild_keyword($module, $p_filter) {
     global $date_format_object;
 
@@ -575,72 +694,65 @@ function rebuild_keyword($module, $p_filter) {
     return $ret;
 }
 
-# Eduardo 2005-10-12
-# Function to get the 'option value' of a filter from his id
-# receives: the module name, the col name and the id
-function get_filter_value_text($module, $col_name, $field_value)
-{
-    # We need this global values
+/**
+ * Function to get the 'option value' of a filter from his id
+ *
+ * @param string 	$module      	- Module name
+ * @param string 	$col_name    	- Field name
+ * @param misc   	$field_value 	- Value of the field
+ * @return string             			HTML output
+ */
+function get_filter_value_text($module, $col_name, $field_value) {
+    // We need this global values
     global $field_name, $field, $fields, $is_related_obj;
 
-    # Note: $field_name and $field will be get as global by col_filter function,
-    # then, we need to save this values before call the function.
+    // Note: $field_name and $field will be get as global by col_filter function,
+    // then, we need to save this values before call the function.
     $field_name_old = $field_name;
     $field_old = $field;
 
-    # storing the values we need
+    // storing the values we need
     $field_name = $col_name;
     $field = $fields[$field_name];
 
-    # we receive the html with the options
+    // we receive the html with the options
     $values = col_filter($module, $col_name, " ", 12);
 
     $field_name = $field_name_old;
     $field = $field_old;
 
-    # we will 'parse' the options to get the
+    // we will 'parse' the options to get the
     $result_from = strpos($values,"<option value=\"$field_value\"");
 
-    if ($result_from === false)
-    {
+    if ($result_from === false) {
         $result_from = strpos($values,"<option value='$field_value'");
-    }
-    else
-    {
+    } else {
         $result_from = strpos($values,">",$result_from);
     }
 
-
-    # if no 'option value' found, then we will return the id , else we will send the value
-    if ($result_from === false)
-    {
+    // if no 'option value' found, then we will return the id , else we will send the value
+    if ($result_from === false) {
         $to_return = $field_value;
-    }
-    else
-    {
-        # getting the value between > and </option>
+    } else {
+        // getting the value between > and </option>
         $result_from = strpos($values,">",$result_from) + 1;
 
         $result_to = strpos($values,"</option>",$result_from);
 
         $to_return = substr($values,$result_from,$result_to - $result_from);
     }
-
     return $to_return;
 }
 
 /**
-* Put a value in the filter array
-*
-* @author Gustavo Solt
-* @copyright (c) 2005 Mayflower GmbH
-* @package PHProjekt
-* @param $name           - variable's name
-* @param $rule           - filter's rule
-* @param $value          - variable's value
-* @param $other_module   - an optional module (for related object and summary page)
-* @access public
-*/
+ * Put a value in the filter array
+ *
+ * @param string 	$name           		- Variable's name
+ * @param string 	$rule           		- Filter's rule
+ * @param misc   	$value          		- Variable's value
+ * @param string 	$other_module  	- An optional module (for related object and summary page)
+ * @return void
+ */
 function put_filter_value($name,$rule,$value,$other_module = '') {
     global $module, $flist;
     if (isset($other_module)&&($other_module != ''))    $use_module = $other_module;
@@ -653,16 +765,12 @@ function put_filter_value($name,$rule,$value,$other_module = '') {
 }
 
 /**
-* Get a value from the filter array
-*
-* @author Gustavo Solt
-* @copyright (c) 2005 Mayflower GmbH
-* @package PHProjekt
-* @param $name     - variable's name
-* @param $module   - module to show
-* @return $value   - variable's value
-* @access public
-*/
+ * Get a value from the filter array
+ *
+ * @param string 	$name     - Variable's name
+ * @param string  	$module   - Module to show
+ * @return string          			Variable's value
+ */
 function get_filter_value($name,$module) {
     global $flist;
 
@@ -680,15 +788,12 @@ function get_filter_value($name,$module) {
 }
 
 /**
-* Get the rules array
-* this is in a function because many functions need it
-*
-* @author Gustavo Solt
-* @copyright (c) 2005 Mayflower GmbH
-* @package PHProjekt
-* @return $filter_rules   - array of filters rules
-* @access public
-*/
+ * Get the rules array
+ * This is in a function because many functions need it
+ *
+ * @param void
+ * @return array 		Array of filters rules
+ */
 function get_filter_rules_array() {
     $filter_rules = array( 'like'     => __('contains'),
     'exact'    => __('exact'),
@@ -706,20 +811,20 @@ function get_filter_rules_array() {
 /**
  * Checks if the expert filter is valid (brackets and quotes)
  *
- * @param string $filter filter to be tested
- * @return boolean true or false depending on provided filter
+ * @param string 	$filter 	- Filter to be tested
+ * @param string 	$table  	- Table where the filter will be aplied
+ * @param array  	$fields 	- Array with field list of db_manager
+ * @return boolean      			True or false depending on provided filter
  */
-function expert_filter_check($filter) {
+function expert_filter_check($filter, $table = '', $fields = array()) {
 
+    $filter = stripslashes($filter);
     $valid = 1;
-
     $filter_len = strlen($filter);
-
 
     // *************************
     // Check invalid characters
     // *************************
-
     // TODO: filter [  and  ]
     if (eregi("[/&\\]",$filter)) {
         $valid = 0;
@@ -728,9 +833,16 @@ function expert_filter_check($filter) {
     // *****************************
     // Check invalid first character
     // *****************************
-
     // the first character can't be ' or "
     if (eregi("['\"]",substr($filter,0,1))) {
+        $valid = 0;
+    }
+
+    // *****************************
+    // Check Comment tags
+    // *****************************
+    // filter can't have --
+    if (strpos($filter,"--") <> false) {
         $valid = 0;
     }
 
@@ -744,50 +856,169 @@ function expert_filter_check($filter) {
     $bracked_opened = false;
 
     for ($i = 0; ($i <= $filter_len) && $valid == 1; $i++) {
-
         if (($filter[$i] == '(') && ($double_quote % 2 == 0) && ($single_quote % 2 == 0) ) {
             $bracket_open++;
             $bracked_opened = true;
         }
-
         if (($filter[$i] == ')') && ($double_quote % 2 == 0) && ($single_quote % 2 == 0) ) {
-
             if (!$bracked_opened) {
                 $valid = 0;
 
             }
-
             $bracket_close = $bracket_close + 1;
-
             if ($bracked_open == $bracket_close) {
                 $bracked_opened = false;
             }
-
         }
-
         if (($filter[$i] == '"') && ($single_quote % 2 == 0) ) {
             $double_quote++;
         }
-
         if (($filter[$i] == "'") && ($double_quote % 2 == 0) ) {
             $single_quote++;
         }
     }
-
     if (($bracket_open <> $bracket_close) || ($bracket_opened == true) || ($double_quote % 2 <> 0) || ($single_quote % 2 <> 0) ) {
         $valid = 0;
-
     }
-
-
-    return "Filter: $filter<br />
-            bracket_open: $bracket_open<br />
-            bracket_close: $bracket_close<br />
-            bracket_opened: $bracket_opened<br />
-            double_quote: $double_quote<br />
-            single_quote: $single_quote<br />
-            valid: $valid";
+    if ($table <> '' && is_array($fields)) {
+        $where = expert_filter_translate($filter, $fields);
+        $query = "SELECT count(*) FROM $table WHERE ($where)";
+        //echo($query);
+        $result = db_query($query);
+        if ($result === false) {
+            $valid = 0;
+        }
+    } else {
+        $valid = 0;
+    }
+    return $valid;
 }
 
+/**
+ * Translate the field names of the filters to be displayed on filters
+ * If unstraslate is true will convert db names to user names (e.g. from remark to title or titulo)
+ * If unstralate is false will comvert user names to field names (e.g. title to remark)
+ *
+ * @param string 			$filter 		- Filter to be translated
+ * @param array 			$fields 		- List of fields of db_manager
+ * @param unknown_type 	$untraslate 	- If true will convert db_names to user translated names
+ * @return string 							Filter translated
+ */
+function expert_filter_translate ($filter, $fields = array(), $untraslate = false) {
 
+    //$filter = stripslashes($filter);
+    $toReturn = '';
+
+    // initializing vars
+    $outTranslate = '';
+    $separator = '';
+    $wordBuffer = '';
+    $textSeparator = array('"',"'");
+    $wordSeparator = array (">","<","=","("," ",")",",","\\");
+    $doNotTranslateList = array("IN","LIKE","EQUAL","NOT","AND","OR");
+    $textArea = false;
+    $temp = array(); // for debugging
+
+    // create an array with words
+    $words = array();
+    foreach ($fields as $oneFieldName => $oneField) {
+        if (isset($oneField['form_name'])) {
+            if (substr($oneField['form_name'],0,3) == '__(') {
+                $fieldNameTranslated = str_replace(" ","_",__(substr($oneField['form_name'],4,-2)));
+            } else {
+                $fieldNameTranslated = $oneField['form_name'];
+            }
+        }
+        if ($untraslate) {
+            $temp = $fieldNameTranslated;
+            $fieldNameTranslated = $oneFieldName;
+            $oneFieldName = $temp;
+        }
+        $words[strtolower($fieldNameTranslated)] = $oneFieldName;
+    }
+
+    // Start reading char by char the filter
+    for ($i = 0; strlen($filter) > $i; $i++) {
+        // get the current char. It could be:
+        // a) a single char (e.g. A..Z),
+        // b) a word separator (e.g. space),
+        // c) a text delimiter (e.g. single quotes)
+        // note: we will not translate the content of the condition
+        // (e.g. a filter with "owner = 'owner'" will be replaced with "von = 'owner'" and NOT with "von = 'von'")
+        $currentChar = substr($filter,$i,1);
+
+        // Starting with option c), the current char is a 'text delimiter' (e.g. " ')
+        if (in_array($currentChar,$textSeparator)) {
+            // We need to know if we are inside the text area or not (inside the quotes or not)
+            if ($textArea && $separator == $currentChar) {
+                // if we are inside the text are (xxxx = "here!") we will clear the buffer and start checking the word
+                // next to the quote
+                $textArea = false;
+                $wordBuffer = '';
+                $separator = '';
+                $outTranslate .= $currentChar;
+            } elseif ($textArea && ($separator <> $currentChar)) {
+                $outTranslate .= $currentChar;
+            } elseif (!$textArea) {
+                // it is starting a text area, then we need to check if there are a word in buffer
+                // note: we also check if the word is a 'reserved' word of SQL
+                if (strlen($wordBuffer) > 0) {
+                    // translation of the word on buffer (if it exists)
+                    if (array_key_exists(strtolower($wordBuffer), $words) && !in_array(strtoupper($wordBuffer),$doNotTranslateList)) {
+                        $outTranslate .= $words[strtolower($wordBuffer)];
+                    } else {
+                        $outTranslate .= $wordBuffer;
+                    }
+                }
+
+                // now, initializing the textarea (e.g. von = "this is a text area")
+                $outTranslate .= $currentChar;
+                $wordBuffer = '';
+                $separator = $currentChar;
+                $textArea = true;
+            }
+        }
+        // we will check the word separators (spaces, minor simbol, equal simbol, etc)
+        elseif (in_array($currentChar,$wordSeparator)) {
+            // If we are inside a text area we will print the char
+            if ($textArea) {
+                $outTranslate .= $currentChar;
+            } else {
+                // checking if there is any word to be translated
+                if (strlen($wordBuffer) > 0) {
+                    // translation of the word on buffer (if it exists)
+                    if (array_key_exists(strtolower($wordBuffer), $words) && !in_array(strtoupper($wordBuffer),$doNotTranslateList)) {
+                        $outTranslate .= $words[strtolower($wordBuffer)];
+                    } else {
+                        $outTranslate .= $wordBuffer;
+                    }
+                }
+
+                // now, the text area stuff
+                $outTranslate .= $currentChar;
+            }
+            $wordBuffer = '';
+        } elseif ((!in_array($currentChar,$textSeparator)) && (!in_array($currentChar,$wordSeparator))) {
+            // If we are inside a text area we will print the char, othewise we will put it into the buffer to be translated
+            if (!$textArea) {
+                $wordBuffer .= $currentChar;
+            } else {
+                $outTranslate .= $currentChar;
+            }
+        }
+        //$temp[$i]['bufer'] = $wordBuffer;$temp[$i]['out'] = $outTranslate; $temp[$i]['current'] = $currentChar;
+    }
+    // At last, we will clear the buffer (and translate it if it is necessary
+    if (strlen($wordBuffer) > 0) {
+        // translation of the word on buffer (if it exists)
+        if (array_key_exists(strtolower($wordBuffer), $words) && !in_array(strtoupper($wordBuffer),$doNotTranslateList)) {
+            $outTranslate .= $words[strtolower($wordBuffer)];
+        } else {
+            $outTranslate .= $wordBuffer;
+        }
+        $wordBuffer = '';
+    }
+    //print_r($temp);die();
+    return $outTranslate;
+}
 ?>

@@ -1,10 +1,12 @@
 <?php
-
-// mail_send_form.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: mail_send_form.php,v 1.69.2.2 2007/03/20 16:14:27 polidor Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_send_form.php,v 1.75 2007-10-18 19:02:37 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -14,6 +16,7 @@ if (check_role("mail") < 2) die("You are not allowed to do this!");
 
 // selector-tranformation stuff
 require_once(LIB_PATH.'/selector/selector.inc.php');
+
 
 if ($justform == 2) $onload = array( 'window.opener.location.reload();', 'window.close();' );
 else if ($justform > 0) $justform++;
@@ -150,16 +153,15 @@ if (isset($_REQUEST['projekt_ID']) && $_REQUEST['projekt_ID'] > 0) {
     $hidden['projekt_ID'] = (int)$_REQUEST['projekt_ID'];
 }
 
+// button bar
+$buttons = array();
+
+
 if (SID) $hidden[session_name()] = session_id();
 $buttons[] = array('type' => 'form_start','name'=>'frm', 'hidden' => $hidden, 'enctype' => 'multipart/form-data');
-$output = "<div id='global-header' $content_div>";
-$output .= get_buttons($buttons);
-$output .= get_tabs_area($tabs);
 $output .= breadcrumb($module, array(array('title'=>__('New'))));
 $output .= '</div>';
 
-// button bar
-$buttons = array();
 
 // the 'mail' button is not necessary on mail form
 if (!($form == "email")) {
@@ -237,7 +239,7 @@ if ($form == "email") {
     }
     // otherwise just display the normal string
     else {
-        $form_fields[] = array('type' => 'string', 'text' => $user_email.'<br />' );
+        $form_fields[] = array('type' => 'string', 'label' => '', 'label_class' => 'label_block', 'text' => $user_email.'<br />');
     }
     // end sender
 }

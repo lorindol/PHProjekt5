@@ -1,14 +1,15 @@
 <?php
 /**
-* contacts member db data script
-*
-* @package    contacts
-* @module     members
-* @author     Albrecht Guenther, Gustavo Solt, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: members_data.php,v 1.6 2006/08/25 05:34:21 polidor Exp $
-*/
+ * contacts member db data script
+ *
+ * @package    contacts
+ * @subpackage members
+ * @author     Albrecht Guenther, Gustavo Solt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: members_data.php,v 1.9 2007-05-31 08:10:56 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role

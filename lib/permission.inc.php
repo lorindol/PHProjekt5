@@ -1,16 +1,26 @@
 <?php
-
-// permission.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: polidor $
-// $Id: permission.inc.php,v 1.7 2006/08/25 05:34:24 polidor Exp $
+/**
+ * Check permissions functions
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: permission.inc.php,v 1.11 2007-05-31 08:11:53 gustavo Exp $
+ */
 
 // check whether lib.inc.php has been included
 if (!defined('lib_included')) die('Please use index.php!');
 
-
-// check permission
+/**
+ * Check permission
+ *
+ * @param string 	$table  	- Associated table
+ * @param string 	$author 	- Field name
+ * @param int 		$ID        	- ID of record
+ * @return void
+ */
 function check_permission($table, $author, $ID) {
     global $user_ID;
 
@@ -25,10 +35,9 @@ function check_permission($table, $author, $ID) {
 /**
  * Checks whether file is locked and user has write permissions
  *
- * @author Nina Schmitt
- * @param string $table associated table
- * @param string $locked name of db_field
- * @param int $ID Id of record
+ * @param string 	$table  	- Associated table
+ * @param string 	$locked 	- Name of db_field
+ * @param int 		$ID        	- ID of record
  * @return boolean
  */
 function check_locked($table, $locked, $ID) {
@@ -41,5 +50,4 @@ function check_locked($table, $locked, $ID) {
     if ($row[0] <> $user_ID and $row[0]>0 and $user_type!=2) return false;
     else return true;
 }
-
 ?>

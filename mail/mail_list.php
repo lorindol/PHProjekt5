@@ -1,10 +1,12 @@
 <?php
-
-// mail_list.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: alexander $
-// $Id: mail_list.php,v 1.16 2006/11/20 10:25:34 alexander Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_list.php,v 1.18 2007-05-31 08:12:08 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -23,9 +25,10 @@ if ($row[11] == "d") {
   // look whether elements below this level exist
   $exist = 0;
   $untouched = 0;
-  $result3 = db_query("select ID, touched, typ
-                         from ".DB_PREFIX."mail_client
-                        where parent = ".(int)$ID);
+  $result3 = db_query("SELECT ID, touched, typ
+                         FROM ".DB_PREFIX."mail_client
+                        WHERE parent = ".(int)$ID."
+                          AND is_deleted is NULL");
   while ($row3 = db_fetch_row($result3)) {
     // mail in this dir exist
     if ($row3[0]) { $exist = 1; }

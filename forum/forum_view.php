@@ -1,14 +1,15 @@
 <?php
 /**
-* forum list view script
-*
-* @package    forum
-* @module     main
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: forum_view.php,v 1.55.2.4 2007/08/11 16:27:28 polidor Exp $
-*/
+ * forum list view script
+ *
+ * @package    forum
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: forum_view.php,v 1.60 2007-05-31 08:11:15 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
@@ -57,8 +58,11 @@ if(!isset($do)){
 if($do=="niente");
 // Liste Foren
 elseif(empty($fID) || $fID == -1) {
-    $result = db_query("SELECT * from ".DB_PREFIX."forum $where $acc
-    AND (parent=0 OR parent IS NULL) ")or db_die();
+    $result = db_query("SELECT *
+                          FROM ".DB_PREFIX."forum
+                               $where $acc
+                           AND (parent=0 OR parent IS NULL)
+                           AND is_deleted is NULL")or db_die();
     $liste= make_list($result);
 
     // button bar
@@ -74,7 +78,7 @@ elseif(empty($fID) || $fID == -1) {
     // form end
     $buttons[] = array('type' => 'form_end');
     // delete forum
-    $buttons[] = array('type' => 'link', 'href' => $_SERVER['SCRIPT_NAME'].'?mode=options&amp;tree_mode='.$tree_mode.'&amp;fID='.(int) $fID.$sid.'&amp;csrftoken='.make_csrftoken(), 'text' => __('Delete forum'), 'active' => false);
+    $buttons[] = array('type' => 'link', 'href' => $_SERVER['SCRIPT_NAME'].'?mode=options&amp;tree_mode='.$tree_mode.'&amp;fID='.(int) $fID.$sid, 'text' => __('Delete forum'), 'active' => false);
     $output .='</div>';
     $output .='<div id="global-content">';
     $output .= get_buttons_area($buttons);
@@ -98,7 +102,10 @@ elseif(empty($fID) || $fID == -1) {
         for ($i=($_SESSION['page']['forum']*$perpage); $i < $max; $i++) {
             $cons ="AND topic='0'";
             $cons1 = "AND antwort = 0";
-            $result = db_query("SELECT * from ".DB_PREFIX."forum where ID = ".(int)$liste[$i]) or db_die();
+            $result = db_query("SELECT *
+                                  FROM ".DB_PREFIX."forum
+                                 WHERE ID = ".(int)$liste[$i]."
+                                   AND is_deleted is NULL") or db_die();
             $row = db_fetch_row($result);
             $output1='';
             tr_tag("forum.php?fID=$row[0]",'',$row[0]);

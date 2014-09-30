@@ -1,14 +1,14 @@
 <?php
 /**
-* holiday file for france
-*
-* @package    calendar
-* @module     main
-* @author     Alex Reil, David Soria Parra, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: specialdays_france.php,v 1.4 2006/08/22 08:05:49 albrecht Exp $
-*/
+ * holiday file for france
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Alex Reil, David Soria Parra, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: specialdays_france.php,v 1.7 2007-05-31 08:12:02 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
  
 class SpecialDays_France
@@ -20,6 +20,13 @@ class SpecialDays_France
 		$this->name = __("france");
 	}
 	
+	/**
+	 * Calculate special days and return array with keys "date", "time" and "type"
+	 *
+	 * @param integer $year
+	 * @return array
+	 * @access public
+	 */
 	function calculate($year)
 	{
 		$data 	= array();
@@ -31,6 +38,13 @@ class SpecialDays_France
 		return $data;
 	}
 	
+	/**
+	 * Calculate holidays 
+	 *
+	 * @param integer $year
+	 * @return array
+	 * @access private
+	 */
 	function calculate_holidays($year)
 	{
 		$es = easter_days($year);
@@ -72,6 +86,13 @@ class SpecialDays_France
 		return $data;
 	}
 		
+	/**
+	 * Calculate special days
+	 *
+	 * @param integer $year
+	 * @return array
+	 * @access private
+	 */
 	function calculate_special_days($year)
 	{
 		$es = easter_days($year);
@@ -80,6 +101,13 @@ class SpecialDays_France
 		return $data;
 	}
 	
+	/**
+	 * Calculate school holidays
+	 *
+	 * @param integer $year
+	 * @return array
+	 * @access private
+	 */
 	function calculate_school_holidays($year)
 	{
 		$es = easter_days($year);
@@ -88,3 +116,4 @@ class SpecialDays_France
 	}
 	
 }
+?>

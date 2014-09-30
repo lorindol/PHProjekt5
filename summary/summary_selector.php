@@ -1,15 +1,18 @@
 <?php
+/**
+ * @package    summary
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: summary_selector.php
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined('lib_included')) die('Please use summary.php!');
 
 require_once(LIB_PATH."/selector/selector.inc.php");
 
-$tabs = array();
-// form start
-echo '<div id="global-header">';
-echo get_tabs_area($tabs);
-echo '</div>';
 echo '<div id="global-content">'."\n";
 
 // --------- Selektor config ---------

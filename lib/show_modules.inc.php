@@ -1,10 +1,14 @@
 <?php
-
-// show_modules.inc.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $auth$
-// $Id: show_modules.inc.php,v 1.18 2006/08/22 08:05:48 albrecht Exp $
+/**
+ * Define modules links
+ *
+ * @package    	lib
+ * @subpackage 	main
+ * @author     	Albrecht Guenther, $auth$
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: show_modules.inc.php,v 1.22 2007-05-31 08:11:55 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");

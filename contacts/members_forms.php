@@ -1,14 +1,15 @@
 <?php
 /**
-* members form script
-*
-* @package    contacts
-* @module     members
-* @author     Albrecht Guenther, $Author: gustavo $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: members_forms.php,v 1.8 2006/11/07 00:28:21 gustavo Exp $
-*/
+ * members form script
+ *
+ * @package    contacts
+ * @subpackage members
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: members_forms.php,v 1.13 2008-01-08 01:50:08 polidor Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 include_once(LIB_PATH.'/access_form.inc.php');
 
@@ -16,7 +17,8 @@ include_once(LIB_PATH.'/access_form.inc.php');
 $result = db_query("SELECT ID, anrede, vorname, nachname, kurz, firma, email, tel1, tel2,
                            mobil, fax, strasse, stadt, plz, land, ldap_name
                       FROM ".DB_PREFIX."users
-                     WHERE ID = ".(int)$ID) or db_die();
+                     WHERE ID = ".(int)$ID."
+                       AND is_deleted is NULL") or db_die();
 $row = db_fetch_row($result);
 if ((PHPR_LDAP != 0) && ($ldap_conf[$row[15]]["ldap_sync"] == "2")) {
     get_ldap_usr_data($row[0]);
@@ -37,11 +39,9 @@ $buttons = array();
 // form start
 $hidden = array('ID' => $ID);
 if(SID) $hidden[session_name()] = session_id();
-$buttons[] = array('type' => 'form_start', 'hidden' => $hidden);
-$output .= '<div id="global-header">';
+$buttons[] = array('type' => 'form_start', 'hidden' => $hidden, 'enctype' => 'multipart/form-data');
 $output .= get_buttons($buttons);
-$output .= get_tabs_area($tabs);
-$output .= '</div>';
+
     
 /******************************
 *         buttons

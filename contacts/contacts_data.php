@@ -1,14 +1,15 @@
 <?php
 /**
-* contacts db data handling script
-*
-* @package    contacts
-* @module     external contacts
-* @author     Albrecht Guenther, $Author: polidor $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: contacts_data.php,v 1.54.2.4 2007/03/13 04:13:57 polidor Exp $
-*/
+ * contacts db data handling script
+ *
+ * @package    contacts
+ * @subpackage external contacts
+ * @author     Albrecht Guenther, $Author: nina $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: contacts_data.php,v 1.65 2007-11-09 10:28:55 nina Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // check role
@@ -54,20 +55,16 @@ if ($imp_approve) {
 else if ($imp_undo) {
     // remove a single entry from the import list
     if ($ID > 0) {
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."contacts
-                             WHERE ID = ".(int)$ID) or db_die();
-
+        delete_record_id('contacts',"WHERE ID = ".(int)$ID);
         // delete corresponding entry from db_record
-        remove_link($ID, 'contacts');
+        remove_link($ID, 'contacts');        
     }
     // remove the complete import list
     else {
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."contacts
-                             WHERE von = ".(int)$user_ID."
-                               AND $sql_user_group
-                               AND import = '1'") or db_die();
+        $where = "WHERE von = ".(int)$user_ID."
+                    AND $sql_user_group
+                    AND import = '1'";
+        delete_record_id('contacts',$where);
         message_stack_in(__('The list has been rejected.'), "contacts", "notice");
         $approve_contacts = '';
         $_SESSION['approve_contacts'] =& $approve_contacts;
@@ -91,15 +88,14 @@ if (PHPR_CONTACTS_PROFILES and !$cancel) {
         while($row = db_fetch_row($result)) {
             $profile_ids .= ",$row[0]";
         }
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."contacts_prof_rel
-                             WHERE contact_ID = ".(int)$ID ."
-                               AND contacts_profiles_ID IN ($profile_ids)") or db_die();
+        $where = "WHERE contact_ID = ".(int)$ID ." 
+                    AND contacts_profiles_ID IN ($profile_ids)";
+        delete_record_id('contacts_prof_rel',$where);
     }
     else if ($create_b or $create_update_b or $create_contact) {
         // find the ID of the last created user and assign it to ID
-        $result = db_query("SELECT MAX(ID)
-                              FROM ".DB_PREFIX."contacts
+        $result = db_query("SELECT MAX(ID) 
+                              FROM ".DB_PREFIX."contacts 
                              WHERE von = ".(int)$user_ID) or db_die();
         $row = db_fetch_row($result);
         $ID = $row[0];
@@ -108,7 +104,7 @@ if (PHPR_CONTACTS_PROFILES and !$cancel) {
     if (!$delete_b and $profile_lists[0] > 0) {
         foreach ($profile_lists as $profile) {
             $result = db_query("INSERT INTO ".DB_PREFIX."contacts_prof_rel
-                                       (        contact_ID,        contacts_profiles_ID)
+                                                (contact_ID, contacts_profiles_ID)
                                 VALUES (".(int)$ID."      ,".(int)$profile."           )") or db_die();
         }
     }
@@ -129,7 +125,7 @@ if ($action == 'store_selection') {
         $filters .= $filtername." ".$p_filter[1]." ".$p_filter[2]." | ";
     }
     $result = db_query("INSERT INTO ".DB_PREFIX."contacts_profiles
-                                        (        von      ,   name                        ,  remark)
+                                        (von,     name,      remark)
                                  VALUES (".(int)$user_ID.",'".show_iso_date1($dbTSnull)."','".xss($filters)."')") or db_die();
     // fetch the ID number for later reference
     $result = db_query("SELECT MAX(ID)
@@ -149,12 +145,13 @@ if ($action == 'store_selection') {
     // do the query
     $result2 = db_query("SELECT ID
                            FROM ".DB_PREFIX."contacts
-                          WHERE (acc_read LIKE 'system'
+                          WHERE is_deleted is NULL
+                            AND (acc_read LIKE 'system'
                                  OR ((von = ".(int)$user_ID."
                                  OR acc_read LIKE 'group'
                                  OR acc_read LIKE '%\"$user_kurz\"%')
                                  AND $sql_user_group))
-                                 $where") or db_die();
+                                $where") or db_die();
     while ($row2 = db_fetch_row($result2)) {
         $result3 = db_query("INSERT INTO ".DB_PREFIX."contacts_prof_rel
                                     (        contact_ID,        contacts_profiles_ID)
@@ -182,6 +179,7 @@ else if ($modify_b || $modify_update_b) {
     $result = db_query("SELECT ID, von, acc_write
                           FROM ".DB_PREFIX."contacts
                          WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL
                            AND (acc_read LIKE 'system'
                                 OR ((von = ".(int)$user_ID."
                                 OR acc_read LIKE 'group'
@@ -225,14 +223,20 @@ else if ($modify_b || $modify_update_b) {
             }
         }
     }
-   message_stack_in(__('The data set is now modified')." :-)", "contacts", "notice");
+
+    // Update organisations
+    if (is_array($organisations)) {
+        update_organisation_personen_table($organisations, array($ID), $_POST, 'contact');
+    }
+
+    message_stack_in(__('The data set is now modified')." :-)", "contacts", "notice");
 }
 else if ($create_b || $create_update_b) {
     $accessstring = insert_access($module);
     if ($acc_write <> '') $acc_write = 'w';
     sqlstrings_create();
     $result = db_query("INSERT INTO ".DB_PREFIX."contacts
-                               (        gruppe      ,        von      ,        parent ,   sync1    ,  sync2    ,  acc_read        , acc_write        , ".$sql_fieldstring." )
+                               (        gruppe      ,        von      ,        parent  ,  sync1    ,  sync2    ,  acc_read       ,  acc_write        ,  ".$sql_fieldstring." )
                         VALUES (".(int)$user_group.",".(int)$user_ID.",".(int)$parent.",'$dbTSnull','$dbTSnull','$accessstring[0]','$accessstring[1]', ".$sql_valuestring.")") or db_die();
     message_stack_in(__('The new contact has been added')." :-)", "contacts", "notice");
 }
@@ -240,10 +244,16 @@ else if ($create_b || $create_update_b) {
 if ($create_update_b) {
     // find the ID of the last created user and assign it to ID
     $result = db_query("SELECT MAX(ID)
-                          FROM ".DB_PREFIX."contacts
-                         WHERE von = ".(int)$user_ID) or db_die();
+                        FROM ".DB_PREFIX."contacts
+                        WHERE von = ".(int)$user_ID) or db_die();
     $row = db_fetch_row($result);
     $ID = $row[0];
+
+    // Add organisations
+    if (is_array($organisations)) {
+        update_organisation_personen_table($organisations, array($ID), $_POST, 'contact');
+    }
+
     $query_str = "contacts.php?action=contacts&mode=forms&ID=".$ID;
     header('Location: '.$query_str);
 } else if ($modify_update_b) {
@@ -262,7 +272,13 @@ else {
 // *************
 // function area
 
-// fetch contacts of this user into array for later doublet check
+/**
+ * fetch contacts of current user into array
+ * for later doublet check
+ *
+ * @param void
+ * @return array - Array with contacts data 
+ */
 function fetch_contacts() {
     global $doublet_fields, $user_ID;
 
@@ -274,7 +290,8 @@ function fetch_contacts() {
 
     $result2 = db_query("SELECT ID, ".implode(',', $new_val)."
                            FROM ".DB_PREFIX."contacts
-                          WHERE von = ".(int)$user_ID) or db_die();
+                          WHERE von = ".(int)$user_ID."
+                            AND is_deleted is NULL") or db_die();
     while ($row2 = db_fetch_row($result2)) {
         $ex_records[$row2[0]]['ID'] = $row2[0];
         $i = 1;
@@ -286,7 +303,13 @@ function fetch_contacts() {
     return $ex_records;
 }
 
-
+/**
+ * check duplicate records in the import rutine
+ *
+ * @param array imp_records  - Imported Fields data
+ * @param array ex_records   - Existing fields data
+ * @return int               - 0 for not found doublette, ID of the similar record
+ */
 function check_for_doublettes($imp_records, $ex_records) {
     global $doublet_fields;
 
@@ -303,21 +326,32 @@ function check_for_doublettes($imp_records, $ex_records) {
     return 0;
 }
 
-
-// if no last name is given - e.g. during import - use the company name
+/**
+ * if no last name is given - e.g. during import - use the company name
+ *
+ * @param string nachname - Name
+ * @param string firma    - Company Name
+ * @return string         - Name / Company Name
+ */
 function check_lastname($nachname, $firma) {
     $nachname ? $nachname : $nachname = $firma;
     return $nachname;
 }
 
-
+/**
+ * delete contact record and all the relations
+ *
+ * @param int ID - Id of the record to delete
+ * @return void
+ */
 function delete_record($ID) {
     global $fields, $user_ID;
 
     // check permission
     $result = db_query("SELECT von, acc_write, nachname
                           FROM ".DB_PREFIX."contacts
-                         WHERE ID = ".(int)$ID) or db_die();
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL") or db_die();
     $row = db_fetch_row($result);
     if ($row[0] == 0) {
         message_stack_in("no entry found","contacts","error");
@@ -330,9 +364,7 @@ function delete_record($ID) {
 
     if (!$error) {
         // delete the entry from table contacts_profiles
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."contacts_prof_rel
-                             WHERE contact_ID = ".(int)$ID) or db_die();
+        delete_record_id('contacts_prof_rel',"WHERE contact_ID = ".(int)$ID);
         // delete all files associated with this record
         foreach($fields as $field_name => $field) {
             if ($field['form_type'] == 'upload' ) {
@@ -340,17 +372,12 @@ function delete_record($ID) {
             }
         }
         // delete record in db
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."contacts
-                             WHERE ID = ".(int)$ID) or db_die();
+        delete_record_id('contacts',"WHERE ID = ".(int)$ID);
         // delete corresponding entry from db_record
         remove_link($ID, 'contacts');
         message_stack_in( $row[2].": ".__('The contact has been deleted').".  ","contacts","notice");
-
-        $result = db_query("DELETE
-                              FROM ".DB_PREFIX."project_contacts_rel
-                             WHERE contact_ID = ".(int)$ID) or db_die();
-
+        
+        delete_record_id('project_contacts_rel',"WHERE contact_ID = ".(int)$ID);
         message_stack_in(__('Removed contact - project relation.'), "contacts", "notice");
 
         // finally delete history

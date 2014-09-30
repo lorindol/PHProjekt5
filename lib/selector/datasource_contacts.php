@@ -1,33 +1,35 @@
 <?php
 /**
-* selector for external contacts
-*
-* @package    selector
-* @module     main
-* @author     Martin Brotzeller, Gustavo Solt, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: datasource_contacts.php,v 1.35.2.1 2007/01/24 14:27:35 alexander Exp $
-*/
+ * Selector for external contacts
+ *
+ * @package    	selector
+ * @subpackage	main
+ * @author     	Martin Brotzeller, Gustavo Solt, $Author: gustavo $
+ * @licence     GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  	2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    	$Id: datasource_contacts.php,v 1.44 2008-01-03 22:26:36 gustavo Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 // since lib.inc.php is already included, lib_path contains the correct value
 include_once(LIB_PATH.'/selector/selector.inc.php');
 
-/** 
- * fetch_fields() - Query the data source 
+/**
+ * fetch_fields() - Query the data source
  *
- * @param options Array containing the definition of the data source
- *                'table'     - Table to be queried 
+ * @param array		$options 			- Array containing the definition of the data source
+ *                'table'     - Table to be queried
  *                'where'     - where criteria for this table
- *                'order'     - comma separated list of fields to sort by 
+ *                'order'     - comma separated list of fields to sort by
  *                'ID'        - name of the id column
  *                'display'   - array containing the fields to be displayed
  *                'dstring'   - Format string for the fields to be displayed
  *                'tisplay'   - array containing the column titles in xhtml
  *                'tstring'   - format string for the titles
  *                'filter'    - array containing data to display and set the filters.
- *                'limit'     - maximum number of entries returned 
- * @param preselect Array containing selected options
+ *                'limit'     - maximum number of entries returned
+ * @param array		$preselect		- Array containing selected options
+ * @return array						Array with the found hits
  * @access public
  */
 function contactsfetch_fields($options,$preselect) {
@@ -58,7 +60,7 @@ function contactsfetch_fields($options,$preselect) {
         $options['ID'] = "ID";
     }
     if (!isset($options['display'])) {
-        $options['display'] = array("vorname","nachname");
+        $options['display'] = array("vorname","nachname","name");
     }
     if (!isset($options['dstring'])) {
         $options['dstring'] = "%s";
@@ -89,11 +91,13 @@ function contactsfetch_fields($options,$preselect) {
                 break;
             }
 
-            $query = "SELECT ".$options['ID'].", c.nachname, c.vorname
+            $query = "SELECT ".$options['ID'].", c.nachname, c.vorname, o.name
                         FROM ".DB_PREFIX."contacts AS c
-                       WHERE ".$options['ID']." = ".xss($k);
+                   LEFT JOIN ".DB_PREFIX."organisation_contacts_rel as ocr ON ocr.contact_ID = c.ID
+                   LEFT JOIN ".DB_PREFIX."organisations as o ON o.ID = ocr.organisation_ID AND o.is_deleted is NULL
+                       WHERE c.is_deleted is NULL AND ".$options['ID']." = ".xss($k);
             $result = db_query($query) or db_die();
-    
+
             $row = db_fetch_row($result);
             $hits['display'][$row[0]] = "$row[1], $row[2]";
             $hits['tisplay'][$row[0]] = "$row[1], $row[2]";
@@ -101,9 +105,12 @@ function contactsfetch_fields($options,$preselect) {
     } else {
         // normal result
         // query for contacts
-        $query = "SELECT ".$options['ID'].", c.nachname, c.vorname
+        $query = "SELECT ".$options['ID'].", c.nachname, c.vorname, o.name
                     FROM ".DB_PREFIX."contacts AS c
-                   WHERE $where $order";
+               LEFT JOIN ".DB_PREFIX."organisation_contacts_rel as ocr ON ocr.contact_ID = c.ID
+               LEFT JOIN ".DB_PREFIX."organisations as o ON o.ID = ocr.organisation_ID AND o.is_deleted is NULL
+                   WHERE c.is_deleted is NULL AND $where
+                         $order";
         $result = db_query($query) or db_die();
 
         $hits = array('display'=>array(), 'tisplay'=>array(), 'overflow'=>false);
@@ -114,12 +121,12 @@ function contactsfetch_fields($options,$preselect) {
                 break;
             }
 
-            $hits['display'][$row[0]] = "$row[1], $row[2]";
-            $hits['tisplay'][$row[0]] = "$row[1], $row[2]";
+            $hits['display'][$row[0]] = "$row[1], $row[2] ($row[3])";
+            $hits['tisplay'][$row[0]] = "$row[1], $row[2] ($row[3])";
         }
     }
 
-    // No result found    
+    // No result found
     if (!isset($selektor_answer)) {
         if (count($hits['display']) == 0) $selektor_answer = __('there were no hits found.')."<br /><br />\n";
         else {
@@ -140,12 +147,13 @@ function contactsfetch_fields($options,$preselect) {
     return $hits;
 }
 
-/** 
- * Display Filters 
+/**
+ * Display Filters
  *
- * @param $options    - options, see fetch_fields
- * @param $object     - serialized selector object containing selected entries 
- * @param $name       - name of the current filter objects 
+ * @param array		$options    	- Options, see fetch_fields
+ * @param string	$object     	- Serialized selector object containing selected entries
+ * @param string	$name       	- Name of the current filter objects
+ * @return string					HTML output
  * @access public
  */
 function contactsdisplay_filters1($options, $object, $name, $getprm=array()) {
@@ -236,7 +244,7 @@ function contactsdisplay_filters1($options, $object, $name, $getprm=array()) {
                     </tr>\n";
 
         foreach ($contactsextras as $key=>$val) {
-            $val = xss($val);
+            $val = xss_array($val);
             $fform .= $val['getform']($selector_name);
         }
     }
@@ -265,7 +273,7 @@ function contactsdisplay_filters1($options, $object, $name, $getprm=array()) {
             } else {
                 $filter_list_arr[] = " <a href='".xss($_SERVER['SCRIPT_NAME'])."?filterdel=$k".$hrefprm."&amp;".$getstring.$sid.
                                      "' class='filter_active' title='".__('Delete')."'>&nbsp;".str_replace("%", "", $v)."&nbsp;</a>\n";
-            }                                 
+            }
         }
         // link to delete all filter
         if ($_SESSION[$selector_name]['javascript']) {
@@ -273,7 +281,7 @@ function contactsdisplay_filters1($options, $object, $name, $getprm=array()) {
             $filter_link_2 = "&amp;".$getstring.$sid;
             $fform .= "<b>".__('Filtered').":</b> ".implode('+', $filter_list_arr).
                       "&nbsp;&nbsp;|&nbsp;&nbsp;<a href='#' onclick=\"get_filter_delete_link('".$filter_link_1."', '".$filter_link_2."', '".$selector_type."', '".$selector_name."');\" ".
-                      "class='filter_manage' title='".__('Delete all filter')."'>".__('Delete all filter')."</a>\n";            
+                      "class='filter_manage' title='".__('Delete all filter')."'>".__('Delete all filter')."</a>\n";
         } else {
             $fform .= "<b>".__('Filtered').":</b> ".implode('+', $filter_list_arr).
                       "&nbsp;&nbsp;|&nbsp;&nbsp;<a href='".xss($_SERVER['SCRIPT_NAME'])."?filterdel=-1".$hrefprm.'&amp;'.$getstring.$sid.
@@ -285,10 +293,11 @@ function contactsdisplay_filters1($options, $object, $name, $getprm=array()) {
     return $fform;
 }
 
-/** 
+/**
  * Parse filter and put it in the session
  *
- * @param  $object    - current selection object which gets the filter added 
+ * @param object	$object    - Current selection object which gets the filter added
+ * @return void
  * @access
  */
 function contactsparse_filters(&$object) {
@@ -301,7 +310,7 @@ function contactsparse_filters(&$object) {
 
         // only put the filter['text'] strings
         $options = $object->sourcedata['filter']['text'];
-        
+
         if (    isset($textfilterstring) &&
                 $textfilterstring != ""  &&
                 array_key_exists($textfilter,$options)) {
@@ -328,11 +337,11 @@ function contactsparse_filters(&$object) {
     }
 }
 
-/** 
- * Display input and select box for profiles 
+/**
+ * Display input and select box for profiles
  *
- * @param string selector_name - Name of the selector
- * @return string
+ * @param string 	$selector_name 	- Name of the selector
+ * @return string						HTML output
  * @access public
  */
 function contactsextra_profiles($selector_name) {
@@ -366,13 +375,15 @@ function contactsextra_profiles($selector_name) {
     $ret .= "</select>
         </td>
     </tr>\n";
-    
+
     return $ret;
 }
 
 /**
- * Evaluate select box extra_profiles 
+ * Evaluate select box extra_profiles
  *
+ * @param void
+ * @return void
  * @access public
  */
 function contactseval_extra_profiles() {
@@ -384,10 +395,12 @@ function contactseval_extra_profiles() {
                     FROM ".DB_PREFIX."contacts_profiles AS p,
                          ".DB_PREFIX."contacts_prof_rel AS r,
                          ".DB_PREFIX."contacts AS c
-                   WHERE p.von = ".(int)$user_ID." 
-                     AND p.ID = ".(int)$contactsextra_profile." 
+                   WHERE p.von = ".(int)$user_ID."
+                     AND p.ID = ".(int)$contactsextra_profile."
                      AND p.ID=r.contacts_profiles_ID
-                     AND c.ID=r.contact_ID";
+                     AND c.ID=r.contact_ID
+                     AND c.is_deleted is NULL
+                     AND r.is_deleted is NULL";
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {
             $addprof[$row[0]] = $row[0];
@@ -396,28 +409,28 @@ function contactseval_extra_profiles() {
         $selektor_answer = __('Added profile')."<br /><br />\n";
     }
     if (count($addprof) == 0) $selektor_answer = __('there were no hits found.')."<br /><br />\n";
-    
+
     return $addprof;
 }
 
-/** 
+/**
  * display input and select box for projects
  *
- * @param string selector_name - Name of the selector
- * @return string
+ * @param string 	$selector_name 	- Name of the selector
+ * @return string						HTML output
  * @access public
  */
 function contactsextra_projects($selector_name) {
     global $user_ID, $user_kurz, $sql_user_group;
 
+    $order = sort_string('projects');
+
     $options = "<option selected='selected'></option>\n";
-    $query = "SELECT ID, name
-                FROM ".DB_PREFIX."projekte
-               WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') AND $sql_user_group))";
-    $res = db_query($query) or db_die();
+    $where = "WHERE (acc LIKE 'system' OR ((von = ".(int)$user_ID." OR acc LIKE 'group' OR acc LIKE '%\"$user_kurz\"%') AND $sql_user_group)) AND is_deleted is NULL";
+    $tmp = get_elements_of_tree("projekte","name",$where,"personen",$order,'',"parent",0);
     $num_res = 0;
-    while ($row = db_fetch_row($res)) {
-        $options .= "<option value='".$row[0]."' title='".$row[1]."'>".$row[1]."</option>\n";
+    foreach ($tmp as $row) {
+        $options .= "<option value='".$row['value']."' title='".$row['text']."'>".(str_repeat('&nbsp;&nbsp;', $row['depth'])).$row['text']."</option>\n";
         $num_res++;
     }
     // put disabled or not the select
@@ -437,13 +450,15 @@ function contactsextra_projects($selector_name) {
     $ret .= "</select>
         </td>
     </tr>\n";
-    
+
     return $ret;
 }
 
-/** 
+/**
  * Evaluates the select box extra_project
  *
+ * @param void
+ * @return string		HTML output
  * @access public
  */
 function contactseval_extra_projects() {
@@ -453,8 +468,9 @@ function contactseval_extra_projects() {
     $addproj = array();
     if (isset($contactsextra_project) && $contactsextra_project != 0) {
         $query = "SELECT contact_ID
-                FROM ".DB_PREFIX."project_contacts_rel
-               WHERE project_ID = ". intval($contactsextra_project) ." ";
+                    FROM ".DB_PREFIX."project_contacts_rel
+                   WHERE project_ID = ". intval($contactsextra_project) ."
+                     AND is_deleted is NULL";
         $res = db_query($query) or db_die();
         while ($row = db_fetch_row($res)) {
             list($u_id,$u_g) = split(",",slookup('contacts', 'ID,gruppe', 'ID', $row[0],'1'));

@@ -1,11 +1,12 @@
 <?php
-
-// settings_data.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: gustavo $
-// $Id: settings_data.php,v 1.36.2.1 2007/01/13 16:42:00 gustavo Exp $
-
+/**
+ * @package    settings
+ * @subpackage main
+ * @author     Franz Graf, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: settings_data.php,v 1.39 2007-05-31 08:13:46 gustavo Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");

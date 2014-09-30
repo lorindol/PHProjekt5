@@ -1,18 +1,19 @@
 <?php
 /**
-* provides selector data for the contacts
-*
-* This file check the $_REQUEST for see what selector was clicked
-* In first case, (Form to Selector) the data are stored on the SESSION and call the selector file.
-* In second case, (Selector to Form) get the selected data and continue with the form.
-*
-* @package    contacts
-* @module     selector
-* @author     Gustavo Solt, $Author: alexander $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: contacts_selector_data.php,v 1.7.2.2 2007/01/23 15:35:48 alexander Exp $
-*/
+ * provides selector data for the contacts
+ *
+ * This file check the $_REQUEST for see what selector was clicked
+ * In first case, (Form to Selector) the data are stored on the SESSION and call the selector file.
+ * In second case, (Selector to Form) get the selected data and continue with the form.
+ *
+ * @package    contacts
+ * @subpackage selector
+ * @author     Gustavo Solt, $Author: albrecht $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: contacts_selector_data.php,v 1.13 2008-03-04 10:51:59 albrecht Exp $
+ */
+
 if (!defined('lib_included')) die('Please use index.php!');
 
 // Common values
@@ -39,6 +40,33 @@ if (isset($_REQUEST['action_form_to_contact_selector']) ||
     // pressed okay
         $selector = xss_array($_POST[$_SESSION['contactdata']['formdata']['_selector_name']."srcs"]);
         $_SESSION['contactdata']['formdata']['parent'] = $selector[0];
+    }
+    // okay & cancel
+    $formdata = $_SESSION['contactdata']['formdata'];
+    unset($_SESSION['contactdata']['formdata']);
+    unset($_REQUEST['filterform']);
+    
+// Selector for organisations (Form)
+} else if (isset($_REQUEST['action_form_to_organisation_selector']) ||
+    isset($_REQUEST['action_form_to_organisation_selector_x'])) {
+    $formdata['_selector_type'] = 'organisation';
+    $formdata['_title']         = __('Organisation selector');
+    $formdata['_selector']      = $organisations;
+    $formdata['_mode']          = 'forms';
+    $formdata['_return']        = 'action_organisation_selector_to_form_ok';
+    $formdata['_cancel']        = 'action_organisation_selector_to_form_cancel';
+    $_SESSION['contactdata']['formdata'] = $formdata;
+    $delete_selector_filters = true;
+
+} else if (isset($_REQUEST['action_organisation_selector_to_form_ok']) ||
+           isset($_REQUEST['action_organisation_selector_to_form_cancel'])) {
+    // back from selector (okay or cancel)
+    if (isset($_REQUEST['action_organisation_selector_to_form_ok'])) {
+        // pressed okay
+        $selector = xss_array($_POST[$_SESSION['contactdata']['formdata']['_selector_name']."dsts"]);
+        if (is_array($selector)) {
+            $_SESSION['contactdata']['formdata']['organisations'] = $selector;
+        } else $_SESSION['contactdata']['formdata']['organisations'] = array();
     }
     // okay & cancel
     $formdata = $_SESSION['contactdata']['formdata'];
@@ -305,6 +333,8 @@ if (isset($_REQUEST['action_form_to_contact_selector']) ||
 // If is defined one of this selectors, call the selector file.
 if (isset($_REQUEST['action_form_to_contact_selector']) ||
     isset($_REQUEST['action_form_to_contact_selector_x']) ||
+    isset($_REQUEST['action_form_to_organisation_selector']) ||
+    isset($_REQUEST['action_form_to_organisation_selector_x']) ||
     isset($_REQUEST['action_form_to_access_selector']) ||
     isset($_REQUEST['action_form_to_access_selector_x']) ||
     isset($_REQUEST['action_form_to_project_selector']) ||

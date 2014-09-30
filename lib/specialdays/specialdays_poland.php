@@ -1,14 +1,14 @@
 <?php
 /**
-* holiday file for poland
-*
-* @package    calendar
-* @module     main
-* @author     Wilhelm Okarmus <okarmus@pk.edu.pl>, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: specialdays_poland.php,v 1.3 2006/08/22 08:05:49 albrecht Exp $
-*/
+ * holiday file for poland
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Wilhelm Okarmus <okarmus@pk.edu.pl>, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: specialdays_poland.php,v 1.6 2007-05-31 08:12:03 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
 
 class SpecialDays_Poland
@@ -178,4 +178,4 @@ class SpecialDays_Poland
 		return $data;
 	}
 }
-
+?>

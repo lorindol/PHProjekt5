@@ -1,14 +1,14 @@
 <?php
 /**
-* holiday file for argentina
-*
-* @package    calendar
-* @module     main
-* @author     Gustavo Solt, $Author: albrecht $
-* @licence    GPL, see www.gnu.org/copyleft/gpl.html
-* @copyright  2000-2006 Mayflower GmbH www.mayflower.de
-* @version    $Id: specialdays_argentina.php,v 1.3 2006/08/22 08:05:49 albrecht Exp $
-*/
+ * holiday file for argentina
+ *
+ * @package    calendar
+ * @subpackage main
+ * @author     Gustavo Solt, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: specialdays_argentina.php,v 1.6 2007-05-31 08:12:02 gustavo Exp $
+ */
 if (!defined('lib_included')) die('Please use index.php!');
 
 
@@ -121,3 +121,4 @@ class SpecialDays_Argentina
 		return $data;
 	}
 }
+?>

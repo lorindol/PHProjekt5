@@ -1,10 +1,12 @@
 <?php
-
-// mail_forms.php - PHProjekt Version 5.2
-// copyright  ©  2000-2005 Albrecht Guenther  ag@phprojekt.com
-// www.phprojekt.com
-// Author: Albrecht Guenther, $Author: nina $
-// $Id: mail_forms.php,v 1.59.2.2 2007/05/14 08:41:50 nina Exp $
+/**
+ * @package    mail
+ * @subpackage main
+ * @author     Albrecht Guenther, $Author: polidor $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: mail_forms.php,v 1.67 2008-01-14 02:45:05 polidor Exp $
+ */
 
 // check whether the lib has been included - authentication!
 if (!defined("lib_included")) die("Please use index.php!");
@@ -22,12 +24,13 @@ $csrftoken = make_csrftoken();
 
 // fetch original data
 if ($ID) {
-    $result = db_query("select ID, von, subject, body, sender, recipient, cc, kat, remark, date_received,
+    $result = db_query("SELECT ID, von, subject, body, sender, recipient, cc, kat, remark, date_received,
                                touched, date_sent, body_html, parent, contact, projekt, typ, acc, acc_write, gruppe, header 
-                          from ".DB_PREFIX."mail_client
-                         where ID = ".(int)$ID." 
-                         AND (von = ".(int)$user_ID." OR (acc LIKE 'system' OR
-                              ((von = ".(int)$user_ID." 
+                          FROM ".DB_PREFIX."mail_client
+                         WHERE ID = ".(int)$ID."
+                           AND is_deleted is NULL
+                           AND (von = ".(int)$user_ID." OR (acc LIKE 'system' OR
+                               ((von = ".(int)$user_ID." 
                                 OR acc LIKE 'group'
                                 OR acc LIKE '%\"$user_kurz\"%')
                                ".group_string().")))") or db_die();
@@ -51,7 +54,29 @@ if ($ID) {
 
 }
 //unset ID when copying project
-if ($form == "d") $ID=prepare_ID_for_copy($ID,$copy);
+if ($form == "d") {
+    $ID=prepare_ID_for_copy($ID,$copyform); 
+}
+elseif ($copyform == 1) {
+    $result = db_query("SELECT ID,von,subject,body,sender,recipient,cc,kat,remark,date_received,touched,typ,
+                                   parent,date_sent,header,replyto,acc,body_html
+                              FROM ".DB_PREFIX."mail_client
+                             WHERE ID = ".(int)$ID."
+                               AND is_deleted is NULL") or db_die(); // fetch missing values from old record
+        $row = quote_runtime(db_fetch_row($result));
+        $accessstring = insert_access('mail_client');
+        sqlstrings_create();
+        $result = db_query("insert into ".DB_PREFIX."mail_client
+                               (von,   subject,  body,     sender,   recipient, cc,   date_received,touched,typ, date_sent, header,".$sql_fieldstring.",parent,   acc,    acc_write,   gruppe, date_inserted )
+                        values (".(int)$user_ID." ,'".__('copy')." $row[2]','$row[3]','$row[4]','$row[5]','$row[6]','$dbTSnull',  1,'m','$row[13]','$row[14]',".$sql_valuestring.",".(int)$parent.",'$accessstring[0]', '$accessstring[1]',".(int)$user_group.",'$dbTSnull' )") or db_die();
+
+        // copy attachments as well
+        $ID = copy_attachments($ID);
+        
+        header("location: mail.php");
+        die();
+    
+}
 $disabled_code = read_o($read_o);
 $fields_temp = $fields;
 foreach($fields_temp as $field_name => $field_array) {
@@ -217,8 +242,7 @@ if ($form == "d") {
 else {
     $buttons[] = array('type' => 'form_start', 'enctype'=>'multipart/form-data','hidden' => $hidden, 'name' => 'frm');
 }
-$output = '<div id="global-header">';
-$output .= get_tabs_area($tabs);
+
 $output .= breadcrumb($module, array(array('title'=>__('Create directory'))));
 $output .= '</div>';
 $output .= get_buttons($buttons);
@@ -228,9 +252,10 @@ $buttons = array();
 
 $deleteable = false;
 
-$result2 = db_query("select ID
-     from ".DB_PREFIX."projekte
-    where parent = ".(int)$ID) or db_die();
+$result2 = db_query("SELECT ID
+                       FROM ".DB_PREFIX."projekte
+                      WHERE parent = ".(int)$ID."
+                        AND is_deleted is NULL") or db_die();
 $row2 = db_fetch_row($result2);
 
 if ($row2[0] == '') {
@@ -265,19 +290,31 @@ $output.="<div class='formBodyRow'><label class='label_block' for='parent'>".__(
 $output.= "<select name='parent' id='parent' $disabled_code><option value='0'></option>\n";
 $output.=show_elements_of_tree("mail_client",
 "subject",
-"where typ like 'd' and  von = ".(int)$user_ID." ",
+"where typ like 'd' and is_deleted is NULL and von = ".(int)$user_ID." ",
 'von',"",strip_tags($parent),"parent",(int)$ID);
 $output.= "</select><br style='clear:both;' /></div>\n";
 
 
-$output.=build_form($fields);
+
+//quick fix for mail, later this will be added to tabs as well
+
+$output_tmp=build_form($fields);
+
+foreach ($output_tmp as $value){
+
+    $output.= $value[1];
+
+}
+
+
+
 if ($ID) {
     if (!$read_o) {
         $output.=get_buttons(array(array('type' => 'submit', 'name' => 'modify_b', 'value' => __('OK'),  'active' => false)));
 
         $output.=get_buttons(array(array('type' => 'submit', 'name' => 'modify_c', 'value' => __('Apply'),  'active' => false)));
 
-        if ($row2[0]== '')$output.=get_buttons(array(array('type'=>'submit', 'name'=>'delete_b','value'=>__('Delete'), 'onclick' => "return confirm('".__('Are you sure?'))));
+        if ($row2[0]== '')$output.=get_buttons(array(array('type'=>'submit', 'name'=>'delete_b','value'=>__('Delete'), 'onclick' => "return confirm('".__('Are you sure?')."')")));
     }
 }
 else {
@@ -317,14 +354,15 @@ if (!$acc_write) {
     else $acc_write = xss($_POST['acc_write']);
 }
 
-$form_fields[] = array('type' => 'parsed_html', 'html' => access_form2($str_persons, 1, $acc_write, 0, 1,'acc',$read_o)); // acc_read, exclude the user itself, acc_write, no parent possible, write access=yes
+$form_fields[] = array('type' => 'parsed_html', 'html' => access_form($str_persons, 1, $acc_write, 0, 1,'acc',$read_o)); // acc_read, exclude the user itself, acc_write, no parent possible, write access=yes
 $form_fields[] = array('type' => 'hidden', 'name' => 'csrftoken', 'value' => make_csrftoken());
 
-$assignment_fields = '</fieldset>'.get_form_content($form_fields);
+$assignment_fields = get_form_content($form_fields);
 
-$output .='<br style="clear:both"/><br />
-        <div class="boxHeaderLeft">'.__('Sharing').'</div>
+$output .='<fieldset>
+        <legend>'.__('Sharing').'</legend>
         <div class="boxContent">'.$assignment_fields.'</div>
+        </fieldset>
         <br style="clear:both"/></form><br />';
 $output.='</div>';
 echo $output;

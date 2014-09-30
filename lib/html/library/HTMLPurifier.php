@@ -1,12 +1,11 @@
 <?php
-
 /*!
  * @mainpage
- * 
+ *
  * HTML Purifier is an HTML filter that will take an arbitrary snippet of
  * HTML and rigorously test, validate and filter it into a version that
  * is safe for output onto webpages. It achieves this by:
- * 
+ *
  *  -# Lexing (parsing into tokens) the document,
  *  -# Executing various strategies on the tokens:
  *      -# Removing all elements not in the whitelist,
@@ -14,7 +13,7 @@
  *      -# Fixing the nesting of the nodes, and
  *      -# Validating attributes of the nodes; and
  *  -# Generating HTML from the purified tokens.
- * 
+ *
  * However, most users will only need to interface with the HTMLPurifier
  * class, so this massive amount of infrastructure is usually concealed.
  * If you plan on working with the internals, be sure to include
@@ -22,7 +21,7 @@
  */
 
 /*
-    HTML Purifier 1.3.2 - Standards Compliant HTML Filtering
+    HTML Purifier 1.6.0 - Standards Compliant HTML Filtering
     Copyright (C) 2006 Edward Z. Yang
 
     This library is free software; you can redistribute it and/or
@@ -53,29 +52,30 @@ require_once 'HTMLPurifier/Encoder.php';
 
 /**
  * Main library execution class.
- * 
+ *
  * Facade that performs calls to the HTMLPurifier_Lexer,
  * HTMLPurifier_Strategy and HTMLPurifier_Generator subsystems in order to
  * purify HTML.
- * 
+ *
  * @todo We need an easier way to inject strategies, it'll probably end
  *       up getting done through config though.
  */
 class HTMLPurifier
 {
-    
-    var $version = '1.3.2';
-    
+
+    var $version = '1.6.0';
+
     var $config;
-    
+    var $filters;
+
     var $lexer, $strategy, $generator;
-    
+
     /**
      * Final HTMLPurifier_Context of last run purification. Might be an array.
      * @public
      */
     var $context;
-    
+
     /**
      * Initializes the purifier.
      * @param $config Optional HTMLPurifier_Config object for all instances of
@@ -85,19 +85,26 @@ class HTMLPurifier
      *                HTMLPurifier_Config::create() supports.
      */
     function HTMLPurifier($config = null) {
-        
+
         $this->config = HTMLPurifier_Config::create($config);
-        
+
         $this->lexer        = HTMLPurifier_Lexer::create();
         $this->strategy     = new HTMLPurifier_Strategy_Core();
         $this->generator    = new HTMLPurifier_Generator();
-        $this->encoder      = new HTMLPurifier_Encoder();
-        
+
     }
-    
+
+    /**
+     * Adds a filter to process the output. First come first serve
+     * @param $filter HTMLPurifier_Filter object
+     */
+    function addFilter($filter) {
+        $this->filters[] = $filter;
+    }
+
     /**
      * Filters an HTML snippet/document to be XSS-free and standards-compliant.
-     * 
+     *
      * @param $html String of HTML to purify
      * @param $config HTMLPurifier_Config object for this operation, if omitted,
      *                defaults to the config object specified during this
@@ -105,15 +112,20 @@ class HTMLPurifier
      *                that HTMLPurifier_Config::create() supports.
      * @return Purified HTML
      */
+
     function purify($html, $config = null) {
-        
+
         $config = $config ? HTMLPurifier_Config::create($config) : $this->config;
-        
-        $context =& new HTMLPurifier_Context();
-        $html = $this->encoder->convertToUTF8($html, $config, $context);
-        
+
+        $context = new HTMLPurifier_Context();
+        $html = HTMLPurifier_Encoder::convertToUTF8($html, $config, $context);
+
+        for ($i = 0, $size = count($this->filters); $i < $size; $i++) {
+            $html = $this->filters[$i]->preFilter($html, $config, $context);
+        }
+
         // purified HTML
-        $html = 
+        $html =
             $this->generator->generateFromTokens(
                 // list of tokens
                 $this->strategy->execute(
@@ -126,12 +138,16 @@ class HTMLPurifier
                 ),
                 $config, $context
             );
-        
-        $html = $this->encoder->convertFromUTF8($html, $config, $context);
+
+        for ($i = $size - 1; $i >= 0; $i--) {
+            $html = $this->filters[$i]->postFilter($html, $config, $context);
+        }
+
+        $html = HTMLPurifier_Encoder::convertFromUTF8($html, $config, $context);
         $this->context =& $context;
         return $html;
     }
-    
+
     /**
      * Filters an array of HTML snippets
      * @param $config Optional HTMLPurifier_Config object for this operation.
@@ -147,8 +163,5 @@ class HTMLPurifier
         $this->context = $context_array;
         return $array_of_html;
     }
-    
-    
 }
-
 ?>

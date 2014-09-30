@@ -1,10 +1,15 @@
 <?php
-
-/*
- * This file is used for make the otions and show the sor box
- * Author: Gustavo Solt gustavo.solt@gmail.com
+/**
+ * script for make the sort form
+ *
+ * @package    projects
+ * @subpackage sortbox
+ * @author     Albrecht Guenther, $Author: gustavo $
+ * @licence    GPL, see www.gnu.org/copyleft/gpl.html
+ * @copyright  2000-2006 Mayflower GmbH www.mayflower.de
+ * @version    $Id: 
  */
- 
+
 define('PATH_PRE','../');
 include_once(PATH_PRE.'lib/lib.inc.php');
 require_once(LIB_PATH.'/dbman_lib.inc.php');
