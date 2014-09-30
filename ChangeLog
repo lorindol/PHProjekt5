@@ -1,0 +1,492 @@
+Version 5.2 (15 Dec 2006)
+  * DB2 support
+  * Extended Helpdesk
+  * CSS rewrite
+  - New language: Thai
+  - MySQL 5 strict mode support
+  - Changed the usertype method to identify different kinds of users
+  - Summary: get last x entries and only since last login
+  - Copy records
+  - Export considers all fields from module designer
+  - new related objects: calendar, helpdesk tickets
+  - Settings: accessibility mode
+  - Fieldslentgh in module designer
+  - Sortbox, applied in module designer and projects
+  - Dojo introduction, application to: date selector, ajax in chat
+  - Optimize javascripts
+  - Toggle 'current' - 'records from all groups'
+  - Settings: 'favourite startup group' or 'remember last group'
+  - "Add to contact" in mail list view
+  - Security: crypt -> md5, remove user 'test'
+  - Script for firefox search bar
+  - Fixed mail attachment deletion
+  - Mark received, forwarded, read and replied emails
+  - Replaced functions to use a simple object
+  - Improvements on HTML mail send
+  - UTF-8 mail receive compatibility
+  - Sort columns by klicking on the column name
+  - Remember Me functionality
+  - file versioning
+  - admin can change the access rights of PHProjekt elements
+
+Version 5.1 (26 Jul 2006)
+  - Several date formats: yyyy-mm--dd, dd.mm.yyyy, mm/dd/yyyy
+  - Export considers set filters and archive flag
+  - Calendar: parallel events are shown side by side
+  - Mail: introduction of inbox, outbox and trash
+  - Mail: select mails on server to download
+  - Profiles enhanced with access privileges
+  - New related object: mails
+  - Export: with or without column header
+  - Form buttons harmonized
+  - Project, statistics: save and apply settings
+  - Breadcrumb support in accessibility mode
+  - Selector for time peroids: this month, last year ...
+  - Time booking in todo and helpdesk mdoule
+  - "Move into archive" buttons in form views
+  - Filter mode enhanced with 'OR' / 'AND'
+  - Chat: accessible mode
+  - Fck editor: popup with full screen mode
+  - Extended setup: one click installation
+  - Statistic: sum summarizes over all subprojects
+  - Calendar list view: accept/decline several events at once
+
+
+Version 5.0 (25 Jun 2005)
+  * New: Accessibility, no frames anymore
+  * New: div&css driven layout system
+    (old skins are incompatible)
+  * General: Filter system - create, use, delete filters
+  * Context menus for modules, rows and records
+  - sqlite support
+  - "my desk" - system remembers sorting, filters etc. after logout
+  - Archive System
+  - Selector for large amount of users
+  - New module: links (internal bookmarks with reminder)
+  - General: hide read/archived elements
+  - General: html editor included
+  - General: consisent list and form views
+  - General: sqlite Support
+  - General: old skins are not usable anymore
+  - General: User profile are now on settings page
+    (new german wording: "Verteiler")
+  - General: Paging contol box  
+  - Settings: Select holiday scheme
+  - Calendar: New layout
+  - Calendar: Invitation system with collision check and status view
+  - Calendar: Extended participant selection
+  - Calendar: New fields place, priority, attachment
+  - Calendar: Permission and proxy system
+  - Projects: New gantt module
+  - Projects: Collision check for altering project start or end 
+  - Timecard: Config parameters limits manipulation of old entries
+  - Timecard: lists with flat or tree view (projects)
+  - Timecard: entries are editable  
+  - Helpdesk: field management by the module designer
+  - Helpdesk: editable workflow
+  - Helpdesk: field management by the module designer
+  - Mail client: field management by the module designer
+  - Forum: unlimited number of forums per group
+  - Todo: field management by the module designer  
+    (new german wording: "Aufgaben")  
+  - File manager: field management by the module designer
+  - File manager: icons with link to download for several mime types
+      
+
+Version 4.2 (10 Jun 2004)
+  - new languages: Albanian, Georgian, Bulgarian  
+  - History: log changes on all records of this module
+  - Related objects: new object form opens in own window
+  - Forum: extended access system
+  - Notes: module designer applied, tree view, extended access system
+  - projects: module designer applied, extended access system
+  - Timecard: several bookings each day on one project possible
+  - Chat: chat frame refreshes only if a new posting has been made
+  - Several modules: column header works as filter on this field,
+                     button to sort 'asc' and 'desc'
+  - Projects and contacts: limit view of related objects: 0/5/20/100                                                        
+  - Mail: 'fetch mail and leave on server' checks for existing mails
+  - Security: Directories for /docs and /attach can be places outside webroot
+  - Performance: optimization for tree view in list mode           
+  - Several modules: datepicker for selecting date 
+  - general: better handling of html header entries                                                                                    
+  - mail: contact and project relation with automatic filters
+  - export: export of todo and project lists
+  - Module designer: ability to handle large number of contacts
+  - File manager: create new directory during upload and place file in it
+
+Version 4.1 (20 Nov 2003)
+  * New: Module Designer
+  - New languages: japanese, estonian, lithuanian, latvian, hebrew
+  - General: introduction of prefix for db tables
+  - General: layout cleanup and improvement of all sql queries 
+  - System: Option records open for all groups (has to be activated in config)
+  - System: default access mode can be set to 'group'
+  - Setup: chmod 0600 on attachment and upload directory
+  - Performance of tree views in select boxes improved
+  - Performance of list views in contacts, projects and filemanager improved
+  - manage cumulative filters in list view of contacts module
+    and store result as a profile 
+  - Contacts and projects: Link to new todo record     
+  - Filemanager: Link to contacts added
+  - Contacts: files in list of related objects, link to projects 
+  - Contacts: - optional check for duplicates on import
+              - free field definition fro duplicate rule
+              - duplication will be discarded or marked 
+  - Skins: $tab_type = 2 in [skin].php displays text and icon in navigation 
+  - Skins: Fallback to default skin if selected skin has been removed 
+  - Todo: Owner can now stop a todo without deleting it  
+  - Todo: - Author can leave a new todo unassigned
+          - Any user of this group can undertake the todo
+  - Todo: Access for some users, group, profile or system (if enabled) 
+  - Todo: Notify recipient on new todo       
+  - Projects: copy branches
+  - Projects: move start or end time of branches     
+  - Notes: mouse over on subject in list view shows author
+  - Notes: Author of a note is shown above the form 
+  - Notes: Access for some users, group, profile or system (if enabled) 
+           Option to copy or mail notes are removed
+  - Mail: extended, improved port list for mail fetch
+  - Mail: new mail class, uses sockets for windows servers
+  - Chat: - option in config to show time of posting
+          - option to format name of users (first name, last name)
+  - Settings: switch order (latest postings on top or bottom)
+  - Summary: Calendar shows only events from now on                 
+                                                                                                                
+Version 4.0 (21 Mar 2003)
+  - General: Interbase/firebird support
+  - General: New languages slovak, basque
+  - General: Italian help system
+  - General: Faq_admin and faq_user added
+  - General: Search routine went to 'Misc' module
+  - General: Search routine combines several phrases (AND)
+  - General: New export formats: PDF, XML, HTML, XLS, RTF, DOC, Print
+  - General: New module summary with current records from several modules
+  - General: New module settings
+  - General: Skin management, two new skins
+  - General: Flag in config raises error_reporting level
+  - General: Optional Search box and login/logout button in navigation bar
+  - Admin: Group admin can assign users into their groups
+  - Admin: Role system grants read/write access for each module
+  - Contacts: Import of KDE3.0 adressbook
+  - Contacts: Module enhanced with parent objects and tree view
+  - Contacts: User profile management now in contacts/user
+  - Contacts: Form to select secretary
+  - Contacts: Select box for previously created categories
+  - Contacts: A-Z List in contacts_view as filter for last name
+  - Contacts: List all related record in detailed view
+  - Calendar: Optional module like all others
+  - Calendar: Table cell width and text length depend on monitor resolution
+              and number of coloumns
+  - Calendar: Allow several users to edit your schedule
+  - Calendar: Assign an event to several resources
+  - Calendar: Date picker - automatic refresh after choosing month or year
+  - Calendar: Hightlighting of 'today' date 
+  - Calendar: Create event form in the left frame follows WYSIWYG principle
+  - Filemanager: Box to select directory with tree view
+  - Filemanager: Open files directly via mime type definitions
+  - Filemanager: Optional download as attachment or inline
+  - Filemanager: Better ssl integration
+  - Mail send: Now with several attachments
+  - Mail send: Notice of receipt option
+  - Mail send: CC and BCC fields added
+  - Forum: Delete own threads now in 'forum/options'
+  - Forum: Input form optional on separate page
+  - Reminder: Window checks for new mail
+  - Reminder: Optional beep on new events/mails
+  - Chat: Input box optionally textarea or text field
+  - Settings: Default tree view open/closed for all modules
+  - Settings: Default perpage value for all modules
+  - Settings: Choose language, start and end time of calendar
+  - Notes: Input form optional on separate page
+  - Projects: Rules ("A cannot start before B has finished")
+  - Projects: Define previous/next record in list view
+  - Projects: Default filter view now 'all projects'
+  - Projects: List all related record in detailed view
+  - Projects/statistics: "My statistic" shows all bookings for this user
+  - Projects/statistics: Export of statsitic
+  - Projects/Gantt: Select one single branch
+  - Projects/Gantt: Automatic scaling as default
+  - Projects/Gantt: Colours depend on categories, with legend
+  - Todo: Extended to task management with deadline, priority
+  - Todo: Assign todos to projects and contacts
+  - Todo: Delegate or receive todos, accept or reject todos
+  - Bookmarks: New layout, now in tab 'misc'
+  - Votes: Now in tab 'misc'
+  - Resources: Integrated into calendar module
+  - Timecard: Several entries on one day, no pause anymore
+  - Timecard: Quicktimer included / clock on projects
+  - Addons: System folders (name start with "_") disregarded
+  - Addons: Database prepared for palm syncing
+ 
+Version 3.3 (09 Aug 2002)
+  - Projects: improved statistic function, matrix user/project will be shown
+  - Projects: option to show the sum of budget and booked hours over all subprojects in list view
+  - Projects: only user with chief status can create projects
+  - Projects: Tree structure of projects are shown in select boxes where projects are listed
+  - Forum: user can notify all other users that he wrote a posting
+  - Forum: user can select that he gets notified about each comment to his posting
+    To enable this feature you have to insert $forum_notify = "1"; in the config.inc.php
+  - Mail: show number of unread mails after the list view
+  - Mail: option: only list title of new mails on the server, don't download them
+  - Mail: create several sender identities, tie them with a signature (mail/options menu)
+  - Mail: fax option is now on an own page
+  - Mail: query single account (to be found in options)
+  - Mail send: direct mailing option
+  - Mail_send bugfix: attachments in forwarded mails will be included now and shown with its name
+  - Filemanager: new access option: same access as parent directory
+  - Filemanager: option to notify all group members about an upload.
+    To enable this feature you have to insert $filemanager_notify = "1"; in the config.inc.php
+  - Filemanager: allow versioning of files. means: a file can be a parent of others like a folder.
+    To enable this feature you have to insert  $filemanager_versioning = 1; in the config.inc.php
+  - Filemanager: file update will raise version count (visible in the form)
+  - Fileamanager: author can allow write access. Others can update the file but not change the properties
+  - Filemanager: files with write access for others can be locked.
+    Disable lock mode only allowed for the person who locked the file and the author
+  - Filemanager: author is shown via 'mouse-over' over the filename
+  - Admin: bugfix: if you delete an user, his/her notes will be deleted as well
+  - Admin: admin can delete whole forum threads
+  - Calendar: yearly view (access via monthly view below the table)
+  - Calendar: extended list view
+  - Timecard: option to show the project bookings in the list view
+  - Contacts: profile management (similar to user profiles)
+  - Helpdesk: Rename Request tracker to helpdesk
+  - Helpdesk: Assigned requests are only visible to the concerned user
+  - System: List view in all modules use the whole screen width
+  - System: user short names do not have to have a fixed length anymore! :-)) (they only have to be unique)
+  - System_ all time value have now the ISO-format: yyy-mm-dd
+  - System: script parses the addon directory only at login, then the values are stored in the session
+  - System: doc folder is now called 'help'
+  - System: magic_quotes_gpc & magic_quotes_runtime indenpendent
+  - new languages: finnish and slovenian
+
+Version 3.2a (10 May 2002)
+  - bugs in several files and a security hole fixed
+
+Version 3.2 (11 Apr 2002)
+  - new languages: romanian, greek
+  - new module: login/logout tracking (only for admin)
+  - module filemanager: crypt file contents
+  - new folder /extern for public accessible files (e.g. rts_cust)
+  - rts: navigation bar for knowledge database
+  - timecard: list view enhanced with project bookings
+  - contacts: two extra user-defined fields
+  - rts: return adress for mails is the general rts mail adress,
+    only in case it doesn't exist the user's email will be taken
+  - projects: js-check for yyy-mm-dd or strlen(x) inputs
+  - projects, list view: subprojects got open/close buttons
+  - calendar: events can be public accessible (e.g. for homepage)
+  - forum: order of postings by date of last comment
+  - system now works with register_globals = off (or on)
+  - no direct call of a module possible
+  - bugfixes in several modules
+  - wap.php removed (use addon wap-suite instead)
+
+Version 3.1b (12 Mar 2002)
+  - fixed security hole in several modules
+
+Version 3.1a (06 Feb 2002)
+  - bug with require_once in php <= 4.0.2 avoided
+  - workaround for changed pw encryption in php 4.1.x
+  - outer join sql query in notes_view removed
+
+Version 3.1 (02 Feb 2002)
+  - new language: icelandic & brazilian
+  - new czech & updated english help system
+  - new file structure
+  - replace function in filemanager
+  - default folder for incoming/outgoing mails
+  - open/close projects in list view
+  - js hover effect/doubleclick in tables
+  - Improvements for import of contacts
+
+Version 3.0a (02 Nov 2001)
+  - bugfixes in several modules
+
+Version 3.0 (25 Oct 2001)
+  - new: mail client
+  - new: ldap access
+  - API to include own modules
+  - new: hungarian version
+  - new: turkish help system
+  - copy notes to other users
+  - print forum threads, notes, mails
+  - edit events, more event properties
+  - allow parallel events
+  - special print page for several objects
+  - 'history' system for projects and contacts
+  - timezone option
+  - option for automatic session time limit
+  - copy notes to colleagues
+  - Project status: offere, ordered, finished etc.
+  - option to assign work time to projects without the timecard
+  - Assign files to projects
+  - Use profiles for mails and votes
+
+Version 2.4b (25 Sept 2001)
+  - few bugfixes
+
+Version 2.4a (25 Aug 2001)
+  - security bugfix in several modules
+
+Version 2.4 (08 Aug 2001)
+  - new: file manager with folders and tree view
+  - new: catalan version
+  - new: chinese help system
+  - delete and merge groups
+  - language dependent character set
+  - bugfix in several modules
+
+Version 2.3.1 (16 Jul 2001)
+  - new: dutch help system
+  - option: config can be placed outside root dir
+  - own style sheet for Linux
+  - add todo's for other users
+  - bugfix in several modules
+
+Version 2.3 (24 Jun 2001)
+  - new: ms_sql support
+  - more visibility options of other schedules
+  - file manager: links to internal files
+  - improved import and export routines
+  - additional login name
+  - time independent events in the calendar
+  - bugfix in postgres lib and others
+
+Version 2.2 (22 May 2001)
+  - Adress book import from various organizers
+  - file download management via sessions
+  - improved group handling
+  - bugfixes in various modules
+
+Version 2.1a (07 May 2001)
+  - security bug fix in the file module
+
+Version 2.1 (25 Apr 2001):
+  - new: user can be member of several groups
+  - new: Gantt diagrams in project view
+  - new: russian and traditional chinese version
+  - Filter & sort for contacts, projects & notes
+  - bugfixes in various modules
+
+Version 2.0.1 (30 Mar 2001):
+  - new: chart presentation of polls
+  - new: spanish help system
+  - search form for resource bookings
+  - access to resources module now in options
+  - choose profiles for access to documents
+  - small layout improvements
+  - setup requires admin password
+  - bugfixes in various modules
+
+Version 2.0 (12 Mar 2001):
+  * new URL: www.PHProjekt.com
+  * NEW: supports postgres, oracle & informix
+  - new: fax support
+  - new: subprojects (tree structure) and
+    other inprovements at project module
+  - new language: danish, turkish, simplified chinese
+    other language files updated
+  - improved calendar views
+  - weekly view of booked resources
+  - option to send single mails
+  - admin privileges limited to his group
+  - option: crypt filenames for storage
+  - request tracker: define as subproject
+    and book work time on it.
+  - bugfixes in various modules
+
+Version 1.3 (07 Feb 2001):
+  - new: write events in other calendars
+  - new: spanish version
+  - user can create own passwords (optional)
+  - next & prev day button in group views
+  - install, update or configure with setup.php
+  - limited views per page (various modules)
+  - forum tree can now expand/collapse
+  - multiple chatrooms (one per group)
+  - contact module: vcard import & export
+  - bugfix in module projects, votes and rts
+
+
+Version 1.2 (22 Jan 2001):
+  - new request tracker system:
+    - customer can view queue of pending requests,
+      search in db,
+      create request with category and due date
+    - email notification on submit and solution
+    - automatic assign to user or group by category
+    - move requests to other pending requests
+  - new: norwegian and korean version
+  - new: french help system
+  - new: OS dependent style sheets
+  - multiple forum
+
+Version 1.1 (10 Jan 2001):
+  * NEW: group system! enables large number of users
+    Security measures:
+  - new: password encryption (optional)
+  - new: login page for SSL (optional)
+  - each module checks authentification
+    Other:
+  - new czech and dutch version
+  - confirmation dialogs for critical operations
+  - clickable links in forum and notes
+  - delete own votes and forum threads
+  - multiple family names now allowed
+
+Version 1.0b2 (21 Dec 2000):
+  - new: assign a workday to various projects
+  - new french and swedish version
+  - improved english help system
+  - Week start now at monday
+  - 'out of office' could also count as a pause
+  - Contacts: city and zip separated
+  - security hole in contacts fixed
+  - bugfix in calendar, notes
+
+Version 1.0b (03 Dec 2000):
+  - new: time card system
+  - new: contact manager
+  - new: notes
+  - PDA Access
+  - new polish version
+  - Calendar: start/end time clickable
+  - Filter for big file lists
+  - Calendar: list view now partial/entire
+  - Login now with name and password
+  - User can create random password
+  - Bug fixes in various modules
+
+Version 0.9.3 (18 Nov 2000):
+  - new: reminder with alert
+  - WAP access
+  - logout button
+  - improved navigation
+  - bugfix in mail, calendar & projects
+
+
+Version 0.9.2 (10 Nov 2000):
+  - new portugues version
+  - improvements in alive status of chat
+  - extended file access
+  - bugfix in english help system
+  - bugfix in calendar display
+  - bugfix in install routine
+
+
+Version 0.9.1 (01 Nov 2000):
+  - new Italian version, improved english version
+  - quickmail works now with attachments
+  - project statistics show result over a period
+  - new file: lib.inc.php
+  - installation procedure now also updates
+  - chat parameter moved to config.inc.php
+  - bugfix: votes must contain at least one name now
+  - bugfix: submit button in forum
+  - bugfix: blank ressources eliminated
+  - bugfix in project statistics
+
+
+Version 0.9 (20 Oct 2000):
+  - first public release

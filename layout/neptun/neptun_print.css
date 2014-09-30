@@ -1,0 +1,49 @@
+
+
+/* just to safe toner :-) */
+* {
+    color: black !important;
+    background: white !important;
+}
+
+body {
+    page: normal;
+    margin: 0.8in;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* --------------------------------------------------------------------- */
+
+
+/* ----- global placement ---------------------------------------------- */
+#global-main {
+    /* leave at least 3 lines at the end and the top of current and new page */
+    orphans: 3;
+    widows: 3;
+}
+
+
+#global-header {
+    display: none;
+}
+
+#global-navigation {
+    display: none;
+}
+
+#global-content {
+    position: absolute;
+    left:0;
+    top: 0;   
+}
+
+#global-content fieldset textarea,
+#global-content fieldset textarea.halfsize,
+textarea {
+    display: none;
+}
+p.print {
+    margin-top: 20px;
+    border: 1px solid #000;
+    display: block;
+}

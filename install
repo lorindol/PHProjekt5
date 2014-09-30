@@ -1,0 +1,60 @@
+PHProjekt installation read me.
+
+*******************
+SYSTEM REQUIREMENTS
+*******************
+A webserver with a PHP4/5 parser with a connection to a database
+(mysql/postgres/oracle/informix/mssql/interbase/sqlite/ibm db2).
+
+PHProjekt works with all PHP4/5 versions. The imap library/extension
+of PHP must be installed in order to use the full mail client.
+
+A typical environment would be a LAMP (Linux/Apache/MySQL/PHP)
+or WAMP (same except Windows for Linux) system. You can find
+some urls for installations tutorials in the install_faq.html
+
+
+****
+TEST
+****
+If you are not sure whether your system meets the necessary
+requirements you can a run script with system check:
+env_test.php located in the root directory of the distribution.
+
+
+*************
+INSTALLATION:
+*************
+- Create a new blank database,
+- unpack the files -be sure to leave the directory structure of the
+  package- in a directory of the webserver (e.g. htdocs/phprojekt)
+- call setup.php in the browser, this script will guide you through
+  the rest of the installation.
+- Actions during the setup: and the tables in the database will be
+  created and the file config.inc.php will be written.
+
+OR:
+If you use a mysql RDBM and wish to install the tool by yourself,
+download the sql dump here: www.phprojekt.com/files/sql_dump.tar.gz,
+insert the dump into the database and edit the config.inc.php
+according to your needs.
+
+
+*******************************
+UPDATE OR CONFIGURE THE SYSTEM:
+*******************************
+- Unpack the files in the old directory by overwriting the old files
+  and run setup.php
+- Actions during an update: Some tables will be created or updated
+  and the file config.inc.php rewritten.
+- For maintainence updates (e.g. 3.2 -> 3.2a, but NOT 3.2 -> 3.3)
+  you don't neeed to call setup.php
+
+********
+PROBLEMS
+********
+In case of problems please read the install_faq.html in the /help
+directory. For problems not listed there please visit the installation
+forum on the homepage phprojekt.com, you can search for your topic
+in more than 40.000 postings or post a question by yourself.
+Alternatively you can try a manual installation (see above).

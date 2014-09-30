@@ -1,0 +1,1104 @@
+<html>
+<head>
+<link rel=stylesheet type="text/css" href="../layout/default/default_css.php">
+</head>
+<body bgcolor=#e5e5e5>
+<div id="global-main">
+
+<div class="outer_content">
+<div class="content">
+<div class="inner_content">
+
+<br />
+<h3>PHProjekt Installation - F A Q</h3>
+
+<table>
+<td width=580 id=normal>
+
+<ul>
+
+<h4>Requirements</h4>
+<li><a href="#55">I have a question about PHP!</a>
+
+<li><a href="#30">Where can I find tutorials about installing a LAMP or WAMP system?</a>
+<li><a href="#13">Does PHProjekt work with PHP3?</a>
+<li><a href="#3">I have downloaded the zip file and extracted but where is this config file?</a>
+<li><a href="#74">Which file and folder attributes (or:permissions) does the webserver need?</a>
+<li><a href="#77">I saw several bugfixes available for the current version - do I need to download them, too?</a>
+<li><a href="#91">Do I have to setup the required tables in the database before the installation?</a>
+
+<h4>The environment test</h4>
+<li><a href="#94">Trying the database conncetion test in the test routine gives me a blank page! Any clues?</a>
+
+<h4>The setup routine</h4>
+<li><a href="#54">When I click on setup.php, my apache crashes with an error like:</a>
+<li><a href="#4">After choosing the setup type (installation), language and db
+          type on the first screen, I don't see any words on the next screen!</a>
+<li><a href="#16">Setup will always show me the first screen, I can't continue!</a>
+<li><a href="#21">During the installation the following error messages appear:<br />
+          user@linux:~/phprojekt-2.4 > setup.php ...</a>
+<li><a href="#35">I get the following errors after selecting modules: An error ocurred while creating table: 'dateien'</a>
+<li><a href="#42">I try to setup the whole stuff, but I always get blank pages. What can I do?</a>
+
+<li><a href="#47">When I call setup.php from a browser I get "Document contains no data" in Netscape and a blank screen in IE</a>
+<li><a href="#54">When I click on setup.php, my apache crashes with an error like: <br />
+          The instruction at "xxxkjk" referenced memory at "0xxx". The memory could not be read.</a>
+<li><a href="#52"> After the installation failed and tried to install PHProjekt once again but it asks me for an admin
+          and password now!</a>
+<li><a href="#59">I get this error when i try to run setup.php Warning: Failed opening \'/usr/www/webroot/go.geno.com/html/index.php\' for
+inclusion (include_path=\'.:/usr/local/lib/php\') in Unknown on line 0</a>
+<li><a href="#61">I'm having a little trouble setting it up: "Database connection failed! Call admin, please"</a>
+<li><a href="#80">I get the message: "Oops - can't find my session". What do I have to do?</a>
+<li><a href="#85">Running the file setup.php gives me this message: "Oops! Can't include or find the language files in the directory 'lang'! ..."
+                  But the file IS in it's right place! what can I do?</a>
+
+<h4>After the setup</h4>
+<li><a href="#6">The setup is done but it tells me that it still misses the file config.inc.php</a></a>
+<li><a href="#12">After the login screen I get several screens, each with the login dialog :-(<br />
+              (Problem also known as 'four login screens')</a>
+<li><a href="#14">Warning: crypt() is not supported in this PHP build in lib.inc.php on line 174</a>
+<li><a href="#28">After running the setup.php from the terminal line, I get errors like: "Unexpected token on line 6" ... etc.</a>
+<li><a href="#46">when I call the setup.php file from a browser I get the following error message:<br />
+          Warning: Failed opening \'/usr/local/hec/setup.php\' for inclusion (include_path=\'.:/usr/share/php\') in Unknown on line 0</a>
+
+<li><a href="#53">I installed PHProjekt but when I call the index.php, the following error message appears:<br />
+          "Warning: open_basdir restriction in effect. File is in wrong directory...</a>
+<li><a href="#48">Everything is working except if you put a single quote in any of the fields I get an unclosed quotation mark before the character string ')'. error.</a>
+<li><a href="#67">Running index.php I get the following: "Warning: stat failed for ../../../config.inc.php (errno=2 - No ..." what happens here?</a>
+<li><a href="#75">Is there somewhere I can download a config.inc.php? I still haven't successfully created one due to some weird error. </a>
+
+<h4>File manager</h4>
+<li><a href="#19">I cannot up- and download files! The system tells me:<br />
+          SAFE MODE Restriction in effect. The script whose uid is 911 is not allowed
+          to access /var/tmp/gfd8sa owned by uid 3 in /www/htdocs/phprojekt/dateien.inc.php
+          on line 25</a>
+
+<li><a href="#31">When I try to upload a file, I get an error: "Oops! Something went wrong ...</a>
+<li><a href="#32">The file module doesn't work at all!</a>
+<li><a href="#37">I'm trying to configure the file system of PHProjekt. The mysql server and the server with the PHProjekt files on it aren't the same.</a>
+<li><a href="#39">Upload works perfect using Files smaller than aprox. 2MB. Using bigger files leads to an error message.</a>
+<li><a href="#51">Since I activated SSL, I cannot download files from the filemanager!</a>
+<li><a href="#49">How can I upload different files with the same name in multiple directories?</a>
+<li><a href="#66">Is it possible to change the max_filesize given in the upload form?</a>
+<li><a href="#68">Though the uploaded files are in the upload directory, I still cannot download them!</a>
+<li><a href="#69">Running PHProjekt with SSL I cannot download any file!</a>
+
+<li><a href="#78">I installed PHProjekt on an e-smith, but the file upload doesn't seem to work.</a>
+<li><a href="#79">Download of a file results in a 0 byte file! In the upload dir the filesize is ok.</a>
+<li><a href="#88">After the upload, the uploaded file exists in /tmp but the copy routine fails!</a>
+<li><a href="#89">I have problems opening and saving pdf files!</a>
+<li><a href="#98">I updated my webserver to apache 2.x and suddenly uploads beyond 500kB are denied! What happened?</a> 
+<li><a href="#100">Though I'm sure the pathes in the config.inc.php are set properly I still get the message
+                   at the download: "panic! specified file not found ..." - what could be the reason?</a> 
+
+<h4> Mail client</h4>
+<li><a href="#8">I want to use the full mail client, but I cannot find him!</a>
+
+<li><a href="#33">I sent a mail via the mail module and I didn't get any error, but the recipient never received any mail. What happened?</a>
+<li><a href="#38">I have a WAMP configuration (with windows). How can I activate the mail module?</a>
+<li><a href="#44">I have a problem with email-Client and the file download. When I get an email with an attachment,<br />
+              I get a white screen when I try to open the attachment.</a>
+<li><a href="#45">I make my installation without any problem but in the mail module all I get is a simple form to send a mail. What's wrong...?</a>
+<li><a href="#50">In the Online Demo i see a frame with folders, the possibility of new folders and so on.<br />
+          In my PHProjekt installation I see only the window for new Mails. Why?</a>
+<li><a href="#56">Is there a module that will allow receiving mail on standard POP (non-IMAP) servers?</a>
+
+<li><a href="#63">I only can send small attachments (e.g. smaller 1MB). How can I change this?</a>
+<li><a href="#70">The eMail client of phprojekt has no feature to store which eMails are already loaded.<br />
+                  So everytime you ask for new Mails, the client gets all Mails on the POP Server.</a>
+<li><a href="#72">I don't see any body from a mail</a>
+<li><a href="#73">I changed the value of $quickmail in the config from 1 to 2 in order to receive mails as well,
+                  but I get a sql error message saying that some tables do not exist. What happened?</a>
+<li><a href="#81">Is it possible to send mail from a windows system without an own mailserver?</a>
+<li><a href="#97">Each time I fetch mails I get lots of php source code on the screen. How can I get rid of it?</a>                  
+
+<h4>Project management</h4>
+
+<li><a href="#36">After installation on 'Project' the button 'New' does not exist or all fields are greyed!</a>
+
+<h4>Chat</h4>
+<li><a href="#20">My chat doesn't work!</a>
+
+<h4>Sessions</h4>
+<li><a href="#93">During the setup I get this message: "Session error! Please set the correct temp path in 
+                  the variable session.save_path at php.ini" But I don't know what to do!!</a> 
+<li><a href="#15">Warning: Wrong parameter count for session_register() in lib.inc.php on line 114</a>
+<li><a href="#18">Warning: open(/tmp\sess_8e3f13497b89881b4f71e6beecadd6d3, O_RDWR) failed: m (2) in ...</a>
+<li><a href="#92">During the setup I get this: "Session error! Please set the correct temp path in 
+                  the variable session.save_path at php.ini" But there is a value in the php.ini!</a>
+
+<h4>Webserver</h4>
+<li><a href="#86">Is it possible to use the apache version 2.0.43 (or similar)?</a>
+
+<h4>Databases</h4>
+<li><a href="#10">Warning: MySQL Connection Failed: Can't connect to MySQL server on '10.100.1.4' (111) in ...</a>
+<li><a href="#7">Warning: OCIStmtExecute: ORA-00910: specified length too long for its datatype in ...</a>
+<li><a href="#11">Fatal error: Call to undefined function: ocilogon() in ...</a>
+<li><a href="#22">What should I prepare for an installation with postgres?</a>
+<li><a href="#23">I tried an installation with postegres keeping in mind the above  hints and it still doesn't work!</a>
+
+<li><a href="#65">I'm still facing connection errors with postgres!</a>
+<li><a href="#24">I get this message: "Fatal error: call to undefined function pg_connect</a>
+<li><a href="#25">Do you have any hints for the installation with oracle?</a>
+<li><a href="#26">I have a MySQL-DB on my providers host which already has a table named users.</a>
+<li><a href="#27">I run setup, entered all my info, and what i got back was:<br />
+          Sorry, it did not work! Please fix it and restart the installation.</a>
+<li><a href="#29">After I run setup I get the next page with "Seems that You have a valid database connection!"<br />
+          but after I submit I get errors, can't create table.</a>
+
+<li><a href="#34">Do I really need an empty database to install phprojekt. Can't i use an existing one.</a>
+<li><a href="#41">The installation on my oracle failed! the tables have been created but no default user</a>
+<li><a href="#43">There is a problem at the installation on an oracle db: none
+              of the triggers in the database seems to work ! They all show as INVALID through the Schema Manager ...</a>
+<li><a href="#58">I could install the tool with MS-SQL but after the login the system ssems to hang!</a>
+<li><a href="#60">After choosing oracle as the preferred RDBm and after filling out the form with the<br />
+                  required access parameter, the system hangs! What could it be?</a>
+<li><a href="#84">Interbase/Firebird: I observe problems with a charset!</a>  
+<li><a href="#95">I tried to install PHProjekt on redhat 8.0 but I encounter problems! Can anybody help me?</a>               
+
+
+<h4>Timecard</h4>
+<li><a href="#60">I want to assign time to projects in the timecard, but no project appears!</a>
+
+<h4>Forum</h4>
+<li><a href="#96">Is there any reason why the notification in the forum modules doesn't work?</a>
+
+<h4>Update</h4>
+<li><a href="#87">How do I perform an update?</a>
+<li><a href="#82">I want to upgrade to Version 4.0 from 3.2 but I seem to have forgotten the root password. 
+                  Is there a known way to recover this? Can I just go into the users table and delete the 
+                  password entry for the root account?</a>
+<li><a href="#83">While starting an update I get the infamous "PANIC! config.inc.php can't be written! ..."<br />
+
+                  Changed the folder permission to 777. Nothing. What happened?</a>
+
+<h4>Miscelleanous</h4>
+<li><a href="#1">The system seems to hang but no error message appears!</a>
+<li><a href="#2">Everything went perfect but I can't log in with root/root.</a>
+<li><a href="#57">I always the message "Column count doesn't match value count at row 1"
+                  or "Unknown column 'nn' in 'field list'"</a>
+<li><a href="#62">I get a parse error in line yxz in script yxz!</a>
+<li><a href="#64">The Mozilla tries to download the calendar first as x-httpd-calendar :-()</a>
+<li><a href="#76">The FAQ often refers to a 'php.ini', but I don't have access to this file
+                   - how can I check the settings anyway?</a>
+
+<li><a href="#90">In the forum on the PHProjekt homepage someone told me to raise the error reporting level to 
+                  get an error message displayed. How can I do this?</a>                  
+
+<h4>Advanced</h4>
+<li><a href="#40">Is there a way to limit the session time automatically?</a>
+<li><a href="#6">I want to use the ldap access. What do I have to do?</a>
+<li><a href="#9">How can I include own modules?</a>
+<li><a href="#17">I have installed PHProjekt, but how do I get the languages set?</a>
+<li><a href="#71">There are some unexpected problems with some users, their records get mixed!</a>
+<li><a href="#99">I red about the option to have an export into a pdf file, how does this work?</a>
+
+</ul>
+<br />
+
+<a name=1></a>
+<b>Q:</b> The system seems to hang but no error message appears!<br />
+<b>A:</b> Uncomment the line error_reporting(0); in the index.php and lib.inc.php, you may get several warnings
+          or error messages. Please post the message in the forum on the homepage.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=2></a>
+
+<b>Q:</b> Everything went perfect but I can't log in with root/root.<br />
+          Or: I created a new user but I cannot login with his combination!<br />
+<b>A:</b> Look into the config: if the variable $login_kurz<br />
+          =0, use the last name (field 'nachname' in the database)<br />
+          =1 use the short name (kurz)<br />
+
+          =2 use the login name (loginname)<br />
+          together with the password should work.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=3></a>
+<b>Q:</b> I have downloaded the zip file and extracted but where is this config file?<br />
+<b>A:</b> Did you already run setup.php? This will install PHProjekt on your system and write the configuration file.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=4></a>
+<b>Q:</b> After choosing the setup type (installation), language and db
+          type on the first screen, I don't see any words on the next screen!<br />
+<b>A:</b> This behaviour could have vaious reasons:<br />
+          - the script tries to connect at this moment to the database - but if the db support misses, the script crashes<br />
+          - The script fails to include the file for the chosen language.<br />
+
+          Extend the include paths for the variable 'include_path' in the php.ini.<br />
+          (or leave the value blank)<br />
+          Another hint from a user: the variable magic_quotes_gpc in the php.ini must be set to 'on'<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=5></a>
+<b>Q:</b> The setup is done but it tells me that it still misses the file config.inc.php<br />
+
+<b>A:</b> The webserver did not have the right to write this file at the end of the setup routine.
+          chmod 777 for the directory, delete all tables and try again.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=6></a>
+<b>Q:</b> I want to use the ldap access. What do I have to do?<br />
+<b>A:</b> First of all you have to have the ldap extensions of PHP activated.
+          Then the checkbox in the setup appears. After this you have to:<br />
+
+          - Activate LDAP by setting the LDAP-field in setup.php to 1.<br />
+          - Edit ldapconf.php according to your needs.<br />
+          (You can create as many ldap-configurations as you want to, you just have
+          to copy the configuration array and increase its index number by one -e.g. change the index to '2' for the 2nd configuration).<br />
+          -Create your new users by choosing 'create user' in the admin module.<br />
+          You have to select one LDAP-configuration and to enter user-data that
+          can't be retrieved via LDAP. The loginname has to be equivalent to the LDAP UID<br />
+          (you can change this in ldapconf.php by changing the 'uid'-field to the field you want to, but this has not been tested).<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=7></a>
+<b>Q:</b> Warning: OCIStmtExecute: ORA-00910: specified length too long for its datatype in lib.inc.php on line 95<br />
+<b>A:</b> PHProjekt does not support oracle version 7 or lower.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=8></a>
+<b>Q:</b> I want to use the full mail client, but I cannot find him!<br />
+<b>A:</b> You have to have the imap extensions of php activated. Then you get the option to choose the installation
+          of the full mail client in the setup.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=9></a>
+<b>Q:</b> How can I include own modules?<br />
+
+<b>A:</b> This is quite easy: take the folder with all files (including an 'index.php') and place it into the folder 'addons' in the PHProjekt
+          root directory. The name of your folder will appear in the navigation bar.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=10></a>
+<b>Q:</b> Warning: MySQL Connection Failed: Can't connect to MySQL server on '10.100.1.4' (111) in
+          /www/htdocs/phprojekt/setup.php on line 117<br />
+<b>A:</b> Your webserver can't establish a connection to the mysql database<br />
+
+          Reasons: the database or the connection to it is down or broken, or you
+          have the wrong parameters.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=11></a>
+<b>Q:</b> Fatal error: Call to undefined function: ocilogon() in /usr/local/httpd/htdocs/phprojekt/setup.php on line 119<br />
+<b>A:</b> Your current PHP does not support oracle. Solution: Linux: compile your PHP --with-oci8,
+          Windows: get php_oci8.dll - and don't forget to uncomment the respective line in the php.ini<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=12></a>
+<b>Q:</b> After the login screen I get several screens, each with the login dialog :-(<br />
+          (also named: 'four login screens')<br />
+<b>A:</b> Reason: The browser looses his session and therefore the server can't remember that you already logged in:<br />
+          - Because of security reasons You have to enable cookies.<br />
+          - Your php version is 4.0.0 or lower - the session maangement doesn't work properly here.<br />
+
+          - The session are not properly stored on the server. (make sure that a session.save_path in the php.ini
+            is defined and the webserver has read and write permissions for this folder)<br />
+          An user reported this solution here: "set in the php.ini 'session.use_cookies' to 'On' and
+          'session.auto_start' to 'Off', viceversa you get stuck!"<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=13></a>
+<b>Q:</b> Does PHProjekt work with PHP3?<br />
+<b>A:</b> No way, sorry :-(<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=14></a>
+<b>Q:</b> Warning: crypt() is not supported in this PHP build in lib.inc.php on line 174 <br />
+<b>A:</b> You have a windows PHP version which does not support the command crypt.<br />
+           -> take any other PHP version than 4.0.5<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=15></a>
+<b>Q:</b> Warning: Wrong parameter count for session_register() in lib.inc.php on line 114<br />
+<b>A:</b> That's a bug in early PHP4 versions. -> use a PHP4 version 4.0.2 or higher<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=16></a>
+<b>Q:</b> Setup will always show me the first screen, I can't continue!<br />
+
+<b>A:</b> Have a look into the php.ini: the variable 'allow_call_time_pass_reference' must be set to 'on'.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=17></a>
+<b>Q:</b> I have installed PHProjekt, but how do I get the languages set?<br />
+<b>A:</b> Go to the admin page to the 'modify user' screen: you can choose the language in the last select box.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=18></a>
+<b>Q:</b> Warning: open(/tmp\sess_8e3f13497b89881b4f71e6beecadd6d3, O_RDWR) failed: m (2) in c:/phproject/admin.php on line 1<br />
+<b>A:</b> The path where your sessions are stored is not set properly. Edit the variable session.save_path in the php.ini<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=19></a>
+<b>Q:</b> I cannot up- and download files! The system tells me:<br />
+          SAFE MODE Restriction in effect. The script whose uid is 911 is not allowed
+          to access /var/tmp/gfd8sa owned by uid 3 in /www/htdocs/phprojekt/dateien.inc.php
+          on line 25<br />
+<b>A:</b> Your system does not allow that the webserver copies files from
+          the tmp directory to the file directory specified in the config. -> ask
+          your provider to turn off the safe_mode.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=20></a>
+
+<b>Q:</b> My chat doesn't work!<br />
+<b>A:</b> The reason could be that your webserver does not have the privilege to write files in this folder.<br />
+          Try 'chmod -R 777 'your phprojekt directory' - means, the webserver must have read and write privileges
+          for the /chat directory.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=21></a>
+<b>Q:</b> During the installation the following error messages appear:<br />
+
+          user@linux:~/phprojekt-2.4 > setup.php<br />
+          ./setup.php: ?: File or list not found<br />
+          ./setup.php: //##: File or list not found<br />
+          ./setup.php: line 6: syntax error near unexpected token <br />
+<b>A:</b> Since PHProjekt is a PHP4 tool, it does not work from the command line.<br />
+          The system requirements are a webserver with a php parser and a sql database.<br />
+
+          Then You have to extract the files into a directory of your webserver and call the script setup.php via your browser.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=22></a>
+<b>Q:</b> What should I prepare for an installation with postgres?<br />
+<b>A:</b> 1. create a database: createdb phprojekt This must be done as user postgres (su - postgres)<br />
+          If this fails, it's very likely that postgres is not running properly.
+          (/etc/rc.d/postgres restart for postgres restart)<br />
+
+          2. create a user who also has a UNIX account, he must be identical with
+          the webserver (often wwwrun or nobody) - createuser wwwrun<br />
+          Give him the privilege to create tables<br />
+          3. now insert the fields below with db_name = phprojekt and db_user wwwrun, mostly no password required.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=23></a>
+<b>Q:</b> I tried an installation with postegres keeping in mind the above  hints and it still doesn't work!<br />
+
+<b>A:</b> A user reported that in his case the postgres installation itself was bad!
+          After fixing this everything worked out fine ...<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=24></a>
+<b>Q:</b> I'm trying to install PHProjekt with Postgres 7.1.2.<br />
+          But I get this message: "Fatal error: call to undefined function pg_connect ..." <br />
+<b>A:</b> You forgot to compile PHP with postgres support!<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=25></a>
+<b>Q:</b> Do you have any hints for the installation with oracle?<br />
+<b>A:</b> First the compiling:<br />
+          cd apache<br />
+          ./configure --prefix=/usr/local/apache --activate-module=src/modules/php4/libphp4.a<br />
+
+          cd ../php<br />
+          $ ./configure --with-apache=../apache --with-oci8=$ORACLE_HOME --enable-sigchild<br />
+          make make install<br />
+          cd ../apache # need to do it again..<br />
+          ./configure --prefix=/usr/local/apache --activate-module=src/modules/php4/libphp4.a<br />
+          make<br />
+
+          make install<br />
+          Second the configuring:<br />
+          Set the following variables before you start your Apache (Useful to insert
+          the into the /etc/init.d/httpd script or /usr/local/apache/bin/apachectl:)<br />
+          ORACLE_HOME=/opt/orabin/oracle/OraHome1<br />
+          NLS_LANG=HUNGARIAN_HUNGARY.EE8MSWIN1250 <- replace your country's settings!<br />
+          ORACLE_SID=ORACLE<br />
+
+          export ORACLE_HOME NLS_LANG ORACLE_SID<br />
+          With these settings phprojekt should work on Oracle 8.x or higher.<br />
+          An admin reported that he got problems with long trigger names, resulting in an error
+          for the auto_increment function. he recommend to shorten the trigger names to e.g. *auto_inc<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=26></a>
+<b>Q:</b> I have a MySQL-DB on my providers host which already has a table named users.<br />
+
+          Is it possible to rename PHProjekt's table users to something else? <br />
+<b>A:</b> There is an article on the hoempage about a patch named 'prefix' which you can use.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=27></a>
+<b>Q:</b> I am running suse 7.0, with apache and mod_php4, with mysql.<br />
+          I created the blank database, got the permissions right, and ran setup.php.<br />
+
+          I chose installation, and entered all my info, and what i got back was:<br />
+          <i>Sorry, it did not work!<br />
+          Please fix it and restart the installation.</i> <br />
+<b>A:</b> This message wants to tell you that your parameters are not set properly.<br />
+          This could have several reasons
+          Typical db access parameters are:<br />
+
+          host: localhost<br />
+          user: root<br />
+          password: [no password]<br />
+          database: [name of new blank db]<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=28></a>
+
+<b>Q:</b> After running the setup.php from the terminal line, I get errors like:<br />
+          "Unexpected token on line 6" ... etc.<br />
+<b>A:</b> You need to have a working LAMP (or similar) configuration.<br />
+          Place PHProjekt in a subdirectory of your e.g.htdocs dir<br />
+          Then call the 'localhost' in your browser, search the PHProjekt dir and run setup.php<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=29></a>
+<b>Q:</b> After I run setup I get the next page with "Seems that You have a valid database connection!"<br />
+          but after I submit I get errors, can't create table.<br />
+<b>A:</b> sorry but this check with the following message just covers a part of the conncetion test.<br />
+          So it seems that it still cannot write the tables.<br />
+
+          1. because no new database exists.<br />
+          2. the webserver is not allowed to write tables into the db <br />
+          3. the connection parameters are still not correct.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=30></a>
+<b>Q:</b> Where can I find tutorials about installing a LAMP or WAMP system?<br />
+
+<b>A:</b> This page here has a list about available tutorials (german and english):<br />
+          <a href="http://www.dynamic-webpages.de/07.installation.php" target=_blank>http://www.dynamic-webpages.de/07.installation.php</a><br />
+          <a href=#top>up</a><br /><br />
+
+<a name=31></a>
+<b>Q:</b> When I try to upload a file, I get an error:<br />
+          "Oops! Something went wrong ...<br />
+
+          Please check whether the file exists in the target directory and the variable
+          dat_rel in the config has the correct value<br />
+<b>A:</b> Please check whether this directory exists and make sure the
+          webserver is allowed to copy the files from the tmp directory to this directory.<br />
+          (e.g. the variable 'file_uploads' in the php.ini must be set to on and the
+          variable upload_tmp_dir has to point to a directory where the webserver has write access))<br />
+          Typical values for the variables $dateien and $dat_rel are:<br />
+          $dateien = "/usr/local/httpd/phprojekt/file"; and $dat_rel = "file"; for Linux or <br />
+          $dateien = "c:\htdocs/phprojekt/file"; and $dat_rel = "file"; for windows<br />
+
+          Also make sure that the value of upload_tmp_dir in the php.ini points to an existing path
+          where the webserver has read and write permission.<br />
+          Some users reported that the donwload only worked after they changed the
+          path in the variable $dat_rel from relative to absolute.<br />
+          Another reaons could be that in the php.ini the value for 'file upload' is not set to 'on'.
+          In this case change the value to 'on' :)
+          <a href=#top>up</a><br /><br />
+
+<a name=32></a>
+<b>Q:</b> The file module doesn't work at all!<br />
+          None of the mentioned hints helps ...<br />
+
+<b>A:</b> Two users reported that they got the file module working after they updated to PHP 4.0.4 or higher.<br />
+          Another user changed the copy function<br />
+          copy($userfile, "$dateien/$filenewname");<br />
+          with the function move_uploaded_file($userfile, "$dateien/$filenewname");<br />
+          Maybe this does the trick. <br /><br />
+          Another user reported that he had to empty the value of 'open_basedir' in the php.ini to get the filemanager work.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=33></a>
+<b>Q:</b> I sent a mail via the mail module and I didn't get any error,<br />
+          but the recipient never received any mail. What happened?<br />
+<b>A:</b> PHProjekt uses the built-in mail() function of PHP which accesses the mailserver of your system <br />
+          (for Linux e.g. sendmail). Maybe this connection doesn't work.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=34></a>
+<b>Q:</b> Do I really need an empty database to install phprojekt. Can't i use an existing one.<br />
+          The tables don't interfere!<br />
+<b>A:</b> If you are sure that the tables which will be written do not have the same name as the
+          existing tables, then you can use your existing database.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=35></a>
+<b>Q:</b> I get the following errors after selecting modules:<br />
+          An error ocurred while creating table: 'dateien'<br />
+          ...<br />
+          An error ocurred while creating table: 'termine'<br />
+<b>A:</b> 1. You forgot to create a new, blank database<br />
+
+          2. Your connection parameters do not work properly.<br />
+          3. Your webserver does not have the right to create the tables<br />
+          4. your database is not up and running<br />
+          5. your RDBM (database system) is not compiled properly<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=36></a>
+
+<b>Q:</b> After installation on 'Project' the button 'New' does not exist or all fields are greyed!<br />
+<b>A:</b> Only users with 'chief' status can create new projects. Please use the admin just for admin duties<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=37></a>
+<b>Q:</b> I'm trying to configure the file system of PHProjekt.<br />
+
+          The mysql server and the server with the PHProjekt files on it aren't the same.<br />
+          Hence I can't configure the $dateien variable to correctly point to the file directory. <br />
+<b>A:</b> Right, this works only with relative local pathes, not with remote access.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=38></a>
+<b>Q:</b> I have a WAMP configuration (with windows). How can I activate the mail module?<br />
+
+<b>A:</b> For windows you need a smtp server (e.g. hamster) to get the mail function of PHP running.<br />
+          Other hint from an user: insert the mailbox account of your provider in the SMTP variable in the
+          php.ini and your email adress in the line below.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=39></a>
+<b>Q:</b> Upload works perfect using Files smaller than aprox. 2MB. Using bigger files leads to an error message.<br />
+<b>A:</b> Raise the value of 'upload_max_filesize' and 'post_max_size' in the php.ini to the desired maximum upload size.<br />
+
+          If it still doesn't work, ask your system administrator whether he limited the size for file transfer<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=40></a>
+<b>Q:</b> Is there a way to limit the session time automatically?<br />
+<b>A:</b> Yes, raise the value of $session_time_limit in the config to the desired value [minutes]<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=41></a>
+<b>Q:</b> The installation on my oracle failed! the tables have been created but no default user<br />
+<b>A:</b> The reason could be that the triggers haven't been created.
+          Please check whether the Server has the right to create triggers.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=42></a>
+<b>Q:</b> [From the forum]Well there are a couple of days I try to setup the whole stuff,
+          I am fed up with the same blank pages. What can I do?<br />
+
+<b>A:</b> I had a similar experience where I was able to use a new install
+          of php4 and mysql to run other php scripts including Phpmyadmin, but Phprojekt
+          would not establish a mysql connection. I got a lot of blank pages! The
+          problem was solved by issuing a command in mysql granting global privileges to root: GRANT ALL ON *.* TO root;<br />
+          It was weird because I was already able to access all the databases as root and also as another user without any password. <br />
+          <a href=#top>up</a><br /><br />
+
+<a name=43></a>
+<b>Q:</b> There is a problem at the installation on an oracle db: none
+          of the triggers in the database seems to work ! They all show as INVALID through the Schema Manager ...<br />
+<b>A:</b> Add 'declare' before 'BEGIN ... for each one of the triggers.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=44></a>
+<b>Q:</b> I have a problem with email-Client and the file download. When I get an email with an attachment, <br />
+          I get a white screen when I try to open the attachment.<br />
+<b>A:</b> I had a similar problem with email attachments - the mail would appear with the name of the attachment , but clicking on the attachment
+          produced an error along the lines of \' panic - file not found \' or something like that.<br />
+          The problem was resolved by changing permissions on the attachment directory
+          (under the phprojekt directory) to give read/write access by the webserver
+          - in my case this is the user \'nobody\', group \'nogroup\'.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=44></a>
+<b>Q:</b> The chat don´t send msg in the installed Version on my machine? any idea?<br />
+<b>A:</b> The webserver (UID \'httpd\' or \'nobody\' or so) needs to have
+          write permissions for the file \'chat.txt\'. <br />
+          <a href=#top>up</a><br /><br />
+
+<a name=45></a>
+<b>Q:</b> I make my installation without any problem. but when I use the
+          demo version available on the web page, mail module has a lot of customization
+          like write, read, leave on server, folders, etc., just like a complete web mail package.<br />
+          In my installation in the mail module all I get is a simple form to send inmediate mail. What's wrong...?<br />
+<b>A:</b> In order to run the full mail client, your php must have the imap extension of php active.<br />
+          Your php does not have this library included, so the setup routine offered you only the module to send mails :-(<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=46></a>
+<b>Q:</b> when I call the setup.php file from a browser I get the following error message:<br />
+          Warning: Failed opening \'/usr/local/hec/setup.php\' for inclusion (include_path=\'.:/usr/share/php\') in Unknown on line 0<br />
+          what is wrong, what can I do?<br />
+<b>A:</b> The script is not allowed to include any files. This is essential to the function of PHProjekt<br />
+          -> Have a lookinto the php.ini weather the safe_mode is turned on or the variable include_path has a specific value (should be empty)<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=47></a>
+<b>Q:</b> I've downloaded the latest version of phprojekt from the ftp site and I'm attempting to set it up.<br />
+          When I call setup.php from a browser I get "Document contains no data" in Netscape and a blank screen in IE.<br />
+<b>A:</b> A hint from an user: "I had \"session.save_handler = user\" in my php.ini so that the webserver could run apache.
+          Commenting that out and setup ran through correctly."<br />
+          Another user reported that he setup PHProjekt on a red hat and he found out that he first had to turn off mod_layout
+          for the PHProjekt directory to get it running.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=48></a>
+<b>Q:</b> Everything is working except if you put a single quote in any of the fields I get an <br />
+          unclosed quotation mark before the character string ')'. error.<br />
+<b>A:</b> Please change in the php.ini magic_quotes_gpc to 'on'<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=49></a>
+<b>Q:</b> How can I upload different files with the same name in multiple directories?<br />
+<b>A:</b> Activate the filename encryption via setup/configure.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=50></a>
+<b>Q:</b> In the Online Demo i see a frame with folders, the possibility of new folders and so on.<br />
+
+          In my PHProjekt installation I see only the window for new Mails. Why?<br />
+<b>A:</b> Your php does not have the imap extension, that's why the setup didn't offer you this option.<br />
+          Required steps:<br />
+          1. Activate the imap extension in your php (php_imap.dll) and check it via the phpinfo() function
+          (One section in the output must deal with the imap extension)<br />
+          2. set $quickmail = 1 in the config.inc.php<br />
+          3. run setup/configure and set in the mail option a '2' - the system will install the required db tables.<br />
+
+          4. create a mail account and test the full mail client<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=51></a>
+<b>Q:</b> Since I activated SSL, I cannot download files from the filemanager!<br />
+<b>A:</b> [From, the forum]: you can solve the problem by editing three PHProjekt(3.2) files:<br />
+          filemanager_down.php, in the section "//set headers ..." uncomment the two lines containing "no-cache" and add the following line:<br />
+
+          // header ("Cache-Control: no-cache, must-revalidate");<br />
+          // header ("Pragma: no-cache");<br />
+          header ("Cache-Control: must-revalidate, post-check=0,pre-check=0");
+          header ("Pragma: public")<br /><br />
+
+          vcard_ex.php should look like this:<br />
+          session_start(); // remove the # in the original file<br />
+          header("Content-type: text");<br />
+
+          header("Content-disposition: inline; filename=$name.vcf");<br />
+          header ("Pragma: private"); //add this line<br />
+          csv_ex.php add the "private" line to the header section:<br />
+          header("Content-type: text/csv");<br />
+          header("Content-disposition: inline; filename=$file.csv");<br />
+          header ("Pragma: private"); //add this line<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=52></a>
+<b>Q:</b> After the installation failed and tried to isntall PHProjekt once again but it asks me for an admin
+          and password now!<br />
+<b>A:</b> Seems that a config.inc.php is already on your system - the script assumes that you want to update or
+          anything else and asks for your permission :-)<br />
+          -> delete the config.inc.php and try it again.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=53></a>
+<b>Q:</b> I installed PHProjekt but when I call the index.php, the following error message appears:<br />
+          "Warning: open_basdir restriction in effect. File is in wrong directory..."<br />
+<b>A:</b> This is a security measure of PHP to prevent that any file from a directory which is not listed
+          in the open_basedir parameter in the php.ini can be included.<br />
+          Solution: Delete the value of the parameter open_basedir in the php.ini<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=54></a>
+<b>Q:</b> When I click on setup.php, my apache crashes with an error like: <br />
+          The instruction at "xxxkjk" referenced memory at "0xxx". The memory could not be read.<br />
+<b>A:</b> It could be that you forgot to set a valid path for the variable session.save_path in the php.ini<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=55></a>
+<b>Q:</b> I have a question about PHP! <br />
+<b>A:</b> Probably the best place to start would be the homepage of the PHP group: <a href="http://www.php.net" target=_blank>php.net</a><br />
+          German portals are: <a href="http://www.dynamic-webpages.de" target=_blank>Dynamic webpages</a> and
+          <a href="http://www.php-center.de" target=_blank>PHP Center</a><br />
+
+          You can find extensive FAQ's at <a href="http://www.php.net/manual/en/faq.php" target=_blank>php.net</a> and
+          <a href="http://www.koehntopp.de/php" target=_blank>koehntopp.de (german)</a>.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=56></a>
+<b>Q:</b> Is there a module that will allow receiving mail on standard POP (non-IMAP) servers?
+          My current web host does not support IMAP <br />
+
+<b>A:</b> Often misunderstood: you need the PHP-extension (library) called imap. The module itself works with pop
+          and imap accounts.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=57></a>
+<b>Q:</b> After using the new version I get the message: "Column count doesn't match value count at row 1"<br />
+<b>A:</b> This fault is commonly caused by update PHProjekt without running the setup/update routine.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=58></a>
+<b>Q:</b> I could install the tool with MS-SQL but after the login the system ssems to hang!<br />
+<b>A:</b> Change in the lib.inc.php "$link = mssql_connect($db ..." to "$link = mssql_pconnect($db_host ..."<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=59></a>
+<b>Q:</b> I get this error when i try to run setup.php Warning: Failed opening \'/usr/www/webroot/go.geno.com/html/index.php\' for
+          inclusion (include_path=\'.:/usr/local/lib/php\') in Unknown on line 0<br />
+<b>A:</b> solved it by giving ownership of all file and directories in the phprojekt directory to the wwwrun.nogroup , the user and group of apache <br />
+          <a href=#top>up</a><br /><br />
+
+<a name=59></a>
+<b>Q:</b> After choosing oracle as the preferred RDBm and after filling out the form with the<br />
+
+          required access parameter, the system hangs! What could it be?<br />
+<b>A:</b> I could solve the problem - an entry in PHP.ini like that was need. extension=php_oci8.dll<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=60></a>
+<b>Q:</b> I want to assign time to projects in the timecard, but no project appears!<br />
+<b>A:</b> the projects will appear on that day if:<br />
+
+          - the project is set to 'working'<br />
+          - start and end date must include the chosen day<br />
+          - you must be a participant of this project<br />
+          - you must have an entry in your timecard for this day <br />
+          (for $projekte = 3 in the config.inc.php the last condition doesn't matter)<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=61></a>
+<b>Q:</b> I'm having a little trouble setting it up: "Database connection failed! Call admin, please"<br />
+<b>A:</b> The php script cannot connect to the database system. Please check whether the access parameters are correct,
+          the database interface in php is compiled/installed and active and the db is up and running,
+          and the user of the database has the privilege to create tables.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=62></a>
+<b>Q:</b> I get a parse error in line yxz in script yxz!<br />
+
+<b>A:</b> Several users reported that they did not unzip correctly the file from the distribution package,
+          so maybe you should check this first.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=63></a>
+<b>Q:</b> I only can send small attachments (e.g. smaller 1MB). How can I change this?<br />
+<b>A:</b> Maybe the php parser has not enough memory to build the whole mail with the attachment.<br />
+
+          Try to raise the value of 'memory_limit' in the php.ini.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=64></a>
+<b>Q:</b> The Mozilla tries to download the calendar first as x-httpd-calendar :-(<br />
+<b>A:</b> Along with installing the Mozilla 1.0rc3 i, for the first time, switched on the advanced option "http-pipelining".
+          This doesn`t work nice with the phprojekt, when turned off everything works fine again! <br />
+          <a href=#top>up</a><br /><br />
+
+<a name=65></a>
+<b>Q:</b> I'm still facing connection errors with postgres!<br />
+<b>A:</b> Modify the files "lib/lib.inc.php" line 110 and "setup/step2a.php" lines 43, 51 and 53 from:<br />
+          $link = pg_connect((($db_host == "") ......<br />
+          to<br />
+          $link = pg_connect((($db_host == "" || $db_host == "localhost") .....<br />
+
+          Postgres requires in case of "localhost" the host simply unmentioned in the connect-string.<br /><br />
+          another hint from an user:<br />
+         Basically you must not enter a hostname if the database is on localhost. Seems to be a bug in php.<br />
+         After I tried that I was prompted with a javascript error, which told me I had to enter a hostname
+         so I opened the file lib/chkform.js and commented out the complete body of the function chkForm and
+         added the line "return true;" Now I was able to install phprojekt. <br />
+          <a href=#top>up</a><br /><br />
+
+<a name=66></a>
+
+<b>Q:</b> Is it possible to change the max_filesize given in the upload form?<br />
+<b>A:</b> Change the parameter 'upload_max_ilesize' in the php.ini to the desired value<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=67></a>
+<b>Q:</b> Running the index.php I get the follwing: "Warning: stat failed for
+          ../../../config.inc.php (errno=2 - No ..." what happens here?<br />
+
+<b>A:</b> Just edit the lib.inc.php and change<br />
+          if (is_readable("../../../config.inc.php")) include_once("../../../config.inc.php");<br />
+          elseif (is_readable("../../config.inc.php")) include_once("../../config.inc.php");<br />
+          to<br />
+          if (is_readable("../../config.inc.php")) include_once("../../config.inc.php");<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=68></a>
+<b>Q:</b> Though the uploaded files are in the upload directory, I still cannot download them!<br />
+<b>A:</b> Turn off the mod_gzip compression, this can cause troubles during the file download.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=69></a>
+<b>Q:</b> Running PHProjekt with SSL I cannot download any file!<br />
+
+<b>A:</b> A hint from an user:<br />
+          use these headers in filemanager_down.php as IE gets confused with the default headers:<br />
+          header ("Cache-Control: must-revalidate, post-check=0, pre-check=0");<br />
+          header ("Pragma: public");<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=70></a>
+<b>Q:</b> The eMail client of phprojekt has no feature to store which eMails are already loaded.<br />
+          So everytime you ask for new Mails, the client gets all Mails on the POP Server.</a><br />
+<b>A:</b> Be aware that there are two links in the navigation bar. One link is called 'receive ...:
+          and the button next to ot '... and leave on the server'. To delete mails which are already
+          downloaded you have to use the first button<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=71></a>
+
+<b>Q:</b> There are some unexpected problems with some users, their records get mixed!<br />
+<b>A:</b> Please have a look whether the short name has a blank in it - this could be the reason.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=72></a>
+<b>Q:</b> I don't see any body from a mail!<br />
+
+<b>A:</b> Users reported this behaviour and said they solved the problem by commenting the line
+          with $body = eregi_replace("<script,&lt;script,$body); in mail_view.php></script><br />
+          <a href=#top>up</a><br /><br />
+
+<a name=73></a>
+<b>Q:</b> I changed the value of $quickmail in the config from 1 to 2 in order to receive mails as well,
+          but I get a sql error message saying that some tables do not exist. What happened?<br />
+<b>A:</b> chnaging this calue is not enough, some database tables have to be created as well!
+          <br />-> change the value back to 1 and run setup.php with the configure option.
+          If the remark next to the mail module shows you a '2' to insert, then you are able
+          to isntall the full mail client, otherwise your provider has to add the imap library
+          to his php installation.<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=74></a>
+<b>Q:</b> Which file and folder attributes (or: permissions) does the webserver need?<br />
+<b>A:</b> <The webserver needs read permissions for all directories inside the PHProjekt root and
+          write permissions to the follwing:><br />
+          - a file named config.inc.php which will be written during the setup on the PHProjekt root level<br />
+          - the folders /chat, /attach and the upload directory (mostly named 'upload')<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=75></a>
+<b>Q:</b> Is there somewhere I can download a config.inc.php? I still haven't successfully created one due to some
+          weird error.<br />
+<b>A:</b> yes, here: www.phprojekt.com/files/sql_dump.tar.gz<br />
+          There you will find a dump of the database and a default config.inc.php<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=76></a>
+<b>Q:</b> The FAQ often refers to a 'php.ini', but I don't have access to this file<br />
+          - how can I check the settings anyway?<br />
+<b>A:</b> Write a script with the following line:<br />
+          phpinfo();<br />
+          and check the output of this script - it lists you all values of the php.ini<br />
+
+          <a href=#top>up</a><br /><br />
+
+<a name=77></a>
+<b>Q:</b> I saw several bugfixes available for the current version - do I need to download them, too?<br />
+<b>A:</b> All bugfixes (until this moment of course) are included in the current download distribution,
+          so you don't have to worry about older bugs and bugfixes. But in order to receive future bugfixes
+          automatically you should subscribe to the bugfix newsletter of your version.<br />
+          <a href=#top>up</a><br /><br />
+
+<a name=78></a>
+<b>Q:</b> I installed PHProjekt on an e-smith, but the file upload doesn't seem to work.<br />
+<b>A:</b> This hint here was posted on an e-smith forum (http://www.e-smith.org/bboard/read.php?f=3&i=12704&t=12702)<br />
+          "Have you disabled the PHP sandbox security that was introduced in SME 5.1.2. This security feature does not
+          allow a PHP script in an ibay to access files outside of the ibay e.g your /tmp directory." <br />
+          <a href=#top>up</a><br /><br />
+
+<a name=79></a>
+<b>Q:</b> Download of a file results in a 0 byte file! In the upload dir filesize is ok.<br />
+<b>A:</b> An user reported that it worked after turning off the 'safe_mode' restriction in the php.ini.<br /><br />
+
+<a name=80></a>
+<b>Q:</b> I get the message: "Oops - can't find my session". What do I have to do?<br />
+<b>A:</b> a) session.save_path (in php.ini) has to point to a valid and existing directory like : "C:\PHP\sessiondata"<br />
+
+          b) php must have access to the session.save_path. under winnt/iisthe user "iusr_host" must
+          have rwxd-rights to - lets say - "C:\PHP\sessiondata"<br />
+          c) anuser reported that in his case register_globals (in php.ini) has to be "on".<br /><br />
+          <a href=#top>up</a><br /><br />
+          
+<a name=81></a>
+<b>Q:</b>Is it possible to send mail from a windows system without an own mailserver?<br />
+<b>A:</b>Do the following stetings in php.ini (example for t-online):<br />
+
+         [mail function]<br />
+         SMTP=mail.btx.dtag.de ;for win32 only<br />
+         sendmail_from=my_mail_name@t-online.de ;for win32 only<br />
+         Be online! Than start the mail module (Caution: php.exe will hang if you are offline!!)<br /><br />
+          <a href=#top>up</a><br /><br />
+         
+<a name=82></a>
+
+<b>Q:</b>I want to upgrade to Version 4.0 from 3.2 but I seem to have forgotten the root password. 
+         Is there a known way to recover this? Can I just go into the users table and delete the 
+         password entry for the root account?<br />
+<b>A:</b>if you disabled the password encryption - yes ($pw_crypt = 0; in the config.inc.php)<br />
+         In the case that the password encryption is enabled: Copy another known password in the database (table users,
+         field pw) into the root record and then login with this password.<br /><br />
+          <a href=#top>up</a><br /><br />
+          
+<a name=83></a>
+<b>Q:</b>While starting an update I get the infamous "PANIC! config.inc.php can't be written! ..."
+         Changed the folder permission to 777. Nothing. What happened?<br />
+
+<b>A:</b>Changing the folder permission is not enough, the config.inc.php file itself has to have a mode which 
+         allows the webserver to rewrite this file. -> do a "chmod" on the config.inc.php file directly<br /><br />
+          <a href=#top>up</a><br /><br />
+                   
+<a name=84></a>
+<b>Q:</b>Interbase/Firebird: I observe problems with a charset!<br />
+<b>A:</b>An admin reported that one should avoid to define a charset definition within the database. He observed
+         problems with the win1252 chrset.<br /><br /> 
+         <a href=#top>up</a><br /><br />
+          
+
+<a name=85></a>
+<b>Q:</b>Running the file setup.php gives me this message: "Oops! Can't include or find the language files in the directory 'lang'! ..."
+                  But the file IS in it's right place! what can I do?<br />
+<b>A:</b>This is an incompatibilty between php 4.2.x and apache 2.x version. For a workaround see here
+         http://www.phprojekt.com/modules.php?op=modload&name=forum&file=index&kat=1&id=16458&action=writetext<br /><br />              
+          <a href=#top>up</a><br /><br />
+                   
+<a name=86></a>
+<b>Q:</b>Is it possible to use the apache version 2.0.43 (or similar)?<br />
+
+<b>A:</b>Generally yes but we observed a lot problems with the combination php4/apache 2.0.x at the moment (end 2002),
+         so we strongly recommend to stick to the 1.3 version of apache.<br /><br />           
+         <a href=#top>up</a><br /><br />
+          
+<a name=87></a>
+<b>Q:</b>How do I perform an update?<br />
+<b>A:</b>PHProjekt has an automatic update routine. You have to distinct beween maintainance updates (a change 
+in the version number at the third position, e.g. 3.2.0 -> 3.2.1) or an update or upgrade with enhanced features
+(e.g. 3.2 -> 3.3 or 3.3 -> 4.0). In the first case you simply have to copy the files over the old ones, int the
+latter case you have to run setup.php with the 'update to new version' option, the setup routine will do the rest.<br />
+Attention: always backup your system (= database and the whole directory) before an update! You can use the addon
+'PHProjekt backup system' to manage your backups.<br /><br />
+         <a href=#top>up</a><br /><br />
+
+         
+<a name=88></a>
+<b>Q:</b>After the upload, the uploaded file exists in /tmp but the copy routine fails!<br />
+<b>A:</b>Have a look into the php.ini whether the /tmp dir is indeed the upload dir! Otherwise you have to adjust this
+         or create another upload dir with the path mentioned in the php.ini.<br /><br /> 
+         <a href=#top>up</a><br /><br />
+                   
+<a name=89></a>
+<b>Q:</b>I have problems opening and saving pdf files!<br />
+<b>A:</b>An user reported that after changing the string 'content disposition in the line 
+         'header( "Content-Disposition: attachment; filename=$name");' in the file filemanager_down.php
+         from 'attachment' to 'inline', he was able to open them in the browser itself. <br /><br />    
+         <a href=#top>up</a><br /><br />
+
+                        
+<a name=90></a>
+<b>Q:</b>In the forum on the PHProjekt homepage someone told me to raise the error reporting level to 
+         get an error message displayed. How can I do this?<br />
+<b>A:</b>Put a comment before this line in the index.php and lib/lib.inc.php:
+         error_reporting(0);
+         by adding two slashes in the beginning of the line:
+         // error_reporting(0);
+         and remove these slashes in the next line:
+         // error_reporting( E_ALL & ~E_NOTICE); to
+         error_reporting( E_ALL & ~E_NOTICE);<br /><br />           
+         <a href=#top>up</a><br /><br />
+         
+<a name=91></a>
+<b>Q:</b>Do I have to setup the required tables in the database before the installation?<br />
+
+<b>A:</b>No, just create a new database, the setup routine will create the required tables<br /><br />    
+         <a href=#top>up</a><br /><br />
+         
+<a name=92></a>
+<b>Q:</b>During the setup I get this: "Session error! Please set the correct temp path in 
+         the variable session.save_path at php.ini" But there is a value in the php.ini!<br />
+<b>A:</b>Please ensure that:
+         - this directory exists<br />
+         - the webserver is able to read and write files there<br />
+         - you wrote the path correctly, especially windows can cause trouble here (try all combinations like c:\tmp, C:/tmp etc.)<br /><br />    
+         <a href=#top>up</a><br /><br />         
+         
+
+<a name=93></a>
+<b>Q:</b>During the setup I get this message: "Session error! Please set the correct temp path in 
+         the variable session.save_path at php.ini" But I don't know what to do!!<br />
+<b>A:</b>If you rent webspace at a provider tell him that the sessions of php4 don't work correctly and 
+         ask him to fix this. If you host by yourself then you have to find the php.ini on your system 
+         and set the path in the session.save_path to a directory where the webserver can read and write. <br /><br />
+         Another user reported that setting the sessiondata directory below the php directory for read and write
+         permission for the webserver solved his problem.    
+         <a href=#top>up</a><br /><br />
+                  
+<a name=94></a>
+<b>Q:</b>Trying the database conncetion test in the test routine gives me a blank page! Any clues?<br />
+<b>A:</b>Many reasons could be responsible that the db test fails. this test simply checks whether there
+         is an active connection to the given database. Please read the chapter 'database' in this FAQ for further
+         hints. If the whole screen is blank then you should check whether your php has the support of your
+         mentioned database system enabled att all. You can check this by running the phpinfo() function and see
+         whether there is a section about your chosen db.<br /><br />    
+         <a href=#top>up</a><br /><br />    
+
+
+<a name=95></a>
+<b>Q:</b>I tried to install PHProjekt on redhat 8.0 but encounter problems - can anybody help me?<br />
+<b>A:</b>An administrator reported that probably the system installs itself without the mysql package by default. 
+         Have a look into the rpm  list and -in case the entry is missing and you want to run PHProjekt with 
+         mysql- install the mysql rpm package<br />
+         here is a posting in the forum which might help you as well:<br />
+         http://www.phprojekt.com/modules.php?op=modload&name=forum&file=index&kat=1&id=18779&action=writetext<br /><br />    
+         <a href=#top>up</a><br /><br />
+
+         
+<a name=96></a>
+<b>Q:</b>Is there any reason why the notification in the forum modules doesn't work?<br />
+<b>A:</b>Make sure that this feature is activated in the config: $forum_notify = 1;<br /><br />    
+         <a href=#top>up</a><br /><br />  
+      
+<a name=97></a>
+<b>Q:</b>Each time I fetch mails I get lots of php source code on the screen. How can I get rid of it?<br />
+<b>A:</b>Replace in the first line of mail_list.php<br />
+
+         &lt;?<br />
+         with
+         &lt;?php<br /><br />    
+         <a href=#top>up</a><br /><br />
+
+<a name=98></a>
+<b>Q:</b>I updated my webserver to apache 2.x and suddenly uploads beyond 500kB are denied! What happened?<br />
+<b>A:</b>Change the value of LimitRequestBody to i.e. 20000000 (default: 524288) in the apache config file 
+         /httpd/conf.d/php.conf<br /><br />    
+         <a href=#top>up</a><br /><br />  
+         
+
+<a name=99></a>
+<b>Q:</b>I red about the option to have an export into a pdf file, how does this work?<br />
+<b>A:</b>Fetch the free pdf class from R & OS: http://www.ros.co.nz/pdf/ and copy<br /> 
+         - remove this line in class.pdf.php: "header("Content-Disposition: inline; filename=".$fileName);"<br />
+         - put the files class.pdf.php and class.ezpdf.php into the directory /misc and <br />
+         - put all fonts into a new directory /fonts below the directory /misc.<br />
+         At last activate the pdf export option in the config.inc.php by setting $pdf_support = "1";
+         <br /><br />    
+         <a href=#top>up</a><br /><br />      
+         
+
+
+<a name=96></a>
+<b>Q:</b>Though I'm sure the pathes in the config.inc.php are set properly I still get the message
+                   at the download: "panic! specified file not found ..." - what could be the reason?<br />
+<b>A:</b>Please check whether your webserver has the right to read and write into the uplaod directory - 
+         several admins mentioned that this was the reason of troubles.<br /><br />    
+         <a href=#top>up</a><br /><br /> 
+                  
+       
+                 
+<a href="javascript:window.close()">back</a> </p>
+      </td>
+</table>
+
+</div>
+</div>
+</div>
+</div>
+</body>
+
+</html>

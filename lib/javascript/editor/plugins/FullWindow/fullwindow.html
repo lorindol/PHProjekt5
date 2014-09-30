@@ -1,0 +1,62 @@
+<!--
+ *
+ * FCKeditor - The text editor for internet
+ * Copyright (C) 2003-2004 Frederico Caldeira Knabben
+ * 
+ * Licensed under the terms of the GNU Lesser General Public License:
+ * 		http://www.opensource.org/licenses/lgpl-license.php
+ * 
+ * For further information visit:
+ * 		http://www.fckeditor.net/
+ * 
+ * Original plugin:
+ * Written By Michal Aichinger, 2005
+ * michal.aichinger@netdogs.cz
+ * 
+ * Update september 2005:
+ * Written by Edwin Vlieg
+ * info@flydesign.nl
+ *
+-->
+<html><head><title>FullWindow</title>
+<script src="../../../fckeditor.js"></script>
+
+<style>
+body { margin: 0; background: #efefde; }
+</style>
+
+</head>
+<body>
+<script>
+    window.returnValue = 'write';
+
+	if ( !dialogArguments )
+		dialogArguments = window.opener.FCKLastDialogInfo ;
+
+	var oEditor 	= dialogArguments.Editor;
+	var FCK			= oEditor.FCK ;
+	var FCKConfig	= oEditor.FCKConfig ;  
+	
+	var oFCKeditor = new FCKeditor('FCKeditor1', '100%', '100%' ,'NewToolbarClose') ;
+	oFCKeditor.BasePath = '../../../';
+	
+	//get content from opener fck
+	oFCKeditor.Value = ( FCK.GetHTML( FCKConfig.FormatSource ) )
+  
+	var loadConfig = new Array('EditorAreaCSS', 'StylesXmlPath', 'AutoDetectLanguage', 'DefaultLanguage', 'SkinPath', 'BaseHref');
+	
+	for(var i = 0; i < loadConfig.length; i++)
+		eval("oFCKeditor.Config['"+loadConfig[i]+"'] = FCKConfig."+loadConfig[i]+";");
+	
+	oFCKeditor.Create() ;
+  
+	window.onunload = closeWindow;
+	
+	function closeWindow(){
+		var oFCKeditor = FCKeditorAPI.GetInstance('FCKeditor1');
+		FCK.SetHTML(oFCKeditor.GetHTML(FCKConfig.FormatSource));
+		oEditor.focus();
+	}
+
+</script>
+</body></html>

@@ -1,0 +1,678 @@
+/*
+ * PHProjekt 5.2 - Global Styles
+ * 
+ * Defining global GUI element styles and master placement of typical site layers.
+ * 
+ * Some default colors:
+ * blue   = #085eb4    (light #7373BB)
+ * orange = #de6510
+ * red    = #c2050a    (light #EEB3B3)
+ * green  = #74b548    (light #B3EEB3)
+ * cyan   = #006666
+ */
+
+
+ 
+/* ----- Initialization ------------------------------------------------ */
+html {
+    height: 100% !important;
+}
+
+body {
+
+    background-color: #ffffff;
+    
+    margin: 0;
+    left: 0;
+    top: 0;
+    padding: 0;
+    
+    /* fallback- or default font: */
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 100.01%;
+    
+    font-size: 12px;
+}
+
+/* --------------------------------------------------------------------- */
+
+
+/* ----- global placement ---------------------------------------------- */
+#global-main {
+    position: absolute;
+    width:100%;
+    margin: 0;
+    text-align:left;
+    top: 0;
+    left: 0;
+}
+
+
+#global-header {
+    position: fixed !important;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    margin: 0;
+    height: 40px;
+    width: 100%;
+    border-bottom: 1px solid #222222;
+    background: url(img/logo.png) no-repeat;
+    background-color: #eeeeee;
+    z-index: 1;
+}
+
+#global-navigation {
+    position: fixed !important;
+    position: absolute;
+    overflow: auto;
+    left: 0px;
+    top: 40px;
+    background-color: #eeeeee;
+    width: 130px;
+    height:100%;
+    border-right: 1px solid #222222;
+    padding: 5px;
+    z-index: 2;   
+}
+
+
+#global-content,
+#global-content.popup {
+    margin-left: 140px;
+    margin-top: 56px;
+    padding-top: 5px;
+    padding-left: 10px;
+    z-index: 0;
+   
+}
+
+
+/* --------------------------------------------------------------------- */
+
+
+/* ----- element classes ----------------------------------------------- */
+
+a {
+    color: #000;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* common P within(!) #pgp-content */
+#global-content p {
+    margin-bottom: 8px;
+    line-height: 1.5em;
+    font-size: 12px;
+}
+
+#global-content.popup {
+    left: 0;
+}
+#global-main #global-navigation ul {
+    padding-left: 0;
+    margin-left: 0;
+}
+
+#global-navigation ul li {
+    list-style: none;
+    margin-bottom: 4px;
+    padding-left: 0px;
+    
+}
+#global-navigation ul li:hover {
+    background-color: #ffffff;
+    text-decoration: underline;
+}
+
+#global-navigation form,
+#global-navigation form select,
+#global-navigation #searchterm {
+    font-size: 10px;
+    display: inline;
+    width: 50%;
+}
+
+
+
+#global-navigation .nav_button {
+    font-size: 12px;
+    display: inline;
+    color: #999;
+    border: 1px solid #999999;
+    background-color: #ffffff;    
+    padding: 1px;
+    cursor: pointer;
+    width: 16px;
+}
+
+
+
+#global-navigation ul li a {
+    padding-left: 0px;
+    color: #000000;
+    text-decoration: none;
+}
+
+#global-navigation ul li a:hover {
+    text-decoration: underline;
+}
+
+/* active module in navigation */
+#global-navigation ul li.active {
+    text-decoration: none;
+}
+#global-navigation ul li a.active {
+    font-weight: bold;
+}
+#global-navigation ul li span.nav_arrow {
+    color: #de6510;
+    margin-right: 5px;
+}
+
+#global-navigation ul li dfn {
+    display: none;
+    width: 0;
+}
+
+#global-navigation h4 {
+    background-color: #d3d9df;
+    font-weight: bold;
+    text-align: center;
+}
+
+#global-header #global-panels-top {
+    position: absolute;
+    left: 140px;
+    margin: 0px;
+    padding-top: 12px;
+}
+
+#global-header #global-panels-top-right {
+    position: absolute;
+    right: 0;
+    margin: 0px;
+    padding-top: 12px;
+}
+
+#global-header #global-panels-top ul {
+    padding: 0; 
+    margin-left: 20px; 
+    margin-top: 0px;
+    border-bottom: 3px solid #006666;
+}
+
+#global-header #global-panels-top li,
+#global-header #global-panels-top-right li {
+    display: inline;
+    list-style: none;
+    margin: 5px;     
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Active Top Links (in Header)*/
+#global-header #global-panels-top li.active {
+    background-color: #aec0d3;
+    border-top: 3px solid #aec0d3;
+}
+#global-header #global-panels-top li.active a, 
+#global-header #global-panels-top-right li a {
+    color: #000;
+    text-decoration: none;
+}
+
+/* Inactive Top Links or captions(!) (in Header)*/
+#global-header #global-panels-top ul li:first-child {
+    background-color: #ffffff;
+    color: #9F9ABA;
+    font-weight: bold;
+    border: 0;    
+    margin-right: 40px;
+}
+
+#global-header #global-panels-top li,
+#global-header #global-panels-top-right li {
+    background-color: #d3d9df;
+    color: #000000;
+    border-left: 1px solid #c0c0c0;
+    border-top: 1px solid #c0c0c0;
+    border-right: 1px solid #c0c0c0;
+}
+
+#global-header #global-panels-top-right li {
+    border-bottom: 1px solid #c0c0c0;
+}
+
+#global-header #global-panels-top a,
+#global-header #global-panels-top-right li a {
+    color: #000000;
+    text-decoration: none;
+}
+
+/* no border around link-nested images */
+a img {
+    border: 0;
+}
+
+#bars form {
+    display:inline;
+}
+
+optgroup {
+    font-style: normal;
+    font-weight: bold;
+}
+
+/* default  styles */
+
+/* common fontsize for form-elements */
+#global-content input,
+#global-content select,
+#global-content button,
+#global-content textarea,
+#global-content option {
+    font-size: 12px;
+}
+
+/* errors and notices */
+#global-content div.status_bar {
+    padding: 3px;
+    border-top: 1px solid #a0a0a0;
+    font-weight: bold;
+    background-color: #d3d9df;
+}
+#global-content span.status_bar .notice {
+    font-weight: bold;
+    color: green;
+}
+#global-content span.status_bar .error {
+    font-weight: bold;
+    color: red;
+}
+
+#global-content .sort {
+    text-decoration: none;
+    color: #de6510;
+}
+#global-content a.unsort {
+    text-decoration: none;
+    color: #74b548;
+}
+
+.button_link_active {
+    background-color: #006666;
+    border: 2px inset #006666;
+    color: #FFF;
+    padding: 2px;
+    text-decoration: none;
+    margin-right: 10px;
+}
+
+.button_link_inactive,
+input.button {
+    background-color: #006666;
+    border: 1px outset #C0C0C0;
+    color: #FFFFFF;
+    padding: 2px;
+    text-decoration: none;
+    font-weight: normal;
+    margin-right: 10px;
+}
+
+
+/* Cyan (or what ever...)*/
+.button_link_cyan {
+    background-color: #006666;
+    border: 2px outset #006666;
+    color: #ffffff;
+    padding: 1px;
+    text-decoration: none;
+}
+
+
+
+#global-content table {
+    font-size: 12px;
+}
+#global-content th, 
+#global-content th a {
+    background-color: #006666;
+    color: #FFFFFF;
+}
+td, th{
+    border-right: 1px solid #FFF;
+    padding-left: 5px;
+}
+#global-content table .odd {
+    background-color: #eeeeee;
+}
+
+#global-content table .even {
+    background-color: #e0e0e0;
+}
+
+div.result_bar_top,
+div.result_bar_bottom {
+    background-color: #bfd6ed;
+    margin: 0 0 10px 0;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    padding: 4px;
+    font-size: 90%;    
+}
+div.result_bar_bottom {
+    margin-top: 10px;
+}
+
+
+div.filter_execute_bar, div.module_bar_top {
+    background-color: #d3d9df;
+    color: #000000;
+    padding: 7px;
+    border: 1px outset #cecede;
+    font-weight: bold;
+}
+div.module_bar_top {
+    background: #FFF;
+    color: #000;
+}
+
+div.module_bar_top a {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+div.filter_edit_bar, .filter_edit_bar a {
+    background-color: #d3d9df;
+    color: #000;
+    padding: 5px;
+    font-weight: bold;
+}
+
+
+/* if not specified, use this as a default link color in defined places */
+table tbody a,
+div.result_bar_top a,
+div.result_bar_bottom a {
+    color: #000000;
+}
+/* --------------------------------------------------------------------- */
+
+.contextmenu {
+    border-color: #D1D1CD #868679 #868679 #D1D1CD;
+    border-width: 1px;
+    border-style: solid;
+    background-color: #C1C1BB;
+}
+table.contextmenu a {
+    padding: 0 10px;
+    text-decoration: none;
+    width: 125px;
+    display: block;
+}
+table.contextmenu a:hover {
+    background: #24136A;
+    color: #FFF;
+}
+/* the FORM section */
+
+#global-content form {
+  margin: 0px;
+  padding: 0px;
+  font-size: 100%;
+}
+
+/* fallback enabled */
+#global-content form textarea,
+#global-content form select { 
+    font-size: 12px;
+    border: 1px solid #a0a0a0;
+    margin-top: 4px;
+}
+
+/* fallback disabled */
+#global-content form textarea.disabled,
+#global-content form select.disabled,
+#global-content form input.disabled { 
+    font-size: 100%;
+    background-color: #e0e0e0;
+    border: 1px dashed #b0b0b0;
+    color: #bbbbbb;
+    cursor: pointer;
+}
+
+#global-content fieldset {
+    margin-bottom: 16px;
+    background-color: #f2f2f2;
+}
+    
+#global-content fieldset legend {
+    line-height: 16px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin: 10px 0;
+    background-image: url(img/fieldsetheaderbg.jpg);
+    border: 1px solid #999;
+    color: #FFF;
+}
+
+#global-content  fieldset fieldset  {
+    line-height: 14px;
+    background: transparent;
+}
+
+#global-content  fieldset fieldset legend {
+    line-height: 14px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background: transparent;
+    border: 1px dotted #c0c0c0;
+    color: #000;
+}
+
+
+/* for inline labels (e.g.: checkboxes) */
+#global-content fieldset label.label_inline {
+    clear: none;
+    display: inline;
+    float: none;
+    padding: 3px 5px;
+    margin: 0px 0px 5px 0px;
+    text-align: center;
+}
+
+/* for block labels (default!) */
+#global-content fieldset label.label_block {
+    clear: both;
+    display: block;
+    float: left;
+    width: 170px;
+    padding: 0 5px 0 0;
+    text-align: right;
+}
+
+/* normal half-size input element */
+#global-content fieldset input.halfsize,
+#global-content fieldset textarea.halfsize {
+    width: 210px;
+    display: inline;
+    padding-top: 1px;
+    padding-right: 3px;
+    padding-left: 3px;
+    padding-bottom: 1px;
+}
+
+/* normal half-size input element */
+#global-content fieldset select.halfsize {
+    width: 210px;
+    display: inline;
+    padding-top: 1px;
+    padding-right: 3px;
+    padding-left: 3px;
+    padding-bottom: 1px;
+}
+
+#global-content fieldset input.halfsize:focus,
+#global-content fieldset input.fullsize:focus,
+#global-content fieldset textarea:focus, 
+#global-content fieldset select:focus {
+    border: 1px solid #de6510;
+}
+
+/* full size input element */
+#global-content fieldset input.fullsize {
+    width: 623px;
+    display: inline;
+    padding-top: 1px;
+    padding-right: 3px;
+    padding-left: 3px;
+    padding-bottom: 1px;
+}
+
+/* common textarea */
+#global-content fieldset textarea {
+    overflow: auto;
+    height: 185px;
+}
+
+
+
+#global-content fieldset textarea.fullsize {
+    width: 400px;
+}
+h1 {
+    font-size: 100%;
+    color: #000;
+    padding: 0 5px;
+    background: #d3d9df;
+}
+form h2 {
+    font-size: 100%;
+    color: #000000;
+}
+table.calendar_month,
+table.calendar_table {
+    width: 840px;
+}
+table.calendar_month caption {
+    background: #de6510;
+    text-align: left
+}
+table.calendar_month thead td {
+    width: 100px;
+    background-image: url(img/fieldsetheaderbg.jpg);
+    color: #FFF;
+}
+table.calendar_month tbody td,
+table.calendar_table tbody td {
+    background: #CCC;
+}
+table.calendar_month tbody td.calendar_day_current,
+table.calendar_table tbody td.calendar_event_accept {
+    background: #C6C3D6;
+    border: 2px solid;
+    border-color: #D3D1E0 #B9B6CD #B9B6CD #D3D1E0;
+}
+table.calendar_table tbody td.calendar_event_open {
+    background: #F4E997;
+    border: 2px solid;
+    border-color: #F7EDAC #F2E484 #F2E484 #F7EDAC;
+}
+table.calendar_table tbody td.calendar_event_reject {
+    background: #c2050a;
+    border: 2px solid;
+    border-color: #D1050B #AE0409 #AE0409 #D1050B;
+}
+table.calendar_month tbody td.calendar_day_weekend {
+    background: #999;
+    border: 2px solid;
+    border-color: #A2A2A2 #8F8F8F #8F8F8F #A2A2A2;
+}
+table.calendar_month tbody td.calendar_day_today {
+    background: #9F9ABA;
+    border: 2px solid;
+    border-color: #9F9ABA #9F9ABA #9F9ABA #C6C3D6;
+}
+div.rel_object {
+    border: 1px solid #000;
+    background: #FFFFFF;
+}
+div.rel_object h4 {
+    margin: 0;
+    background: #FFF;
+    color: #000;
+    display: inline;
+    padding: 0 5px;
+}
+div.rel_object ul,
+div.rel_object li {
+    display: inline;
+}
+div.rel_object li {
+    background: #B7A5EB;
+    margin: 0 10px;
+}
+
+#global-content table caption, h2 {
+    background: #FFF;
+    color: #000;
+    font-weight: bold;
+    text-align: left;
+    padding-left: 5px;
+    font-size: 100%;
+}
+h2 {
+    margin: 10px 0 0 0;
+}
+#global-content table.relations thead td,
+tfoot,
+.noEntries {
+    background: #d3d9df;
+    font-style: italic;
+    margin: 0
+}
+#global-content table.relations tbody td {
+    background: #DDD;
+}
+#left_container,
+#right_container {
+    margin-right: 20px;
+    float: left;
+    width: 400px;
+}
+#chatContent {
+    overflow:auto;
+    width: 400px;
+    height: 200px;
+    float:left;
+    margin-right: 10px;
+    background-color: #efeffa;
+    border: 1px solid #202077;
+    -moz-border-radius: 8px;
+}
+#chatUsers {
+    padding-left:10px;
+    border-left: 1px solid #999;
+    height: 200px;
+}
+
+#alternative_view {
+    position: absolute;
+    left: -2000px;
+    top: -450px;
+    width: 150px;
+    border: 1px solid black;
+    padding: 2px;
+    background-color: #ffffe0;
+    visibility: hidden;
+    z-index: 99;
+}
+.timecard_day {
+    background-color: #00AEAA;
+}
+p.print {
+    display: none;
+}
